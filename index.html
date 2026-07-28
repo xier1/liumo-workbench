@@ -1624,193 +1624,46 @@
 
   /* 日历天气卡片 */
   /* ========== 果然鲜 · 天气日历海报卡片 ========== */
-  .fresh-card-poster {
+  /* ========== 果然鲜 · 天气日历海报（canvas 图片卡片） ========== */
+  .fresh-poster-wrap {
     position: relative;
-    background: linear-gradient(145deg, #4f6df5 0%, #7c3aed 40%, #a855f7 70%, #ec4899 100%);
-    color: #fff;
-    border-radius: 20px;
-    padding: 28px 24px 20px;
     margin-bottom: 16px;
-    overflow: hidden;
+  }
+
+  .fresh-poster-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
     box-shadow:
       0 8px 32px rgba(124,58,237,0.30),
-      0 2px 8px rgba(0,0,0,0.08),
-      inset 0 1px 0 rgba(255,255,255,0.15);
+      0 2px 8px rgba(0,0,0,0.08);
   }
 
-  .fresh-card-poster::before {
-    content: '';
+  .fresh-poster-copy {
     position: absolute;
-    top: -60px;
-    right: -40px;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .fresh-card-poster::after {
-    content: '';
-    position: absolute;
-    bottom: -30px;
-    left: -20px;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  /* ---- 头部：日期区 ---- */
-  .poster-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 20px;
-  }
-
-  .poster-date-block {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .poster-date-big {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    line-height: 1;
-  }
-
-  .poster-day-num {
-    font-size: 52px;
-    font-weight: 800;
-    letter-spacing: -2px;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  }
-
-  .poster-month {
-    font-size: 18px;
-    font-weight: 600;
-    opacity: 0.9;
-  }
-
-  .poster-weekday {
-    font-size: 14px;
-    opacity: 0.8;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
-
-  .poster-lunar {
-    font-size: 12.5px;
-    opacity: 0.65;
-    margin-top: 3px;
-    letter-spacing: 0.3px;
-  }
-
-  /* ---- 中部：天气主视觉 ---- */
-  .poster-main {
-    display: flex;
+    right: 14px;
+    bottom: 14px;
+    display: inline-flex;
     align-items: center;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 22px;
-    padding: 16px 0;
-  }
-
-  .poster-weather-icon {
-    font-size: 64px;
-    line-height: 1;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
-    flex-shrink: 0;
-  }
-
-  .poster-info {
-    display: flex;
-    flex-direction: column;
     gap: 4px;
-  }
-
-  .poster-temp {
-    font-size: 48px;
-    font-weight: 800;
-    letter-spacing: -2px;
-    line-height: 1;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.12);
-  }
-
-  .poster-desc {
-    font-size: 15px;
-    opacity: 0.88;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-  }
-
-  /* ---- 底部：详情网格 ---- */
-  .poster-details {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .poster-detail-item {
-    background: rgba(255,255,255,0.14);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 12px;
-    padding: 10px 8px;
-    text-align: center;
-    font-size: 12.5px;
-    font-weight: 500;
-    letter-spacing: 0.2px;
-    transition: background 0.2s;
-  }
-
-  .poster-detail-item:hover {
-    background: rgba(255,255,255,0.22);
-  }
-
-  /* ---- 品牌栏 ---- */
-  .poster-brand {
-    text-align: right;
-    font-size: 11.5px;
-    opacity: 0.55;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.18);
-    position: relative;
-    z-index: 1;
-    letter-spacing: 1px;
-    font-weight: 500;
-  }
-
-  /* ---- 复制按钮（海报内） ---- */
-  .fresh-card-poster .fresh-copy-btn {
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.38);
+    border: 1px solid rgba(255,255,255,0.45);
     color: #fff;
-    border-radius: 8px;
-    padding: 5px 12px;
-    font-size: 12px;
+    border-radius: 9px;
+    padding: 6px 14px;
+    font-size: 12.5px;
     cursor: pointer;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     transition: all 0.2s;
-    flex-shrink: 0;
-    margin-left: 8px;
-    margin-top: 4px;
   }
 
-  .fresh-card-poster .fresh-copy-btn:hover {
-    background: rgba(255,255,255,0.35);
+  .fresh-poster-copy:hover {
+    background: rgba(0,0,0,0.55);
     transform: translateY(-1px);
   }
+
 
 
   /* 历史上的今天 - 图片卡片 */
@@ -1879,10 +1732,7 @@
   }
 
   @media (max-width: 768px) {
-    .poster-details { grid-template-columns: repeat(2, 1fr); }
-    .poster-weather-icon { font-size: 48px; }
-    .poster-temp { font-size: 36px; }
-    .poster-day-num { font-size: 40px; }
+    .fresh-poster-canvas { border-radius: 16px; }
   }
 
   .fresh-history-content {
@@ -4121,7 +3971,8 @@ async function fetchFreshWeather(){
     tempLow: Math.round(dl.temperature_2m_min[0]),
     wind: Math.round(c.wind_speed_10m)+' km/h',
     humidity: '相对湿度 '+Math.round(c.relative_humidity_2m)+'%',
-    apparent: '体感 '+Math.round(c.apparent_temperature)+'°'
+    apparent: '体感 '+Math.round(c.apparent_temperature)+'°',
+    weatherCode: c.weather_code
   };
 }
 
@@ -4175,29 +4026,9 @@ function renderFreshModule(content, mod){
       <div class="page-desc">${mod.desc} · 数据更新于 ${dateStr}</div>
     </div>
 
-    <div class="fresh-card-poster" id="freshCW">
-      <div class="poster-header">
-        <div class="poster-date-block">
-          <div class="poster-date-big"><span class="poster-day-num">${d.getDate()}</span><span class="poster-month">${d.getMonth()+1}月</span></div>
-          <div class="poster-weekday">${['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()]} · ${d.getFullYear()}年</div>
-          <div class="poster-lunar" id="freshLunar">${lunarStr || '农历加载中…'}</div>
-        </div>
-        <button class="fresh-copy-btn" id="freshCopyWeather" title="复制天气">复制</button>
-      </div>
-      <div class="poster-main">
-        <div class="poster-weather-icon" id="freshWIcon">🌤️</div>
-        <div class="poster-info">
-          <div class="poster-temp" id="freshTemp">--°</div>
-          <div class="poster-desc" id="freshDesc">天气加载中…</div>
-        </div>
-      </div>
-      <div class="poster-details" id="freshDetails">
-        <div class="poster-detail-item">💧 --</div>
-        <div class="poster-detail-item">💨 --</div>
-        <div class="poster-detail-item">🌡 --</div>
-        <div class="poster-detail-item">📊 --</div>
-      </div>
-      <div class="poster-brand">🛒 果然鲜生活超市</div>
+    <div class="fresh-poster-wrap" id="freshCW">
+      <canvas id="freshPosterCanvas" class="fresh-poster-canvas" aria-label="天气日历海报"></canvas>
+      <button class="fresh-copy-btn fresh-poster-copy" id="freshCopyWeather" title="复制图片">📋 复制图片</button>
     </div>
 
     <div class="fresh-grid">
@@ -4228,14 +4059,11 @@ async function freshLoadAll(dateStr){
   const key = freshTodayKey();
   const cache = freshCacheGet(key) || {};
 
-  // 农历（CDN 异步加载后补一次）
-  if(typeof Lunar !== 'undefined'){
-    const el = document.getElementById('freshLunar');
-    if(el && (el.textContent.indexOf('加载中') >= 0)){
-      const ls = freshLunarStr(new Date());
-      if(ls) el.textContent = ls;
-    }
-  }
+  // 初始化海报（加载态）
+  freshPosterInit();
+  freshPosterTryLunar();
+  setTimeout(freshPosterTryLunar, 1500);
+
 
   // 天气
   let w = cache.weather, weatherText = '';
@@ -4243,36 +4071,33 @@ async function freshLoadAll(dateStr){
     try { w = await fetchFreshWeather(); freshCacheSet(key, Object.assign(cache, {weather:w})); }
     catch(e){ w = null; }
   }
+  var wmoIcon = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+    51:'🌦️',53:'🌧️',55:'🌧️',56:'🌧️',57:'🌧️',
+    61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
+    71:'🌨️',73:'❄️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',
+    85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
   if(w){
-    weatherText = w.city+' '+w.desc+' '+w.temp+'°C，'+w.tempLow+'°~'+w.tempHigh+'°， '+w.wind+' '+w.humidity+' '+w.apparent;
-    const we = document.getElementById('freshWeather');
-    // 海报卡片更新
-    var wmoIcon = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
-      51:'🌦️',53:'🌧️',55:'🌧️',56:'🌧️',57:'🌧️',
-      61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
-      71:'🌨️',73:'❄️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',
-      85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
-    var iconEl = document.getElementById('freshWIcon');
-    if(iconEl) iconEl.textContent = wmoIcon[w.weatherCode] || '🌤️';
-    var tEl = document.getElementById('freshTemp');
-    if(tEl) tEl.textContent = w.temp+'°';
-    var dEl = document.getElementById('freshDesc');
-    if(dEl) dEl.textContent = w.desc+' · '+w.city;
-    var detEl = document.getElementById('freshDetails');
-    if(detEl) detEl.innerHTML =
-      '<div class="poster-detail-item">💧 '+w.humidity.replace('相对湿度','')+'</div>'+
-      '<div class="poster-detail-item">💨 '+w.wind+'</div>'+
-      '<div class="poster-detail-item">🌡 体感 '+w.apparent.replace('体感 ','')+'</div>'+
-      '<div class="poster-detail-item">📊 '+w.tempLow+'°~'+w.tempHigh+'°</div>';
+    freshWeatherText = w.city+' '+w.desc+' '+w.temp+'°C，'+w.tempLow+'°~'+w.tempHigh+'°， '+w.wind+' '+w.humidity+' '+w.apparent;
+    if(freshPosterState){
+      Object.assign(freshPosterState, {
+        icon: wmoIcon[w.weatherCode] || '🌤️',
+        temp: w.temp+'°',
+        desc: w.desc+' · '+w.city,
+        humidity: '💧 '+w.humidity.replace('相对湿度',''),
+        wind: '💨 '+w.wind,
+        feels: '🌡 体感 '+w.apparent.replace('体感 ',''),
+        range: '🌡 '+w.tempLow+'°~'+w.tempHigh+'°'
+      });
+      freshPosterRedraw();
+    }
   } else {
-    const we = document.getElementById('freshWeather');
-    var ftEl = document.getElementById('freshTemp');
-    if(ftEl) ftEl.textContent = '--°';
-    var fdEl = document.getElementById('freshDesc');
-    if(fdEl) fdEl.textContent = '获取失败，请检查网络';
+    if(freshPosterState){
+      freshPosterState.desc = '获取失败，请检查网络';
+      freshPosterRedraw();
+    }
   }
   const cwBtn = document.getElementById('freshCopyWeather');
-  if(cwBtn) cwBtn.onclick = () => copyFreshText(weatherText || '天气获取失败');
+  if(cwBtn) cwBtn.onclick = copyFreshImage;
 
   // 微语简报
   let b = cache.brief;
@@ -4323,14 +4148,162 @@ async function freshLoadAll(dateStr){
   const chBtn = document.getElementById('freshCopyHistory');
   if(chBtn) chBtn.onclick = () => copyFreshText(historyText);
 
-  // 农历补填（CDN 异步加载完成后再试一次）
-  setTimeout(()=>{
-    const el = document.getElementById('freshLunar');
-    if(el && el.textContent.indexOf('加载中') >= 0 && typeof Lunar !== 'undefined'){
-      const ls = freshLunarStr(new Date());
-      if(ls) el.textContent = ls;
-    }
-  }, 1200);
+
+}
+
+
+
+// ---------- 果然鲜海报：canvas 绘制 + 复制图片 ----------
+var freshPosterState = null;
+var freshWeatherText = '';
+
+function roundRectFill(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+function freshPosterRedraw(){
+  var cv = document.getElementById('freshPosterCanvas');
+  if(!cv || !freshPosterState) return;
+  var s = freshPosterState;
+  var ctx = cv.getContext('2d');
+  var W = 600, H = 440;
+  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  if(cv.width !== W*dpr){ cv.width = W*dpr; cv.height = H*dpr; }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // 背景图片：天空渐变
+  var sky = ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#2b6fe0');
+  sky.addColorStop(0.45,'#5b8def');
+  sky.addColorStop(0.75,'#9b6fe0');
+  sky.addColorStop(1,'#c98fe0');
+  ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
+
+  // 太阳光晕
+  var sunX = W-110, sunY = 92;
+  var glow = ctx.createRadialGradient(sunX,sunY,8,sunX,sunY,150);
+  glow.addColorStop(0,'rgba(255,247,220,0.95)');
+  glow.addColorStop(0.4,'rgba(255,236,180,0.45)');
+  glow.addColorStop(1,'rgba(255,236,180,0)');
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(sunX,sunY,150,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,250,235,0.95)';
+  ctx.beginPath(); ctx.arc(sunX,sunY,32,0,Math.PI*2); ctx.fill();
+
+  // 云
+  function cloud(x,y,sc,al){
+    ctx.fillStyle = 'rgba(255,255,255,'+al+')';
+    ctx.beginPath();
+    ctx.arc(x,y,sc,0,Math.PI*2);
+    ctx.arc(x+sc*0.9,y+4,sc*0.8,0,Math.PI*2);
+    ctx.arc(x-sc*0.8,y+6,sc*0.7,0,Math.PI*2);
+    ctx.fill();
+  }
+  cloud(120,68,15,0.5); cloud(300,48,12,0.32); cloud(440,120,10,0.28);
+
+  // 远山
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  ctx.beginPath(); ctx.moveTo(0,H);
+  ctx.quadraticCurveTo(W*0.2,H-68,W*0.42,H-92);
+  ctx.quadraticCurveTo(W*0.65,H-118,W*0.85,H-68);
+  ctx.quadraticCurveTo(W*0.95,H-44,W,H-78); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+  // 近山
+  ctx.fillStyle = 'rgba(40,30,70,0.22)';
+  ctx.beginPath(); ctx.moveTo(0,H);
+  ctx.quadraticCurveTo(W*0.3,H-28,W*0.55,H-52);
+  ctx.quadraticCurveTo(W*0.8,H-74,W,H-38); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+
+  // 文字
+  var F = 'system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
+  ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  ctx.fillStyle = '#ffffff';
+
+  // 日期
+  ctx.font = '800 60px ' + F;
+  ctx.fillText(String(s.day), 30, 86);
+  var dw = ctx.measureText(String(s.day)).width;
+  ctx.font = '600 22px ' + F;
+  ctx.fillText(s.month + '月', 30 + dw + 16, 80);
+  ctx.shadowBlur = 4;
+  ctx.font = '500 15px ' + F;
+  ctx.fillText(s.weekday + ' · ' + s.year + '年', 32, 112);
+  ctx.font = '400 13px ' + F;
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(s.lunar, 32, 134);
+
+  // 天气主视觉
+  ctx.shadowBlur = 6; ctx.fillStyle = '#fff';
+  if(s.icon){ ctx.font = '60px ' + F; ctx.fillText(s.icon, 30, 222); }
+  var tx = s.icon ? 116 : 30;
+  ctx.font = '800 52px ' + F;
+  ctx.fillText(s.temp, tx, 216);
+  ctx.font = '500 16px ' + F;
+  ctx.fillText(s.desc, 32, 250);
+
+  // 详情 4 项
+  ctx.shadowBlur = 4;
+  var dets = [s.humidity, s.wind, s.feels, s.range];
+  var colW = (W - 60) / 4;
+  for(var i=0;i<dets.length;i++){
+    var x = 30 + i*colW;
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    roundRectFill(ctx, x, 300, colW-12, 58, 10); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.font = '500 13px ' + F;
+    ctx.fillText(dets[i], x + (colW-12)/2, 334);
+    ctx.textAlign = 'left';
+  }
+
+  // 品牌
+  ctx.shadowBlur = 4;
+  ctx.font = '500 14px ' + F;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText('🛒 果然鲜生活超市', W-24, H-18);
+  ctx.textAlign = 'left';
+
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+}
+
+function freshPosterInit(){
+  var d = new Date();
+  freshPosterState = {
+    day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(),
+    weekday: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()],
+    lunar: '农历加载中…',
+    icon: '🌤️', temp: '--°', desc: '天气加载中…',
+    humidity: '💧 --', wind: '💨 --', feels: '🌡 --', range: '🌡 --'
+  };
+  freshPosterRedraw();
+}
+
+function freshPosterTryLunar(){
+  if(typeof Lunar === 'undefined' || !freshPosterState) return;
+  var ls = freshLunarStr(new Date());
+  if(ls && ls !== freshPosterState.lunar){ freshPosterState.lunar = ls; freshPosterRedraw(); }
+}
+
+function copyFreshImage(){
+  var cv = document.getElementById('freshPosterCanvas');
+  function fallback(){ if(freshWeatherText) copyFreshText(freshWeatherText); else showToast('复制失败'); }
+  if(!cv){ fallback(); return; }
+  try {
+    cv.toBlob(function(blob){
+      if(blob && navigator.clipboard && navigator.clipboard.write){
+        navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(function(){
+          showToast('图片已复制，可粘贴到微信/备忘录');
+        }).catch(function(){ fallback(); });
+      } else { fallback(); }
+    }, 'image/png');
+  } catch(e){ fallback(); }
 }
 
 
