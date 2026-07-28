@@ -1,0 +1,4254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>刘莫个人工作台</title>
+<style>
+  /* ========== 基础重置与变量 ========== */
+  :root {
+    --bg: #f6f7f9;
+    --bg-soft: #eef0f3;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text-soft: #6b7280;
+    --text-muted: #9ca3af;
+    --border: #e5e7eb;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-soft: #eff6ff;
+    --danger: #ef4444;
+    --danger-soft: #fef2f2;
+    --warning: #f59e0b;
+    --warning-soft: #fffbeb;
+    --success: #10b981;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --transition: 0.2s ease;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input, select { font-family: inherit; font-size: inherit; color: inherit; }
+
+  /* ========== 整体布局 ========== */
+  .app {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ========== 侧边栏 ========== */
+  .sidebar {
+    width: 240px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .brand-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .brand-name {
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .nav-section-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    margin-top: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 2px;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+
+  .nav-item.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .nav-item.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .nav-item.disabled:hover {
+    background: transparent;
+    color: var(--text-soft);
+  }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-left: 12px;
+  }
+
+  /* 移动端汉堡按钮 */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ========== 主内容区 ========== */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 32px 40px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .page-desc {
+    color: var(--text-soft);
+    margin-top: 6px;
+    font-size: 14px;
+  }
+
+  /* ========== 统计卡片 ========== */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .stat-value.primary { color: var(--primary); }
+  .stat-value.warning { color: var(--warning); }
+  .stat-value.success { color: var(--success); }
+
+  .stat-bar {
+    height: 4px;
+    background: var(--bg-soft);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .stat-bar-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ========== 工具栏 ========== */
+  .toolbar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .input-add {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    transition: all var(--transition);
+  }
+
+  .input-add:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  .select-priority, .input-date {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text-soft);
+    transition: all var(--transition);
+  }
+
+  .select-priority:focus, .input-date:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+  }
+
+  .btn-add {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-add:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-add:active { transform: translateY(0); }
+
+  /* ========== 筛选条 ========== */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    color: var(--text-soft);
+    font-size: 13px;
+    transition: all var(--transition);
+  }
+
+  .filter-btn:hover { color: var(--text); }
+
+  .filter-btn.active {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+    max-width: 260px;
+    margin-left: auto;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    transition: all var(--transition);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  .btn-clear {
+    padding: 6px 12px;
+    color: var(--text-soft);
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition);
+  }
+
+  .btn-clear:hover {
+    color: var(--danger);
+    background: var(--danger-soft);
+  }
+
+  /* ========== 待办列表 ========== */
+  .todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .todo-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all var(--transition);
+    position: relative;
+  }
+
+  .todo-item:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #d1d5db;
+  }
+
+  .todo-item.done {
+    opacity: 0.62;
+  }
+
+  .todo-item.done .todo-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .todo-item.overdue:not(.done) {
+    border-left: 3px solid var(--danger);
+    padding-left: 14px;
+  }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+
+  .checkbox:hover { border-color: var(--primary); }
+
+  .todo-item.done .checkbox {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .checkbox svg {
+    width: 12px;
+    height: 12px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+
+  .todo-item.done .checkbox svg { opacity: 1; }
+
+  .todo-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .todo-title {
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+    cursor: text;
+  }
+
+  .todo-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .priority-high { color: var(--danger); }
+  .priority-high .meta-dot { background: var(--danger); }
+  .priority-medium { color: var(--warning); }
+  .priority-medium .meta-dot { background: var(--warning); }
+  .priority-low { color: var(--text-muted); }
+  .priority-low .meta-dot { background: var(--text-muted); }
+
+  .meta-overdue {
+    color: var(--danger);
+    font-weight: 500;
+  }
+
+  .todo-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 1;
+    transition: opacity var(--transition);
+  }
+
+  .action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all var(--transition);
+  }
+
+  .todo-item:hover .action-btn { color: var(--text-soft); }
+
+  .action-btn:hover {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+
+  .action-btn.delete:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  /* 编辑模式 */
+  .todo-edit-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  .todo-edit-input:focus { outline: none; }
+
+  /* ========== 空状态 ========== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: var(--bg-soft);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+  }
+
+  .empty-title {
+    font-size: 15px;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+  }
+
+  .empty-desc {
+    font-size: 13px;
+  }
+
+  /* ========== 占位模块 ========== */
+  .placeholder-module {
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+  }
+
+  .placeholder-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  /* ========== Toast ========== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 100;
+    box-shadow: var(--shadow-md);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ========== 响应式 ========== */
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .menu-toggle { display: flex; }
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform var(--transition);
+      box-shadow: var(--shadow-md);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 64px 16px 32px; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .input-add, .select-priority, .input-date, .btn-add { width: 100%; }
+    .search-box { max-width: none; margin-left: 0; }
+  }
+
+  /* ========== 好词好句模块 ========== */
+  .quote-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .quote-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 20px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-left: 3px solid var(--primary);
+  }
+
+  .quote-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: #d1d5db;
+  }
+
+  .quote-card.category-poetry { border-left-color: #8b5cf6; }
+  .quote-card.category-prose { border-left-color: #06b6d4; }
+  .quote-card.category-classic { border-left-color: #f59e0b; }
+  .quote-card.category-modern { border-left-color: #10b981; }
+  .quote-card.category-life { border-left-color: #ec4899; }
+  .quote-card.category-other { border-left-color: #6b7280; }
+
+  .quote-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    word-break: break-word;
+    white-space: pre-wrap;
+    cursor: text;
+    min-height: 24px;
+  }
+
+  .quote-text::before {
+    content: '\201C';
+    font-size: 28px;
+    color: var(--text-muted);
+    line-height: 0;
+    vertical-align: -6px;
+    margin-right: 2px;
+    opacity: 0.5;
+  }
+
+  .quote-source {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  .quote-source::before {
+    content: '—— ';
+    color: var(--text-muted);
+  }
+
+  .quote-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .quote-cat-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-soft);
+    background: var(--bg-soft);
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  .quote-meta-time {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .quote-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .quote-star {
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all var(--transition);
+    background: none;
+    padding: 0;
+    display: inline-flex;
+  }
+
+  .quote-star.starred {
+    color: var(--warning);
+  }
+
+  .quote-star:hover { transform: scale(1.15); }
+
+  .quote-edit-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .quote-edit-text {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .quote-edit-text:focus { outline: none; }
+
+  .quote-edit-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .quote-edit-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 13px;
+  }
+
+  .quote-edit-input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .quote-edit-select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+
+  .quote-edit-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .quote-edit-btn {
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    transition: all var(--transition);
+    font-weight: 500;
+  }
+
+  .quote-edit-btn.save {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .quote-edit-btn.save:hover { background: var(--primary-hover); }
+
+  .quote-edit-btn.cancel {
+    background: var(--bg-soft);
+    color: var(--text-soft);
+  }
+
+  .quote-edit-btn.cancel:hover { background: var(--border); }
+
+  /* 好词好句统计 */
+  .quotes-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .quotes-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ========== 学习管理模块 ========== */
+  .study-gamified {
+    --pvz-sun: #f59e0b;
+    --pvz-plant: #10b981;
+    --pvz-zombie: #8b5cf6;
+    --pvz-today: #3b82f6;
+    --pvz-wrong: #ef4444;
+    --pvz-bg: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 50%, #faf5ff 100%);
+  }
+
+  .study-gamified .page-header {
+    margin-bottom: 16px;
+  }
+
+  /* 游戏化统计卡片 */
+  .pvz-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .pvz-stat-card {
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pvz-stat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .pvz-stat-card.sun  { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+  .pvz-stat-card.plant { background: linear-gradient(135deg, #34d399, #10b981); }
+  .pvz-stat-card.zombie { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+  .pvz-stat-card.today { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+  .pvz-stat-card.wrong { background: linear-gradient(135deg, #f87171, #ef4444); }
+
+  .pvz-stat-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .pvz-stat-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .pvz-stat-label {
+    font-size: 11px;
+    opacity: 0.9;
+    white-space: nowrap;
+  }
+
+  .pvz-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 768px) {
+    .pvz-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* 顶部操作按钮 */
+  .pvz-top-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .pvz-top-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-top-btn.add {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+  }
+
+  .pvz-top-btn.add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(16,185,129,0.4);
+  }
+
+  .pvz-top-btn.refresh {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+  }
+
+  .pvz-top-btn.refresh:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+  }
+
+  .pvz-top-btn.manage {
+    background: var(--card);
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+  }
+
+  .pvz-top-btn.manage:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .pvz-top-btn.print {
+    background: var(--card);
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+  }
+
+  .pvz-top-btn.print:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .pvz-date-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    margin-left: auto;
+  }
+
+  .pvz-date-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-soft);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-date-btn:hover {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+
+  .pvz-date-btn.today-btn {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .pvz-date-input {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 13px;
+    text-align: center;
+    min-width: 120px;
+    cursor: pointer;
+  }
+
+  .pvz-date-input:focus { outline: none; }
+
+  /* 彩色折叠面板 */
+  .pvz-category {
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+  }
+
+  .pvz-category.collapsed .pvz-cat-body {
+    display: none;
+  }
+
+  .pvz-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+    color: #fff;
+  }
+
+  .pvz-cat-header:hover {
+    filter: brightness(1.05);
+  }
+
+  .pvz-cat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .pvz-cat-name {
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .pvz-cat-stats {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .pvz-cat-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .pvz-cat-badge.progress {
+    background: rgba(255,255,255,0.3);
+  }
+
+  .pvz-cat-badge.rate {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .pvz-cat-toggle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  .pvz-category.collapsed .pvz-cat-toggle {
+    transform: rotate(-90deg);
+  }
+
+  .pvz-cat-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: 4px;
+  }
+
+  .pvz-cat-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-cat-action:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.2);
+  }
+
+  .pvz-cat-body {
+    padding: 14px 18px;
+    background: var(--card);
+  }
+
+  /* 任务分组标题 */
+  .pvz-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  .pvz-section-label:first-child {
+    margin-top: 0;
+  }
+
+  /* 每日任务 */
+  .pvz-task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+  }
+
+  .pvz-task:hover {
+    background: var(--bg-soft);
+  }
+
+  .pvz-task.done {
+    opacity: 0.6;
+  }
+
+  .pvz-check {
+    width: 24px;
+    height: 24px;
+    border: 2.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+
+  .pvz-check:hover {
+    border-color: var(--primary);
+    transform: scale(1.1);
+  }
+
+  .pvz-task.done .pvz-check {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .pvz-check svg {
+    width: 14px;
+    height: 14px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .pvz-task.done .pvz-check svg {
+    opacity: 1;
+  }
+
+  .pvz-task-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pvz-task:hover .pvz-task-name {
+    color: var(--primary);
+  }
+
+  .pvz-task.done .pvz-task-name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .pvz-task-points {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--warning);
+    background: var(--warning-soft);
+    padding: 3px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pvz-task.done .pvz-task-points {
+    color: var(--success);
+    background: #ecfdf5;
+  }
+
+  .pvz-task-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .pvz-task-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-task-action:hover {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+
+  .pvz-task-action.delete:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  /* 周期任务 */
+  .pvz-cycle-task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+  }
+
+  .pvz-cycle-task:hover {
+    background: var(--bg-soft);
+  }
+
+  .pvz-cycle-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-soft);
+    padding: 3px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pvz-cycle-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-soft);
+    min-width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .pvz-cycle-count.done {
+    color: var(--success);
+  }
+
+  .pvz-cycle-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--bg-soft);
+    flex-shrink: 0;
+  }
+
+  .pvz-cycle-status.checked {
+    color: var(--success);
+    background: #ecfdf5;
+  }
+
+  .pvz-punch-btn {
+    padding: 5px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(245,158,11,0.3);
+  }
+
+  .pvz-punch-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(245,158,11,0.4);
+  }
+
+  .pvz-punch-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* 添加任务按钮 */
+  .pvz-add-task-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-add-task-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  /* 内联编辑 */
+  .pvz-edit-inline {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    font-size: 14px;
+  }
+
+  .pvz-edit-inline:focus { outline: none; }
+
+  /* 积分 Toast (飘动效果) */
+  .pvz-points-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #fff;
+    padding: 20px 36px;
+    border-radius: 20px;
+    font-size: 28px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 200;
+    box-shadow: 0 8px 30px rgba(245,158,11,0.4);
+  }
+
+  .pvz-points-toast.show {
+    opacity: 1;
+    transform: translate(-50%, -80%) scale(1);
+  }
+
+  /* 打卡动画 */
+  @keyframes pvzPunch {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.3) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  .pvz-punch-anim {
+    animation: pvzPunch 0.4s ease;
+  }
+
+  /* 任务管理面板 */
+  .pvz-manage-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+
+  .pvz-manage-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .pvz-manage-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .pvz-manage-field label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .pvz-manage-field input,
+  .pvz-manage-field select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 13px;
+    transition: all 0.2s ease;
+  }
+
+  .pvz-manage-field input:focus,
+  .pvz-manage-field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  .pvz-manage-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .pvz-reset-btn {
+    color: var(--danger);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: none;
+    border: 1px solid transparent;
+  }
+
+  .pvz-reset-btn:hover {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+  }
+
+  /* 近期打卡记录 */
+  .pvz-history {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    margin-top: 8px;
+  }
+
+  .pvz-history-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pvz-history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 8px;
+  }
+
+  .pvz-history-day {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .pvz-history-day:hover {
+    border-color: var(--primary);
+  }
+
+  .pvz-history-day.today {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .pvz-history-day.future {
+    opacity: 0.4;
+  }
+
+  .pvz-history-date {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .pvz-history-rate {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .pvz-rate-full { color: var(--success); }
+  .pvz-rate-partial { color: var(--warning); }
+  .pvz-rate-zero { color: var(--text-muted); }
+
+  @media print {
+    .sidebar, .menu-toggle, .filter-bar, .toolbar,
+    .pvz-date-nav, .pvz-top-btn, .toast, .pvz-points-toast { display: none !important; }
+    .main { padding: 0 !important; max-width: 100% !important; }
+    .app { display: block !important; }
+    .pvz-category, .pvz-history {
+      break-inside: avoid;
+      box-shadow: none !important;
+      border: 1px solid #ccc !important;
+    }
+    body { background: #fff !important; }
+  }
+
+  /* ========== 果然鲜模块 ========== */
+  .fresh-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .fresh-grid { grid-template-columns: 1fr; }
+  }
+
+  .fresh-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .fresh-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fresh-card-title svg { color: var(--primary); }
+
+  /* 日历天气卡片 */
+  .fresh-calendar-weather {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 16px;
+  }
+
+  .fresh-cw-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .fresh-cw-date {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 4px;
+  }
+
+  .fresh-cw-day {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .fresh-cw-lunar {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-top: 6px;
+  }
+
+  .fresh-cw-icon {
+    font-size: 48px;
+    line-height: 1;
+  }
+
+  .fresh-cw-temp {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .fresh-cw-temp-main {
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .fresh-cw-temp-range {
+    font-size: 15px;
+    opacity: 0.85;
+  }
+
+  .fresh-cw-desc {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .fresh-cw-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .fresh-cw-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fresh-cw-detail svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.8;
+  }
+
+  /* 微语简报 */
+  .fresh-brief-date {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .fresh-quote {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-left: 3px solid var(--success);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .fresh-quote::before {
+    content: '💬 微语: ';
+    font-weight: 600;
+    font-style: normal;
+    color: var(--success);
+  }
+
+  .fresh-brief-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .fresh-brief-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .fresh-brief-item:last-child { border-bottom: none; }
+
+  .fresh-brief-num {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 1px;
+  }
+
+  /* 历史上的今天 */
+  .fresh-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .fresh-history-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .fresh-history-item:last-child { border-bottom: none; }
+
+  .fresh-history-year {
+    flex-shrink: 0;
+    min-width: 56px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.4;
+  }
+
+  /* 复制按钮 */
+  .fresh-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+
+  .fresh-copy-btn:hover {
+    background: rgba(255,255,255,0.35);
+  }
+
+  .fresh-card .fresh-copy-btn {
+    background: var(--bg-soft);
+    border-color: var(--border);
+    color: var(--text-soft);
+  }
+
+  .fresh-card .fresh-copy-btn:hover {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  /* 文字天气 */
+  .fresh-cw-text-weather {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 20px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .fresh-cw-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fresh-cw-label {
+    flex-shrink: 0;
+    min-width: 36px;
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: right;
+  }
+
+  /* 历史上的今天 - 图片卡片 */
+  .fresh-history-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .fresh-history-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .fresh-history-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .fresh-history-card-img {
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .fresh-history-card-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6));
+  }
+
+  .fresh-history-card-year {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    padding: 8px 14px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .fresh-history-card-body {
+    padding: 12px 14px;
+  }
+
+  .fresh-history-card-year-tag {
+    display: inline-block;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .fresh-history-card-event {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  @media (max-width: 768px) {
+    .fresh-cw-text-weather { grid-template-columns: 1fr; }
+  }
+
+  .fresh-history-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .fresh-history-content strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .fresh-section-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .fresh-idiom {
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-top: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-soft);
+  }
+
+  .fresh-idiom strong {
+    color: var(--text);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="菜单">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+</button>
+
+<div class="app">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-avatar">刘</div>
+      <div>
+        <div class="brand-name">刘莫个人工作台</div>
+        <div class="brand-sub">高效协作 · 专注当下</div>
+      </div>
+    </div>
+
+    <div class="nav-section-title">工作模块</div>
+    <nav id="navList"></nav>
+
+    <div class="sidebar-footer">
+      <div id="todayDate"></div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main">
+    <div id="content"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================================================
+   刘莫个人工作台 - 主程序
+   ======================================================== */
+
+// ---------- 模块配置 ----------
+const MODULES = [
+  {
+    id: 'todo',
+    name: '待办管理',
+    desc: '管理日常任务,高效推进工作',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'quotes',
+    name: '好词好句',
+    desc: '收藏值得品味的词句,沉淀语言之美',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'study',
+    name: '学习管理',
+    desc: '每日学习打卡,坚持见证成长',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1 2 3 6 3s6-2 6-3v-5"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'fresh',
+    name: '果然鲜',
+    desc: '今日日历天气 · 微语简报 · 历史上的今天',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'notes',
+    name: '笔记',
+    desc: '快速记录灵感与想法',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    enabled: false
+  },
+  {
+    id: 'schedule',
+    name: '日程安排',
+    desc: '规划时间,掌控节奏',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    enabled: false
+  },
+  {
+    id: 'stats',
+    name: '数据统计',
+    desc: '可视化你的工作产出',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+    enabled: false
+  }
+];
+
+// ---------- 状态 ----------
+let currentModule = 'todo';
+let todos = [];
+let filter = 'all';        // all | active | done
+let search = '';
+let editingId = null;
+
+// ---------- 存储 ----------
+const STORAGE_KEY = 'liumo_workbench_todos';
+
+function loadTodos() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    todos = data ? JSON.parse(data) : [];
+  } catch (e) {
+    todos = [];
+  }
+}
+
+function saveTodos() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+}
+
+// ---------- 工具函数 ----------
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function formatDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function isOverdue(dueDate) {
+  if (!dueDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+function priorityLabel(p) {
+  return { high: '高', medium: '中', low: '低' }[p] || '中';
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ---------- 渲染:侧边栏 ----------
+function renderNav() {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = MODULES.map(m => `
+    <button class="nav-item ${m.id === currentModule ? 'active' : ''} ${m.enabled ? '' : 'disabled'}"
+            data-module="${m.id}"
+            ${m.enabled ? '' : 'disabled'}>
+      <span class="nav-icon">${m.icon}</span>
+      <span>${m.name}</span>
+      ${!m.enabled ? '<span class="nav-badge">即将上线</span>' : ''}
+    </button>
+  `).join('');
+
+  nav.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) {
+        showToast('该模块正在开发中,敬请期待');
+        return;
+      }
+      currentModule = btn.dataset.module;
+      renderNav();
+      renderContent();
+      // 移动端关闭侧边栏
+      document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+}
+
+// ---------- 渲染:主内容 ----------
+function renderContent() {
+  const mod = MODULES.find(m => m.id === currentModule);
+  const content = document.getElementById('content');
+
+  if (!mod.enabled) {
+    content.innerHTML = `
+      <div class="page-header">
+        <div class="page-title">${mod.name}</div>
+        <div class="page-desc">${mod.desc}</div>
+      </div>
+      <div class="placeholder-module">
+        <div class="placeholder-icon">🚧</div>
+        <div style="font-size:16px;margin-bottom:6px;color:var(--text-soft);">${mod.name} 模块正在开发中</div>
+        <div>敬请期待</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 待办管理模块
+  if (currentModule === 'todo') {
+    renderTodoModule(content, mod);
+    return;
+  }
+
+  // 好词好句模块
+  if (currentModule === 'quotes') {
+    renderQuotesModule(content, mod);
+    return;
+  }
+
+  // 学习管理模块
+  if (currentModule === 'study') {
+    renderStudyModule(content, mod);
+    return;
+  }
+
+  // 果然鲜模块
+  if (currentModule === 'fresh') {
+    renderFreshModule(content, mod);
+    return;
+  }
+
+  // 其他已启用模块(预留)
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="placeholder-module">
+      <div class="placeholder-icon">🚧</div>
+      <div style="font-size:16px;margin-bottom:6px;color:var(--text-soft);">${mod.name} 模块正在开发中</div>
+      <div>敬请期待</div>
+    </div>
+  `;
+}
+
+// ---------- 渲染:待办模块 ----------
+function renderTodoModule(content, mod) {
+  content.innerHTML = `
+
+    <!-- 添加待办工具栏 -->
+    <div class="toolbar">
+      <input type="text" class="input-add" id="todoInput" placeholder="添加一个待办事项... (回车提交)" />
+      <select class="select-priority" id="prioritySelect">
+        <option value="low">优先级: 低</option>
+        <option value="medium" selected>优先级: 中</option>
+        <option value="high">优先级: 高</option>
+      </select>
+      <input type="date" class="input-date" id="dueDateInput" title="截止日期" />
+      <button class="btn-add" id="addBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        添加
+      </button>
+    </div>
+
+    <!-- 筛选与搜索 -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <button class="filter-btn ${filter==='all'?'active':''}" data-filter="all">全部</button>
+        <button class="filter-btn ${filter==='active'?'active':''}" data-filter="active">进行中</button>
+        <button class="filter-btn ${filter==='done'?'active':''}" data-filter="done">已完成</button>
+      </div>
+      <button class="btn-clear" id="clearDoneBtn">清除已完成</button>
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索待办..." value="${search}" />
+      </div>
+    </div>
+
+    <!-- 待办列表 -->
+    <div class="todo-list" id="todoList"></div>
+  `;
+
+  bindTodoEvents();
+  renderStats();
+  renderTodoList();
+}
+
+/* ========================================================
+   好词好句模块
+   ======================================================== */
+
+// ---------- 好词好句状态 ----------
+let quotes = [];
+let quoteFilter = 'all';       // all | starred | 分类名
+let quoteSearch = '';
+let quoteEditingId = null;
+
+const QUOTE_CATEGORIES = [
+  { id: 'poetry',  name: '诗词',  color: '#8b5cf6' },
+  { id: 'prose',   name: '散文',  color: '#06b6d4' },
+  { id: 'classic', name: '古典',  color: '#f59e0b' },
+  { id: 'modern',  name: '现代',  color: '#10b981' },
+  { id: 'life',    name: '生活',  color: '#ec4899' },
+  { id: 'other',   name: '其他',  color: '#6b7280' }
+];
+
+const QUOTES_STORAGE_KEY = 'liumo_workbench_quotes';
+
+function loadQuotes() {
+  try {
+    const data = localStorage.getItem(QUOTES_STORAGE_KEY);
+    quotes = data ? JSON.parse(data) : [];
+  } catch (e) {
+    quotes = [];
+  }
+}
+
+function saveQuotes() {
+  localStorage.setItem(QUOTES_STORAGE_KEY, JSON.stringify(quotes));
+}
+
+function categoryName(id) {
+  const c = QUOTE_CATEGORIES.find(c => c.id === id);
+  return c ? c.name : '其他';
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ---------- 渲染:好词好句模块 ----------
+function renderQuotesModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="quotes-stats" id="quotesStats"></div>
+
+    <!-- 添加工具栏 -->
+    <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <textarea class="quote-edit-text" id="quoteInput" placeholder="写下你收藏的好词好句..." rows="3" style="border:1px solid var(--border);box-shadow:none;background:var(--bg);"></textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" class="quote-edit-input" id="quoteSourceInput" placeholder="来源(作者 / 书名 / 出处,可选)" style="flex:1;min-width:160px;" />
+        <select class="quote-edit-select" id="quoteCategorySelect">
+          ${QUOTE_CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+        <button class="btn-add" id="quoteAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          收藏
+        </button>
+      </div>
+    </div>
+
+    <!-- 筛选与搜索 -->
+    <div class="filter-bar" style="margin-top:16px;">
+      <div class="filter-group" id="quoteFilterGroup">
+        <button class="filter-btn ${quoteFilter==='all'?'active':''}" data-qfilter="all">全部</button>
+        <button class="filter-btn ${quoteFilter==='starred'?'active':''}" data-qfilter="starred">⭐ 收藏</button>
+        ${QUOTE_CATEGORIES.map(c => `<button class="filter-btn ${quoteFilter===c.id?'active':''}" data-qfilter="${c.id}">${c.name}</button>`).join('')}
+      </div>
+      <div class="search-box" style="max-width:260px;margin-left:auto;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" id="quoteSearchInput" placeholder="搜索词句或来源..." value="${escapeAttr(quoteSearch)}" />
+      </div>
+    </div>
+
+    <!-- 好词好句列表 -->
+    <div class="quote-grid" id="quoteGrid"></div>
+  `;
+
+  bindQuoteEvents();
+  renderQuotesStats();
+  renderQuoteGrid();
+}
+
+// ---------- 渲染:好词好句统计 ----------
+function renderQuotesStats() {
+  const total = quotes.length;
+  const starred = quotes.filter(q => q.starred).length;
+  const cats = new Set(quotes.map(q => q.category)).size;
+  const recent = quotes.filter(q => Date.now() - q.createdAt < 7 * 86400000).length;
+
+  document.getElementById('quotesStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">收藏总数</div>
+      <div class="stat-value primary">${total}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⭐ 星标</div>
+      <div class="stat-value warning">${starred}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">分类数</div>
+      <div class="stat-value">${cats}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">近 7 天新增</div>
+      <div class="stat-value success">${recent}</div>
+    </div>
+  `;
+}
+
+// ---------- 渲染:好词好句列表 ----------
+function getFilteredQuotes() {
+  let list = quotes;
+  if (quoteFilter === 'starred') list = list.filter(q => q.starred);
+  else if (quoteFilter !== 'all') list = list.filter(q => q.category === quoteFilter);
+  if (quoteSearch.trim()) {
+    const s = quoteSearch.trim().toLowerCase();
+    list = list.filter(q => (q.text || '').toLowerCase().includes(s) || (q.source || '').toLowerCase().includes(s));
+  }
+  // 星标优先,再按创建时间倒序
+  return [...list].sort((a, b) => {
+    if (a.starred !== b.starred) return a.starred ? -1 : 1;
+    return b.createdAt - a.createdAt;
+  });
+}
+
+function renderQuoteGrid() {
+  const list = getFilteredQuotes();
+  const el = document.getElementById('quoteGrid');
+
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+            <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
+          </svg>
+        </div>
+        <div class="empty-title">${quoteSearch ? '没有找到匹配的词句' : (quoteFilter === 'starred' ? '还没有星标词句' : (quoteFilter !== 'all' ? '该分类下暂无词句' : '暂无收藏的好词好句'))}</div>
+        <div class="empty-desc">${quoteSearch ? '试试其他关键词' : '在上方输入框记录你的第一条好词好句吧'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = list.map(q => {
+    const isEditing = quoteEditingId === q.id;
+    const catName = categoryName(q.category);
+
+    if (isEditing) {
+      return `
+        <div class="quote-card category-${q.category || 'other'}" data-id="${q.id}">
+          <div class="quote-edit-area">
+            <textarea class="quote-edit-text" id="qedit-text-${q.id}" rows="3">${escapeHtml(q.text)}</textarea>
+            <div class="quote-edit-row">
+              <input type="text" class="quote-edit-input" id="qedit-source-${q.id}" placeholder="来源(可选)" value="${escapeAttr(q.source || '')}" />
+              <select class="quote-edit-select" id="qedit-category-${q.id}">
+                ${QUOTE_CATEGORIES.map(c => `<option value="${c.id}" ${c.id===q.category?'selected':''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="quote-edit-actions">
+              <button class="quote-edit-btn save" data-qaction="save" data-id="${q.id}">保存</button>
+              <button class="quote-edit-btn cancel" data-qaction="cancel" data-id="${q.id}">取消</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="quote-card category-${q.category || 'other'}" data-id="${q.id}">
+        <div class="quote-text" data-qaction="edit" data-id="${q.id}">${escapeHtml(q.text)}</div>
+        ${q.source ? `<div class="quote-source">${escapeHtml(q.source)}</div>` : ''}
+        <div class="quote-footer">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="quote-cat-tag">${catName}</span>
+            <span class="quote-meta-time">${formatDate(q.createdAt)}</span>
+          </div>
+          <div class="quote-actions">
+            <button class="quote-star ${q.starred ? 'starred' : ''}" data-qaction="star" data-id="${q.id}" title="${q.starred ? '取消星标' : '星标'}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="${q.starred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </button>
+            <button class="action-btn" data-qaction="edit" data-id="${q.id}" title="编辑">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn delete" data-qaction="delete" data-id="${q.id}" title="删除">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ---------- 好词好句事件绑定 ----------
+function bindQuoteEvents() {
+  const input = document.getElementById('quoteInput');
+  const sourceInput = document.getElementById('quoteSourceInput');
+  const categorySelect = document.getElementById('quoteCategorySelect');
+  const addBtn = document.getElementById('quoteAddBtn');
+
+  function addQuote() {
+    const text = input.value.trim();
+    if (!text) {
+      showToast('请输入词句内容');
+      input.focus();
+      return;
+    }
+    quotes.unshift({
+      id: uid(),
+      text,
+      source: sourceInput.value.trim(),
+      category: categorySelect.value,
+      starred: false,
+      createdAt: Date.now()
+    });
+    saveQuotes();
+    input.value = '';
+    sourceInput.value = '';
+    categorySelect.value = 'poetry';
+    renderQuotesStats();
+    renderQuoteGrid();
+    input.focus();
+    showToast('已收藏');
+  }
+
+  addBtn.addEventListener('click', addQuote);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      addQuote();
+    }
+  });
+
+  // 筛选
+  document.querySelectorAll('[data-qfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      quoteFilter = btn.dataset.qfilter;
+      document.querySelectorAll('[data-qfilter]').forEach(b => b.classList.toggle('active', b === btn));
+      renderQuoteGrid();
+    });
+  });
+
+  // 搜索
+  const searchInput = document.getElementById('quoteSearchInput');
+  searchInput.addEventListener('input', () => {
+    quoteSearch = searchInput.value;
+    renderQuoteGrid();
+  });
+
+  // 列表事件委托
+  const grid = document.getElementById('quoteGrid');
+  grid.addEventListener('click', e => {
+    const target = e.target.closest('[data-qaction]');
+    if (!target) return;
+    const action = target.dataset.qaction;
+    const id = target.dataset.id;
+    const q = quotes.find(q => q.id === id);
+    if (!q) return;
+
+    if (action === 'star') {
+      q.starred = !q.starred;
+      saveQuotes();
+      renderQuotesStats();
+      renderQuoteGrid();
+    } else if (action === 'edit') {
+      quoteEditingId = id;
+      renderQuoteGrid();
+      const ta = document.getElementById(`qedit-text-${id}`);
+      if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    } else if (action === 'delete') {
+      quotes = quotes.filter(q => q.id !== id);
+      saveQuotes();
+      renderQuotesStats();
+      renderQuoteGrid();
+      showToast('已删除');
+    } else if (action === 'save') {
+      const newText = document.getElementById(`qedit-text-${id}`).value.trim();
+      if (!newText) {
+        showToast('内容不能为空');
+        return;
+      }
+      q.text = newText;
+      q.source = document.getElementById(`qedit-source-${id}`).value.trim();
+      q.category = document.getElementById(`qedit-category-${id}`).value;
+      saveQuotes();
+      quoteEditingId = null;
+      renderQuotesStats();
+      renderQuoteGrid();
+      showToast('已保存');
+    } else if (action === 'cancel') {
+      quoteEditingId = null;
+      renderQuoteGrid();
+    }
+  });
+
+  // 编辑框快捷键
+  grid.addEventListener('keydown', e => {
+    if (e.target.classList.contains('quote-edit-text') || e.target.classList.contains('quote-edit-input')) {
+      const id = e.target.id && e.target.id.includes('-') ? e.target.id.split('-').pop() : null;
+      if (!id) return;
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        e.preventDefault();
+        const q = quotes.find(q => q.id === id);
+        if (q) {
+          const newText = document.getElementById(`qedit-text-${id}`).value.trim();
+          if (!newText) { showToast('内容不能为空'); return; }
+          q.text = newText;
+          q.source = document.getElementById(`qedit-source-${id}`).value.trim();
+          q.category = document.getElementById(`qedit-category-${id}`).value;
+          saveQuotes();
+          quoteEditingId = null;
+          renderQuotesStats();
+          renderQuoteGrid();
+          showToast('已保存');
+        }
+      } else if (e.key === 'Escape') {
+        quoteEditingId = null;
+        renderQuoteGrid();
+      }
+    }
+  });
+}
+
+/* ========================================================
+   学习管理模块
+   ======================================================== */
+
+// ---------- 学习管理:任务定义(默认配置,可被用户修改) ----------
+const DEFAULT_STUDY_CATEGORIES = [
+  {
+    id: 'cat_chinese',
+    name: '语文',
+    color: '#ef4444',
+    icon: '📖',
+    tasks: [
+      { id: 't_cn1', name: '背诵六上必背内容', type: 'daily', points: 20 },
+      { id: 't_cn2', name: '写字', type: 'daily', points: 20 },
+      { id: 't_cn3', name: '阅读书单', type: 'daily', points: 20 }
+    ]
+  },
+  {
+    id: 'cat_math',
+    name: '数学',
+    color: '#3b82f6',
+    icon: '📐',
+    tasks: [
+      { id: 't_mt1', name: '小升初数学试卷', type: 'daily', points: 20 },
+      { id: 't_mt2', name: '打印老版本六上第三单元,预习六上内容', type: 'daily', points: 20 }
+    ]
+  },
+  {
+    id: 'cat_english',
+    name: '英语',
+    color: '#10b981',
+    icon: '🔤',
+    tasks: [
+      { id: 't_en1', name: '单词机', type: 'daily', points: 20 },
+      { id: 't_en2', name: '格林英语试卷', type: 'daily', points: 20 }
+    ]
+  },
+  {
+    id: 'cat_exercise',
+    name: '锻炼',
+    color: '#f59e0b',
+    icon: '💪',
+    tasks: [
+      { id: 't_ex1', name: '一分钟跳绳', type: 'daily', points: 20 },
+      { id: 't_ex2', name: '一分钟仰卧起坐', type: 'daily', points: 20 }
+    ]
+  }
+];
+
+const DEFAULT_STUDY_EXTRA_TASKS = [
+  { id: 't_print1', name: '打印计划表', type: 'daily', points: 20 },
+  { id: 't_print2', name: '打印天锻炼数据表', type: 'daily', points: 20 }
+];
+
+const DEFAULT_STUDY_CYCLE_TASKS = [
+  { id: 'cyc1', name: '复习错题本', type: 'cycle', points: 30, cycle: '每周2次' },
+  { id: 'cyc2', name: '课外阅读', type: 'cycle', points: 30, cycle: '每周3次' }
+];
+
+// 运行时可变的任务配置
+let studyCategories = [];
+let studyExtraTasks = [];
+let studyCycleTasks = [];
+let studyExtraHidden = false;  // 打印任务分类是否已删除
+let studyCycleHidden = false;  // 周期任务分类是否已删除
+
+const STUDY_CONFIG_KEY = 'liumo_workbench_study_config';
+const STUDY_CAT_COLORS = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#6366f1','#14b8a6','#f97316'];
+const STUDY_CAT_ICONS = ['📖','📐','🔤','💪','🖨️','📚','✏️','🎯','🎵','🎨','🔬','🧩'];
+
+// 默认分类背景色(渐变)
+function studyCatBg(color) {
+  return `linear-gradient(135deg, ${color}, ${color}dd)`;
+}
+
+// 数据迁移:确保每个任务都有 type/points/cycle 字段
+function migrateStudyTask(t, defaultType) {
+  return {
+    id: t.id,
+    name: t.name,
+    type: t.type || defaultType,
+    points: t.points != null ? t.points : 20,
+    cycle: t.cycle || (t.type === 'cycle' ? '每周2次' : undefined)
+  };
+}
+
+function loadStudyConfig() {
+  try {
+    const data = localStorage.getItem(STUDY_CONFIG_KEY);
+    if (data) {
+      const cfg = JSON.parse(data);
+      studyCategories = (cfg.categories || JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES))).map(c => ({
+        ...c,
+        tasks: c.tasks.map(t => migrateStudyTask(t, 'daily'))
+      }));
+      studyExtraTasks = (cfg.extraTasks || JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS))).map(t => migrateStudyTask(t, 'daily'));
+      studyCycleTasks = (cfg.cycleTasks || JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS))).map(t => migrateStudyTask(t, 'cycle'));
+      studyExtraHidden = cfg.extraHidden || false;
+      studyCycleHidden = cfg.cycleHidden || false;
+      return;
+    }
+  } catch (e) {}
+  studyCategories = JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES));
+  studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
+  studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
+}
+
+function saveStudyConfig() {
+  localStorage.setItem(STUDY_CONFIG_KEY, JSON.stringify({
+    categories: studyCategories,
+    extraTasks: studyExtraTasks,
+    cycleTasks: studyCycleTasks,
+    extraHidden: studyExtraHidden,
+    cycleHidden: studyCycleHidden
+  }));
+}
+
+// 获取所有每日任务(计入进度)
+function getDailyTasks() {
+  const list = [];
+  studyCategories.forEach(c => c.tasks.forEach(t => {
+    if (t.type !== 'cycle') list.push(t);
+  }));
+  studyExtraTasks.forEach(t => {
+    if (t.type !== 'cycle') list.push(t);
+  });
+  return list;
+}
+
+// 获取所有周期任务
+function getCycleTasks() {
+  const list = [];
+  studyCategories.forEach(c => c.tasks.forEach(t => {
+    if (t.type === 'cycle') list.push(t);
+  }));
+  studyCycleTasks.forEach(t => list.push(t));
+  return list;
+}
+
+function getDailyTotalCount() {
+  return getDailyTasks().length;
+}
+
+// ---------- 学习管理:状态与存储 ----------
+const STUDY_STORAGE_KEY = 'liumo_workbench_study';
+const STUDY_POINTS_KEY = 'liumo_workbench_study_points';
+let studyRecords = {};   // { 'YYYY-MM-DD': { taskId: { done: bool, note: '' }, ... } }
+let studyDate = todayStr();
+let studyCollapsedCats = {};  // { catId: true }
+let studyPoints = { total: 0, todayDate: '', todayEarned: 0 };
+
+function todayStr() {
+  const d = new Date();
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function loadStudyRecords() {
+  try {
+    const data = localStorage.getItem(STUDY_STORAGE_KEY);
+    studyRecords = data ? JSON.parse(data) : {};
+  } catch (e) {
+    studyRecords = {};
+  }
+}
+
+function saveStudyRecords() {
+  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(studyRecords));
+}
+
+function loadStudyPoints() {
+  try {
+    const data = localStorage.getItem(STUDY_POINTS_KEY);
+    if (data) {
+      studyPoints = JSON.parse(data);
+      // 如果不是今天,重置今日积分
+      if (studyPoints.todayDate !== todayStr()) {
+        studyPoints.todayEarned = 0;
+        studyPoints.todayDate = todayStr();
+      }
+    }
+  } catch (e) {}
+  if (!studyPoints.total) studyPoints.total = 0;
+  if (!studyPoints.todayDate) studyPoints.todayDate = todayStr();
+  if (studyPoints.todayDate !== todayStr()) {
+    studyPoints.todayEarned = 0;
+    studyPoints.todayDate = todayStr();
+  }
+  if (!studyPoints.todayEarned) studyPoints.todayEarned = 0;
+}
+
+function saveStudyPoints() {
+  localStorage.setItem(STUDY_POINTS_KEY, JSON.stringify(studyPoints));
+}
+
+function addStudyPoints(pts) {
+  studyPoints.total += pts;
+  if (studyPoints.todayDate === todayStr()) {
+    studyPoints.todayEarned += pts;
+  } else {
+    studyPoints.todayDate = todayStr();
+    studyPoints.todayEarned = pts;
+  }
+  saveStudyPoints();
+}
+
+function getDayRecord(date) {
+  if (!studyRecords[date]) studyRecords[date] = {};
+  return studyRecords[date];
+}
+
+function getDayProgress(date) {
+  const rec = studyRecords[date] || {};
+  const dailyTasks = getDailyTasks();
+  let done = 0;
+  dailyTasks.forEach(t => { if (rec[t.id] && rec[t.id].done) done++; });
+  return { done, total: dailyTasks.length };
+}
+
+// 获取周期任务本周打卡次数
+function getCycleWeekCount(taskId) {
+  const now = new Date();
+  const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 周一=1...周日=7
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek - 1));
+  monday.setHours(0, 0, 0, 0);
+
+  let count = 0;
+  Object.keys(studyRecords).forEach(ds => {
+    const d = new Date(ds);
+    if (d >= monday) {
+      if (studyRecords[ds][taskId] && studyRecords[ds][taskId].done) {
+        count++;
+      }
+    }
+  });
+  return count;
+}
+
+// 从周期字符串提取次数
+function parseCycleTimes(cycleStr) {
+  if (!cycleStr) return 0;
+  const m = cycleStr.match(/(\d+)次/);
+  return m ? parseInt(m[1]) : 0;
+}
+
+// ---------- 渲染:学习管理模块 ----------
+function renderStudyModule(content, mod) {
+  content.innerHTML = `
+    <div class="study-gamified">
+      <div class="page-header">
+        <div class="page-title">${mod.name}</div>
+        <div class="page-desc">${mod.desc}</div>
+      </div>
+
+      <!-- 游戏化统计卡片 -->
+      <div class="pvz-stats" id="pvzStats"></div>
+
+      <!-- 顶部操作按钮 -->
+      <div class="pvz-top-bar">
+        <button class="pvz-top-btn add" id="pvzAddTaskBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加任务
+        </button>
+        <button class="pvz-top-btn refresh" id="pvzRefreshBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          刷新每日
+        </button>
+        <button class="pvz-top-btn manage" id="pvzManageBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          管理任务
+        </button>
+        <button class="pvz-top-btn" id="pvzRestoreBtn" style="display:none;background:#10b981;color:#fff;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 3 3 12 12 12"/></svg>
+          恢复已删除分类
+        </button>
+        <button class="pvz-top-btn print" id="pvzPrintBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          打印
+        </button>
+        <div class="pvz-date-nav">
+          <button class="pvz-date-btn" id="studyPrevDay" title="前一天">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <input type="date" class="pvz-date-input" id="studyDateInput" value="${studyDate}" />
+          <button class="pvz-date-btn" id="studyNextDay" title="后一天">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="pvz-date-btn today-btn" id="studyToday">今天</button>
+        </div>
+      </div>
+
+      <!-- 任务管理面板(默认隐藏) -->
+      <div id="studyManagePanel"></div>
+
+      <!-- 分类折叠面板列表 -->
+      <div id="pvzCategories"></div>
+
+      <!-- 周期任务面板 -->
+      <div id="pvzCyclePanel"></div>
+
+      <!-- 近期打卡记录 -->
+      <div class="pvz-history" id="studyHistory"></div>
+    </div>
+    <div class="pvz-points-toast" id="pvzPointsToast"></div>
+  `;
+
+  bindStudyEvents();
+  renderPvzStats();
+  renderPvzCategories();
+  renderPvzCyclePanel();
+  renderStudyHistory();
+  renderStudyManagePanel();
+}
+
+// ---------- 渲染:游戏化统计卡片 ----------
+function renderPvzStats() {
+  const { done, total } = getDayProgress(studyDate);
+  const cycleTasks = getCycleTasks();
+  const cycleDone = cycleTasks.filter(t => getCycleWeekCount(t.id) >= parseCycleTimes(t.cycle)).length;
+  const isToday = studyDate === todayStr();
+
+  document.getElementById('pvzStats').innerHTML = `
+    <div class="pvz-stat-card sun">
+      <div class="pvz-stat-icon">☀️</div>
+      <div class="pvz-stat-info">
+        <div class="pvz-stat-label">阳光积分</div>
+        <div class="pvz-stat-value">${studyPoints.total}</div>
+      </div>
+    </div>
+    <div class="pvz-stat-card plant">
+      <div class="pvz-stat-icon">🌱</div>
+      <div class="pvz-stat-info">
+        <div class="pvz-stat-label">植物(今日)</div>
+        <div class="pvz-stat-value">${isToday ? studyPoints.todayEarned : 0}</div>
+      </div>
+    </div>
+    <div class="pvz-stat-card today">
+      <div class="pvz-stat-icon">📋</div>
+      <div class="pvz-stat-info">
+        <div class="pvz-stat-label">今日完成</div>
+        <div class="pvz-stat-value">${done}/${total}</div>
+      </div>
+    </div>
+    <div class="pvz-stat-card zombie">
+      <div class="pvz-stat-icon">🧟</div>
+      <div class="pvz-stat-info">
+        <div class="pvz-stat-label">周期任务</div>
+        <div class="pvz-stat-value">${cycleDone}/${cycleTasks.length}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- 渲染:分类折叠面板 ----------
+function renderPvzCategories() {
+  const rec = getDayRecord(studyDate);
+  const dailyTasks = getDailyTasks();
+
+  // 渲染每个分类
+  let html = studyCategories.map(cat => {
+    const dailyCatTasks = cat.tasks.filter(t => t.type !== 'cycle');
+    const cycleCatTasks = cat.tasks.filter(t => t.type === 'cycle');
+    const doneCount = dailyCatTasks.filter(t => rec[t.id] && rec[t.id].done).length;
+    const rate = dailyCatTasks.length === 0 ? 0 : Math.round(doneCount / dailyCatTasks.length * 100);
+    const cycleCount = cycleCatTasks.length;
+    const isCollapsed = studyCollapsedCats[cat.id];
+
+    return `
+      <div class="pvz-category ${isCollapsed ? 'collapsed' : ''}" data-cat-id="${cat.id}">
+        <div class="pvz-cat-header" style="background:${studyCatBg(cat.color)};" data-study-action="toggle-cat" data-cat-id="${cat.id}">
+          <div class="pvz-cat-icon">${cat.icon}</div>
+          <span class="pvz-cat-name">${escapeHtml(cat.name)}</span>
+          <div class="pvz-cat-stats">
+            <span class="pvz-cat-badge progress">每日 ${doneCount}/${dailyCatTasks.length}</span>
+            <span class="pvz-cat-badge rate">${rate}%</span>
+            ${cycleCount > 0 ? `<span class="pvz-cat-badge">周期 ${cycleCount}</span>` : ''}
+          </div>
+          ${studyManageVisible ? `
+            <div class="pvz-cat-actions">
+              <button class="pvz-cat-action" data-study-action="edit-cat" data-cat-id="${cat.id}" title="编辑分类">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pvz-cat-action" data-study-action="del-cat" data-cat-id="${cat.id}" title="删除分类">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          ` : ''}
+          <div class="pvz-cat-toggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="pvz-cat-body">
+          ${dailyCatTasks.length > 0 ? `
+            <div class="pvz-section-label">每日任务(计入进度)</div>
+            ${dailyCatTasks.map(t => renderPvzTask(t, rec, cat.id)).join('')}
+          ` : ''}
+          ${cycleCatTasks.length > 0 ? `
+            <div class="pvz-section-label">周期任务(独立打卡)</div>
+            ${cycleCatTasks.map(t => renderPvzCycleTask(t, cat.id)).join('')}
+          ` : ''}
+          ${dailyCatTasks.length === 0 && cycleCatTasks.length === 0 ? '<div style="text-align:center;color:var(--text-muted);padding:12px;font-size:13px;">暂无任务,点击下方按钮添加</div>' : ''}
+          ${studyManageVisible ? `
+            <button class="pvz-add-task-btn" data-study-action="add-daily-task" data-cat-id="${cat.id}">+ 添加每日任务</button>
+            <button class="pvz-add-task-btn" data-study-action="add-cycle-task" data-cat-id="${cat.id}">+ 添加周期任务</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // 打印任务分类(视为每日任务) - 已删除则不渲染
+  if (!studyExtraHidden) {
+  const extraDone = studyExtraTasks.filter(t => rec[t.id] && rec[t.id].done).length;
+  const extraRate = studyExtraTasks.length === 0 ? 0 : Math.round(extraDone / studyExtraTasks.length * 100);
+  const isExtraCollapsed = studyCollapsedCats['_extra'];
+  html += `
+    <div class="pvz-category ${isExtraCollapsed ? 'collapsed' : ''}">
+      <div class="pvz-cat-header" style="background:${studyCatBg('#6366f1')};" data-study-action="toggle-cat" data-cat-id="_extra">
+        <div class="pvz-cat-icon">🖨️</div>
+        <span class="pvz-cat-name">打印任务</span>
+        <div class="pvz-cat-stats">
+          <span class="pvz-cat-badge progress">每日 ${extraDone}/${studyExtraTasks.length}</span>
+          <span class="pvz-cat-badge rate">${extraRate}%</span>
+        </div>
+        ${studyManageVisible ? `
+          <div class="pvz-cat-actions">
+            <button class="pvz-cat-action" data-study-action="edit-extra-cat" data-cat-id="_extra" title="编辑分类">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="pvz-cat-action" data-study-action="del-extra-cat" data-cat-id="_extra" title="删除分类">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+        ` : ''}
+        <div class="pvz-cat-toggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="pvz-cat-body">
+        ${studyExtraTasks.length > 0 ? `
+          <div class="pvz-section-label">每日任务(计入进度)</div>
+          ${studyExtraTasks.map(t => renderPvzTask(t, rec, null)).join('')}
+        ` : '<div style="text-align:center;color:var(--text-muted);padding:12px;font-size:13px;">暂无任务</div>'}
+        ${studyManageVisible ? `<button class="pvz-add-task-btn" data-study-action="add-extra-task">+ 添加每日任务</button>` : ''}
+      </div>
+    </div>
+  `;
+  } // end if (!studyExtraHidden)
+
+  document.getElementById('pvzCategories').innerHTML = html;
+}
+
+// 渲染单个每日任务
+function renderPvzTask(t, rec, catId) {
+  const isDone = rec[t.id] && rec[t.id].done;
+  const isEditing = studyEditingTask && studyEditingTask.id === t.id;
+  const points = t.points || 20;
+  return `
+    <div class="pvz-task ${isDone ? 'done' : ''}" data-task-id="${t.id}">
+      <div class="pvz-check" data-study-action="toggle" data-task-id="${t.id}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      ${isEditing ? `
+        <input type="text" class="pvz-edit-inline" data-study-action="save-task-name" data-task-id="${t.id}" value="${escapeAttr(t.name)}" />
+      ` : `
+        <div class="pvz-task-name" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}">${escapeHtml(t.name)}</div>
+      `}
+      <span class="pvz-task-points">+${points}</span>
+      ${studyManageVisible ? `
+        <div class="pvz-task-actions">
+          ${!isEditing ? `
+            <button class="pvz-task-action" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="编辑">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          ` : ''}
+          <button class="pvz-task-action delete" data-study-action="del-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="删除">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// 渲染周期任务
+function renderPvzCycleTask(t, catId) {
+  const weekCount = getCycleWeekCount(t.id);
+  const targetTimes = parseCycleTimes(t.cycle);
+  const isDone = weekCount >= targetTimes && targetTimes > 0;
+  const rec = getDayRecord(studyDate);
+  const checkedToday = rec[t.id] && rec[t.id].done;
+  const points = t.points || 30;
+  const isEditing = studyEditingTask && studyEditingTask.id === t.id;
+
+  return `
+    <div class="pvz-cycle-task" data-task-id="${t.id}">
+      <div class="pvz-check ${checkedToday ? 'pvz-task done' : ''}" style="${checkedToday ? 'background:var(--success);border-color:var(--success);' : ''}" data-study-action="toggle-cycle" data-task-id="${t.id}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:${checkedToday ? 1 : 0};"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      ${isEditing ? `
+        <input type="text" class="pvz-edit-inline" data-study-action="save-task-name" data-task-id="${t.id}" value="${escapeAttr(t.name)}" />
+      ` : `
+        <div class="pvz-task-name" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}">${escapeHtml(t.name)}</div>
+      `}
+      <span class="pvz-cycle-tag">${escapeHtml(t.cycle || '每周2次')}</span>
+      <span class="pvz-cycle-count ${isDone ? 'done' : ''}">${weekCount}/${targetTimes}</span>
+      <span class="pvz-cycle-status ${checkedToday ? 'checked' : ''}">${checkedToday ? '已打卡' : '未打卡'}</span>
+      <span class="pvz-task-points">+${points}</span>
+      <button class="pvz-punch-btn" data-study-action="punch-cycle" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="打卡">打卡</button>
+      ${studyManageVisible ? `
+        <div class="pvz-task-actions">
+          ${!isEditing ? `
+            <button class="pvz-task-action" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="编辑">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          ` : ''}
+          <button class="pvz-task-action delete" data-study-action="del-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="删除">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ---------- 渲染:独立周期任务面板 ----------
+function renderPvzCyclePanel() {
+  const el = document.getElementById('pvzCyclePanel');
+  if (!el) return;
+  if (studyCycleHidden || studyCycleTasks.length === 0) { el.innerHTML = ''; return; }
+  const rec = getDayRecord(studyDate);
+  const html = `
+    <div class="pvz-category">
+      <div class="pvz-cat-header" style="background:${studyCatBg('#8b5cf6')};" data-study-action="toggle-cat" data-cat-id="_cycle">
+        <div class="pvz-cat-icon">🧟</div>
+        <span class="pvz-cat-name">周期任务</span>
+        <div class="pvz-cat-stats">
+          <span class="pvz-cat-badge">${studyCycleTasks.length} 个任务</span>
+        </div>
+        ${studyManageVisible ? `
+          <div class="pvz-cat-actions">
+            <button class="pvz-cat-action" data-study-action="del-cycle-cat" data-cat-id="_cycle" title="删除分类">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+        ` : ''}
+        <div class="pvz-cat-toggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="pvz-cat-body" style="${studyCollapsedCats['_cycle'] ? 'display:none;' : ''}">
+        <div class="pvz-section-label">周期任务(独立打卡)</div>
+        ${studyCycleTasks.map(t => renderPvzCycleTask(t, '_cycle')).join('')}
+        ${studyManageVisible ? `<button class="pvz-add-task-btn" data-study-action="add-cycle-task" data-cat-id="_cycle">+ 添加周期任务</button>` : ''}
+      </div>
+    </div>
+  `;
+  document.getElementById('pvzCyclePanel').innerHTML = html;
+}
+
+// ---------- 渲染:打卡历史 ----------
+function renderStudyHistory() {
+  const days = [];
+  const today = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const ds = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+    const { done, total } = getDayProgress(ds);
+    const rate = total === 0 ? 0 : Math.round(done / total * 100);
+    days.push({ ds, done, total, rate, isToday: ds === todayStr() });
+  }
+
+  const html = days.map(d => {
+    const rateClass = d.rate === 100 ? 'pvz-rate-full' : (d.rate > 0 ? 'pvz-rate-partial' : 'pvz-rate-zero');
+    const label = d.ds.slice(5).replace('-', '/');
+    return `
+      <div class="pvz-history-day ${d.isToday ? 'today' : ''}" data-study-action="goto-date" data-date="${d.ds}" title="${d.ds}: ${d.done}/${d.total}">
+        <div class="pvz-history-date">${label}</div>
+        <div class="pvz-history-rate ${rateClass}">${d.rate === 100 ? '✓' : d.done + '/' + d.total}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('studyHistory').innerHTML = `
+    <div class="pvz-history-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      近 14 天打卡记录
+    </div>
+    <div class="pvz-history-grid">${html}</div>
+  `;
+}
+
+// ---------- 渲染:任务管理面板 ----------
+let studyManageVisible = false;
+
+function renderStudyManagePanel() {
+  const el = document.getElementById('studyManagePanel');
+  if (!studyManageVisible) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const catCount = studyCategories.length;
+  const taskCount = getDailyTotalCount() + getCycleTasks().length;
+
+  el.innerHTML = `
+    <div class="pvz-manage-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-weight:600;font-size:15px;">任务管理</div>
+        <div style="font-size:12px;color:var(--text-muted);">${catCount} 个分类 · ${taskCount} 个任务</div>
+      </div>
+
+      <!-- 新增分类 -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text-soft);margin-bottom:8px;">添加新分类</div>
+        <div class="pvz-manage-row">
+          <div class="pvz-manage-field">
+            <label>分类名称</label>
+            <input type="text" id="newCatName" placeholder="如:科学" />
+          </div>
+          <div class="pvz-manage-field" style="max-width:100px;min-width:80px;">
+            <label>图标</label>
+            <select id="newCatIcon">
+              ${STUDY_CAT_ICONS.map((ic,i) => `<option value="${ic}" ${i===0?'selected':''}>${ic}</option>`).join('')}
+            </select>
+          </div>
+          <div class="pvz-manage-field" style="max-width:100px;min-width:80px;">
+            <label>颜色</label>
+            <select id="newCatColor">
+              ${STUDY_CAT_COLORS.map((c,i) => `<option value="${c}" ${i===0?'selected':''} style="background:${c};color:#fff;">颜色${i+1}</option>`).join('')}
+            </select>
+          </div>
+          <button class="pvz-top-btn add" data-study-action="add-cat" style="height:36px;padding:0 16px;font-size:13px;">添加分类</button>
+        </div>
+      </div>
+
+      <div class="pvz-manage-actions">
+        <button class="pvz-reset-btn" data-study-action="reset-config">恢复默认任务配置</button>
+        <span style="flex:1;"></span>
+        <button class="pvz-top-btn manage" data-study-action="close-manage" style="font-size:13px;padding:6px 14px;">收起管理面板</button>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- 学习管理:任务编辑(内联) ----------
+let studyEditingTask = null;
+
+// ---------- 积分 Toast 动画 ----------
+function showPointsToast(pts) {
+  const el = document.getElementById('pvzPointsToast');
+  if (!el) return;
+  el.textContent = `+${pts} ☀️`;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 1000);
+}
+
+// ---------- 学习管理:事件绑定 ----------
+function studyRefreshAll() {
+  renderPvzStats();
+  renderPvzCategories();
+  renderPvzCyclePanel();
+  renderStudyHistory();
+  renderStudyManagePanel();
+}
+
+function studyChangeDate(delta) {
+  const d = new Date(studyDate);
+  d.setDate(d.getDate() + delta);
+  studyDate = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  document.getElementById('studyDateInput').value = studyDate;
+  studyRefreshAll();
+}
+
+function findTaskById(taskId) {
+  for (const c of studyCategories) {
+    const t = c.tasks.find(t => t.id === taskId);
+    if (t) return { task: t, cat: c };
+  }
+  let t = studyExtraTasks.find(t => t.id === taskId);
+  if (t) return { task: t, cat: null };
+  t = studyCycleTasks.find(t => t.id === taskId);
+  if (t) return { task: t, cat: null };
+  return null;
+}
+
+function deleteTaskById(taskId, catId) {
+  if (catId && catId !== '_extra' && catId !== '_cycle') {
+    const cat = studyCategories.find(c => c.id === catId);
+    if (cat) {
+      cat.tasks = cat.tasks.filter(t => t.id !== taskId);
+      return true;
+    }
+  }
+  // 尝试从 extraTasks 删除
+  const extraIdx = studyExtraTasks.findIndex(t => t.id === taskId);
+  if (extraIdx >= 0) {
+    studyExtraTasks.splice(extraIdx, 1);
+    return true;
+  }
+  // 尝试从 cycleTasks 删除
+  const cycIdx = studyCycleTasks.findIndex(t => t.id === taskId);
+  if (cycIdx >= 0) {
+    studyCycleTasks.splice(cycIdx, 1);
+    return true;
+  }
+  return false;
+}
+
+function bindStudyEvents() {
+  const container = document.getElementById('content');
+
+  // 日期切换
+  document.getElementById('studyPrevDay').addEventListener('click', () => studyChangeDate(-1));
+  document.getElementById('studyNextDay').addEventListener('click', () => studyChangeDate(1));
+  document.getElementById('studyToday').addEventListener('click', () => {
+    studyDate = todayStr();
+    document.getElementById('studyDateInput').value = studyDate;
+    studyRefreshAll();
+  });
+  document.getElementById('studyDateInput').addEventListener('change', (e) => {
+    studyDate = e.target.value || todayStr();
+    studyRefreshAll();
+  });
+
+  // 打印
+  document.getElementById('pvzPrintBtn').addEventListener('click', () => window.print());
+
+  // 管理面板切换
+  document.getElementById('pvzManageBtn').addEventListener('click', () => {
+    studyManageVisible = !studyManageVisible;
+    const btn = document.getElementById('pvzManageBtn');
+    btn.innerHTML = studyManageVisible
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> 取消管理`
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 管理任务`;
+    btn.classList.toggle('active', studyManageVisible);
+    const restoreBtn = document.getElementById('pvzRestoreBtn');
+    if (restoreBtn) restoreBtn.style.display = studyManageVisible ? '' : 'none';
+    renderStudyManagePanel();
+    renderPvzCategories();
+    renderPvzCyclePanel();
+  });
+
+  // 恢复已删除分类
+  document.getElementById('pvzRestoreBtn').addEventListener('click', () => {
+    if (!confirm('恢复已删除的【打印任务】和【周期任务】分类吗？')) return;
+    studyExtraHidden = false;
+    studyCycleHidden = false;
+    // 如果任务列表为空，恢复默认任务
+    if (studyExtraTasks.length === 0) {
+      studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
+    }
+    if (studyCycleTasks.length === 0) {
+      studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
+    }
+    saveStudyConfig();
+    renderPvzCategories();
+    renderPvzCyclePanel();
+    showToast('已恢复打印任务和周期任务分类');
+  });
+
+  // 刷新每日(清除今日打卡)
+  document.getElementById('pvzRefreshBtn').addEventListener('click', () => {
+    if (!confirm('刷新每日?将清除今天的所有打卡记录。')) return;
+    const today = todayStr();
+    delete studyRecords[today];
+    saveStudyRecords();
+    // 不清除积分总数,但重置今日获得
+    studyPoints.todayEarned = 0;
+    studyPoints.todayDate = today;
+    saveStudyPoints();
+    studyRefreshAll();
+    showToast('每日已刷新');
+  });
+
+  // 添加任务(顶部按钮 -> 弹出选择)
+  document.getElementById('pvzAddTaskBtn').addEventListener('click', () => {
+    const type = confirm('点击"确定"添加每日任务,点击"取消"添加周期任务');
+    const name = prompt('输入任务名称:');
+    if (!name || !name.trim()) return;
+    if (type) {
+      // 每日任务 -> 放到第一个分类
+      const targetCat = studyCategories[0];
+      if (targetCat) {
+        targetCat.tasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
+      } else {
+        studyExtraTasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
+      }
+    } else {
+      // 周期任务 -> 放到独立周期任务
+      const cycle = prompt('打卡周期(如:每周2次):', '每周2次');
+      studyCycleTasks.push({ id: 'c_' + uid(), name: name.trim(), type: 'cycle', points: 30, cycle: cycle || '每周2次' });
+    }
+    saveStudyConfig();
+    studyRefreshAll();
+    showToast('任务已添加');
+  });
+
+  // 点击事件委托
+  container.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-study-action]');
+    if (!target) return;
+    const action = target.dataset.studyAction;
+    const taskId = target.dataset.taskId;
+    const catId = target.dataset.catId;
+
+    // 折叠/展开分类
+    if (action === 'toggle-cat') {
+      const id = target.dataset.catId;
+      studyCollapsedCats[id] = !studyCollapsedCats[id];
+      studyRefreshAll();
+      return;
+    }
+
+    // 每日任务打卡切换
+    if (action === 'toggle') {
+      const rec = getDayRecord(studyDate);
+      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
+      rec[taskId].done = !rec[taskId].done;
+      saveStudyRecords();
+      const found = findTaskById(taskId);
+      if (found && rec[taskId].done) {
+        const pts = found.task.points || 20;
+        if (studyDate === todayStr()) {
+          addStudyPoints(pts);
+          showPointsToast(pts);
+        }
+      }
+      studyRefreshAll();
+      return;
+    }
+
+    // 周期任务打卡(通过复选框)
+    if (action === 'toggle-cycle') {
+      const rec = getDayRecord(studyDate);
+      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
+      rec[taskId].done = !rec[taskId].done;
+      saveStudyRecords();
+      const found = findTaskById(taskId);
+      if (found && rec[taskId].done && studyDate === todayStr()) {
+        const pts = found.task.points || 30;
+        addStudyPoints(pts);
+        showPointsToast(pts);
+      }
+      studyRefreshAll();
+      return;
+    }
+
+    // 周期任务打卡按钮
+    if (action === 'punch-cycle') {
+      const rec = getDayRecord(studyDate);
+      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
+      rec[taskId].done = !rec[taskId].done;
+      saveStudyRecords();
+      const found = findTaskById(taskId);
+      if (found && rec[taskId].done && studyDate === todayStr()) {
+        const pts = found.task.points || 30;
+        addStudyPoints(pts);
+        showPointsToast(pts);
+        // 打卡动画
+        target.classList.add('pvz-punch-anim');
+        setTimeout(() => target.classList.remove('pvz-punch-anim'), 400);
+      }
+      studyRefreshAll();
+      return;
+    }
+
+    // 跳转日期
+    if (action === 'goto-date') {
+      studyDate = target.dataset.date;
+      document.getElementById('studyDateInput').value = studyDate;
+      studyRefreshAll();
+      return;
+    }
+
+    // 收起管理面板
+    if (action === 'close-manage') {
+      studyManageVisible = false;
+      renderStudyManagePanel();
+      return;
+    }
+
+    // 添加分类
+    if (action === 'add-cat') {
+      const name = document.getElementById('newCatName').value.trim();
+      if (!name) { showToast('请输入分类名称'); return; }
+      const icon = document.getElementById('newCatIcon').value;
+      const color = document.getElementById('newCatColor').value;
+      studyCategories.push({
+        id: 'cat_' + uid(),
+        name, icon, color,
+        tasks: []
+      });
+      saveStudyConfig();
+      document.getElementById('newCatName').value = '';
+      studyRefreshAll();
+      showToast('分类已添加');
+      return;
+    }
+
+    // 添加每日任务到分类
+    if (action === 'add-daily-task') {
+      const cat = studyCategories.find(c => c.id === catId);
+      if (!cat) return;
+      const name = prompt('输入每日任务名称:');
+      if (name && name.trim()) {
+        cat.tasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
+        saveStudyConfig();
+        studyRefreshAll();
+        showToast('任务已添加');
+      }
+      return;
+    }
+
+    // 添加周期任务到分类
+    if (action === 'add-cycle-task') {
+      const name = prompt('输入周期任务名称:');
+      if (!name || !name.trim()) return;
+      const cycle = prompt('打卡周期(如:每周2次):', '每周2次');
+      const newTask = { id: 'c_' + uid(), name: name.trim(), type: 'cycle', points: 30, cycle: cycle || '每周2次' };
+      if (catId && catId !== '_extra' && catId !== '_cycle') {
+        const cat = studyCategories.find(c => c.id === catId);
+        if (cat) {
+          cat.tasks.push(newTask);
+        }
+      } else {
+        studyCycleTasks.push(newTask);
+      }
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('周期任务已添加');
+      return;
+    }
+
+    // 添加打印任务
+    if (action === 'add-extra-task') {
+      const name = prompt('输入每日任务名称:');
+      if (name && name.trim()) {
+        studyExtraTasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
+        saveStudyConfig();
+        studyRefreshAll();
+        showToast('任务已添加');
+      }
+      return;
+    }
+
+    // 删除分类
+    if (action === 'del-cat') {
+      if (!confirm('删除该分类及其所有任务?历史打卡记录不受影响。')) return;
+      studyCategories = studyCategories.filter(c => c.id !== catId);
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('分类已删除');
+      return;
+    }
+
+    // 清空打印任务分类下的所有任务
+    if (action === 'del-extra-cat') {
+      if (!confirm('确定删除【打印任务】分类吗？分类下的任务将被清空，历史打卡记录不受影响。')) return;
+      studyExtraTasks = [];
+      studyExtraHidden = true;
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('打印任务分类已删除');
+      return;
+    }
+
+    // 清空周期任务分类下的所有任务
+    if (action === 'del-cycle-cat') {
+      if (!confirm('确定删除【周期任务】分类吗？分类下的任务将被清空，历史打卡记录不受影响。')) return;
+      studyCycleTasks = [];
+      studyCycleHidden = true;
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('周期任务分类已删除');
+      return;
+    }
+
+    // 编辑打印任务分类名称
+    if (action === 'edit-extra-cat') {
+      const newName = prompt('分类名称:', '打印任务');
+      if (newName === null) return;
+      showToast('打印任务分类名称暂不支持修改');
+      return;
+    }
+
+    // 恢复已删除的分类
+    if (action === 'restore-cats') {
+      studyExtraHidden = false;
+      studyCycleHidden = false;
+      if (studyExtraTasks.length === 0) {
+        studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
+      }
+      if (studyCycleTasks.length === 0) {
+        studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
+      }
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('已恢复打印任务和周期任务分类');
+      return;
+    }
+
+    // 删除任务
+    if (action === 'del-task') {
+      deleteTaskById(taskId, catId);
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('任务已删除');
+      return;
+    }
+
+    // 编辑分类(弹窗)
+    if (action === 'edit-cat') {
+      const cat = studyCategories.find(c => c.id === catId);
+      if (!cat) return;
+      const newName = prompt('分类名称:', cat.name);
+      if (newName === null) return;
+      const newIcon = prompt('图标(emoji):', cat.icon);
+      if (newIcon === null) return;
+      cat.name = newName.trim() || cat.name;
+      cat.icon = newIcon.trim() || cat.icon;
+      saveStudyConfig();
+      studyRefreshAll();
+      showToast('分类已更新');
+      return;
+    }
+
+    // 编辑任务名(进入内联编辑)
+    if (action === 'edit-task') {
+      studyEditingTask = { id: taskId, action };
+      renderPvzCategories();
+      renderPvzCyclePanel();
+      const input = container.querySelector('[data-study-action="save-task-name"]');
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+      return;
+    }
+
+    // 保存编辑后的任务名
+    if (action === 'save-task-name') {
+      return;
+    }
+
+    // 恢复默认配置
+    if (action === 'reset-config') {
+      if (!confirm('恢复默认任务配置?你自定义的分类和任务将被替换回默认设置。')) return;
+      studyCategories = JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES));
+      studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
+      studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
+      saveStudyConfig();
+      studyExtraHidden = false;
+      studyCycleHidden = false;
+      studyRefreshAll();
+      showToast('已恢复默认配置');
+      return;
+    }
+  });
+
+  // 任务名内联编辑:回车保存、ESC取消
+  container.addEventListener('keydown', (e) => {
+    if (e.target.dataset.studyAction === 'save-task-name') {
+      if (e.key === 'Enter' || e.key === 'Escape') {
+        e.preventDefault();
+        const input = e.target;
+        const taskId = input.dataset.taskId;
+        if (e.key === 'Enter' && input.value.trim()) {
+          const found = findTaskById(taskId);
+          if (found) {
+            found.task.name = input.value.trim();
+            saveStudyConfig();
+            showToast('已保存');
+          }
+        }
+        studyEditingTask = null;
+        studyRefreshAll();
+      }
+    }
+  });
+
+  // 失焦保存
+  container.addEventListener('focusout', (e) => {
+    if (e.target.dataset.studyAction === 'save-task-name') {
+      const input = e.target;
+      const taskId = input.dataset.taskId;
+      const found = findTaskById(taskId);
+      if (found && input.value.trim() && input.value.trim() !== found.task.name) {
+        found.task.name = input.value.trim();
+        saveStudyConfig();
+      }
+      studyEditingTask = null;
+      setTimeout(() => studyRefreshAll(), 50);
+    }
+  });
+}
+
+/* ========================================================
+   果然鲜模块
+   数据来源:慧语简报(news.topurl.cn)、百度百科、东方天气
+   生成时间:2026-07-28
+   ======================================================== */
+
+// 今日数据(静态注入,打开即显示)
+const FRESH_DATA = {
+  date: '2026年7月28日',
+  weekday: '星期二',
+  lunar: '农历丙午年 六月十五',
+  weather: {
+    city: '包河区',
+    icon: '⛅',
+    desc: '多云',
+    temp: 30,
+    tempHigh: 33,
+    tempLow: 26,
+    wind: '南风 1级',
+    humidity: '相对湿度 65%',
+    quality: '空气良好 AQI 43',
+    uv: '紫外线中等'
+  },
+  brief: {
+    date: '2026年7月28日 星期二 农历六月十五',
+    quote: '滥用青春胜于虚度青春。 —— 乔治·库特林',
+    items: [
+      '重庆彭水山体崩塌灾害救援现场发现人体残骸,正进行DNA检测确认身份',
+      '中国残联:不久的将来智慧导盲能够让残疾人真正受益',
+      '三地抽检泛酸含量未达标,天丝红牛被罚80万元',
+      '多地向新人发放结婚消费券,芜湖加推总计50万元喜宴券一天被领完',
+      '成都教育局回应"中考立定跳远等标准过高":符合部委相关要求',
+      '高露洁4款商标被宣告无效,"美白"只是名字不是功效',
+      '德国车辆冲撞事件嫌犯确认被击毙,曾试图加入ISIS',
+      '甘肃渭源景区发生山洪后已成功救援174人,伤者生命体征均平稳',
+      '甘肃渭源山洪灾害现场已完成四轮搜救',
+      '处置账号3704个,网信部门严管"自媒体"未规范标注信息来源',
+      '福建女商人改判无罪后,"从犯"丈夫再审未当庭宣判',
+      '8万元买的实习却不敢写进简历!工人日报调查付费内推实习陷阱'
+    ]
+  },
+  history: [
+    { year: '1750', event: '德国作曲家<strong>巴赫</strong>逝世。约翰·塞巴斯蒂安·巴赫,巴洛克时期德国作曲家、键盘演奏家,被誉为"西方音乐之父"。' },
+    { year: '1804', event: '德国唯物主义哲学家<strong>费尔巴哈</strong>诞辰。路德维希·安德列斯·费尔巴哈,德国哲学家,对后世哲学产生深远影响。' },
+    { year: '1830', event: '法国<strong>七月革命</strong>爆发。因波旁王室专制统治令法国人民难以忍受,人群起反抗国王查理十世的统治。' },
+    { year: '1914', event: '<strong>第一次世界大战</strong>开始。由于帝国主义列强重新瓜分世界和争夺全球霸权而爆发的世界级战争。' },
+    { year: '1923', event: '中国计算机科学的先行者<strong>夏培肃</strong>出生。中国科学院院士,我国计算机事业的奠基人之一。' },
+    { year: '1937', event: '抗日英雄<strong>佟麟阁、赵登禹</strong>殉国。原国民革命军第二十九军副军长,追晋陆军上将。' },
+    { year: '1954', event: '委内瑞拉总统<strong>乌戈·查韦斯</strong>出生。第52任委内瑞拉总统。' },
+    { year: '1976', event: '中国河北省唐山市发生<strong>唐山大地震</strong>。强度里氏7.8级,能量相当于400颗广岛原子弹爆炸,死亡人数超过24万。' },
+    { year: '1981', event: '<strong>中国儿童少年基金会</strong>成立。新中国成立后的第一家国家级公募基金会。' },
+    { year: '2004', event: '中国在北极建立第一个科学考察站<strong>黄河站</strong>。位于挪威斯匹次卑尔根群岛的新奥尔松。' },
+    { year: '2004', event: 'DNA之父<strong>佛朗西斯·克里克</strong>逝世。与沃森共同发现DNA双螺旋结构,获诺贝尔生理学医学奖。' },
+    { year: '2010', event: '巴基斯坦发生<strong>特大空难</strong>,一架载有152人的客机坠毁,机上人员全部罹难。' }
+  ],
+  idiom: {
+    name: '讨价还价',
+    meaning: '买卖东西,卖主要价高,买主给价低,双方要反复争议。也比喻谈判时反复争议,或接受任务时讲条件。',
+    source: '明·冯梦龙《古今小说》卷一'
+  }
+};
+
+// ---------- 渲染:果然鲜模块 ----------
+function renderFreshModule(content, mod) {
+  const d = FRESH_DATA;
+  const w = d.weather;
+  // 历史上的今天只取最重要的3条
+  const topHistory = d.history.slice(0, 3);
+  // 为每条历史生成一个种子图片（使用picsum）
+  const historyWithImg = topHistory.map((h, i) => ({
+    ...h,
+    img: `https://picsum.photos/seed/hist${h.year}${i}/400/200`
+  }));
+
+  // 生成天气文字
+  const weatherText = `${w.city} ${w.desc} ${w.temp}°C（${w.tempLow}°~${w.tempHigh}°） ${w.wind} ${w.humidity} ${w.quality} ${w.uv}`;
+
+  // 生成微语简报文字
+  const briefText = `${d.brief.date}\n${d.brief.quote}\n\n${d.brief.items.map((item, i) => `${i+1}. ${item}`).join('\n')}\n\n成语: ${d.idiom.name}\n${d.idiom.meaning}\n出处: ${d.idiom.source}`;
+
+  // 生成历史上的今天文字
+  const historyText = `历史上的今天 ${d.date.slice(5)}\n\n${topHistory.map(h => `${h.year}年: ${h.event.replace(/<[^>]+>/g, '')}`).join('\n\n')}`;
+
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc} · 数据更新于 ${d.date}</div>
+    </div>
+
+    <!-- 日历 + 包河区天气（文字形式） -->
+    <div class="fresh-calendar-weather">
+      <div class="fresh-cw-top">
+        <div>
+          <div class="fresh-cw-date">${d.date} ${d.weekday}</div>
+          <div class="fresh-cw-day">📦 果然鲜</div>
+          <div class="fresh-cw-lunar">${d.lunar}</div>
+        </div>
+        <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(weatherText).replace(/"/g, '&quot;')})" title="复制天气">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          复制
+        </button>
+      </div>
+      <div class="fresh-cw-text-weather">
+        <div class="fresh-cw-line"><span class="fresh-cw-label">天气</span> ${w.city} ${w.desc} ${w.temp}°C</div>
+        <div class="fresh-cw-line"><span class="fresh-cw-label">温度</span> ${w.tempLow}° ~ ${w.tempHigh}°C</div>
+        <div class="fresh-cw-line"><span class="fresh-cw-label">风力</span> ${w.wind}</div>
+        <div class="fresh-cw-line"><span class="fresh-cw-label">湿度</span> ${w.humidity}</div>
+        <div class="fresh-cw-line"><span class="fresh-cw-label">空气</span> ${w.quality}</div>
+        <div class="fresh-cw-line"><span class="fresh-cw-label">紫外</span> ${w.uv}</div>
+      </div>
+    </div>
+
+    <!-- 微语简报 + 历史上的今天 -->
+    <div class="fresh-grid">
+      <!-- 微语简报 -->
+      <div class="fresh-card">
+        <div class="fresh-card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6z"/></svg>
+          微语简报
+          <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(briefText).replace(/"/g, '&quot;')})" title="复制微语简报">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制
+          </button>
+        </div>
+        <div class="fresh-brief-date">${d.brief.date}</div>
+        <div class="fresh-quote">${d.brief.quote}</div>
+        <ul class="fresh-brief-list">
+          ${d.brief.items.map((item, i) => `
+            <li class="fresh-brief-item">
+              <span class="fresh-brief-num">${i + 1}</span>
+              <span>${item}</span>
+            </li>
+          `).join('')}
+        </ul>
+        <div class="fresh-idiom">
+          <strong>📜 成语:${d.idiom.name}</strong><br/>
+          ${d.idiom.meaning}<br/>
+          <span style="color:var(--text-muted);">出处:${d.idiom.source}</span>
+        </div>
+      </div>
+
+      <!-- 历史上的今天（图片卡片形式，只显示3条） -->
+      <div class="fresh-card">
+        <div class="fresh-card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M12 14l2 2 4-4"/></svg>
+          历史上的今天 · ${d.date.slice(5)}
+          <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(historyText).replace(/"/g, '&quot;')})" title="复制历史上的今天">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制
+          </button>
+        </div>
+        <div class="fresh-section-label">回顾历史上的 ${d.date.slice(5)} 发生的重要事件</div>
+        <div class="fresh-history-cards">
+          ${historyWithImg.map(h => `
+            <div class="fresh-history-card">
+              <div class="fresh-history-card-img" style="background-image:url('${h.img}');">
+                <span class="fresh-history-card-year">${h.year}</span>
+              </div>
+              <div class="fresh-history-card-body">
+                <div class="fresh-history-card-year-tag">${h.year}年</div>
+                <div class="fresh-history-card-event">${h.event}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// 一键复制果然鲜文字
+function copyFreshText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('已复制到剪贴板');
+  }).catch(() => {
+    // 降级方案
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('已复制到剪贴板'); }
+    catch(e) { showToast('复制失败,请手动选择文字复制'); }
+    document.body.removeChild(ta);
+  });
+}
+
+// ---------- 渲染:统计 ----------
+function renderStats() {
+  const total = todos.length;
+  const done = todos.filter(t => t.done).length;
+  const active = total - done;
+  const rate = total === 0 ? 0 : Math.round(done / total * 100);
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">全部待办</div>
+      <div class="stat-value">${total}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">进行中</div>
+      <div class="stat-value warning">${active}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">已完成</div>
+      <div class="stat-value success">${done}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">完成率</div>
+      <div class="stat-value primary">${rate}%</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:${rate}%"></div></div>
+    </div>
+  `;
+}
+
+// ---------- 渲染:待办列表 ----------
+function getFilteredTodos() {
+  let list = todos;
+  if (filter === 'active') list = list.filter(t => !t.done);
+  else if (filter === 'done') list = list.filter(t => t.done);
+  if (search.trim()) {
+    const q = search.trim().toLowerCase();
+    list = list.filter(t => t.title.toLowerCase().includes(q));
+  }
+  // 排序:未完成在前,按优先级降序,再按截止日期升序
+  const prioOrder = { high: 3, medium: 2, low: 1 };
+  return [...list].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (prioOrder[b.priority] !== prioOrder[a.priority]) return prioOrder[b.priority] - prioOrder[a.priority];
+    if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+    if (a.dueDate) return -1;
+    if (b.dueDate) return 1;
+    return b.createdAt - a.createdAt;
+  });
+}
+
+function renderTodoList() {
+  const list = getFilteredTodos();
+  const el = document.getElementById('todoList');
+
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <div class="empty-title">${search ? '没有找到匹配的待办' : (filter === 'done' ? '还没有已完成的待办' : (filter === 'active' ? '没有进行中的待办' : '暂无待办事项'))}</div>
+        <div class="empty-desc">${search ? '试试其他关键词' : '在上方输入框添加你的第一个待办吧'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const overdue = !t.done && isOverdue(t.dueDate);
+    const isEditing = editingId === t.id;
+    const prioClass = `priority-${t.priority || 'medium'}`;
+
+    if (isEditing) {
+      return `
+        <div class="todo-item" data-id="${t.id}">
+          <div class="checkbox ${t.done ? '' : ''}"></div>
+          <input type="text" class="todo-edit-input" id="editInput-${t.id}" value="${escapeHtml(t.title)}" />
+          <button class="action-btn" data-action="save-edit" data-id="${t.id}" title="保存">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button class="action-btn" data-action="cancel-edit" data-id="${t.id}" title="取消">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="todo-item ${t.done ? 'done' : ''} ${overdue ? 'overdue' : ''}" data-id="${t.id}">
+        <div class="checkbox" data-action="toggle" data-id="${t.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="todo-content">
+          <div class="todo-title" data-action="edit" data-id="${t.id}">${escapeHtml(t.title)}</div>
+          <div class="todo-meta">
+            <span class="meta-tag ${prioClass}">
+              <span class="meta-dot"></span>${priorityLabel(t.priority)}
+            </span>
+            ${t.dueDate ? `
+              <span class="meta-tag ${overdue ? 'meta-overdue' : ''}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                ${t.dueDate}${overdue ? ' (已过期)' : ''}
+              </span>
+            ` : ''}
+            <span class="meta-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${formatDate(t.createdAt)}
+            </span>
+          </div>
+        </div>
+        <div class="todo-actions">
+          <button class="action-btn" data-action="edit" data-id="${t.id}" title="编辑">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn delete" data-action="delete" data-id="${t.id}" title="删除">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ---------- 事件绑定 ----------
+function bindTodoEvents() {
+  // 添加待办
+  const input = document.getElementById('todoInput');
+  const addBtn = document.getElementById('addBtn');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const dueDateInput = document.getElementById('dueDateInput');
+
+  function addTodo() {
+    const title = input.value.trim();
+    if (!title) {
+      showToast('请输入待办内容');
+      input.focus();
+      return;
+    }
+    todos.unshift({
+      id: uid(),
+      title,
+      done: false,
+      priority: prioritySelect.value,
+      dueDate: dueDateInput.value || '',
+      createdAt: Date.now()
+    });
+    saveTodos();
+    input.value = '';
+    dueDateInput.value = '';
+    prioritySelect.value = 'medium';
+    renderStats();
+    renderTodoList();
+    input.focus();
+  }
+
+  addBtn.addEventListener('click', addTodo);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTodo();
+  });
+
+  // 筛选
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderTodoList();
+    });
+  });
+
+  // 搜索
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    search = searchInput.value;
+    renderTodoList();
+  });
+
+  // 清除已完成
+  document.getElementById('clearDoneBtn').addEventListener('click', () => {
+    const doneCount = todos.filter(t => t.done).length;
+    if (doneCount === 0) {
+      showToast('没有已完成的待办');
+      return;
+    }
+    todos = todos.filter(t => !t.done);
+    saveTodos();
+    renderStats();
+    renderTodoList();
+    showToast(`已清除 ${doneCount} 条已完成待办`);
+  });
+
+  // 列表事件委托
+  document.getElementById('todoList').addEventListener('click', e => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    const action = target.dataset.action;
+    const id = target.dataset.id;
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+
+    if (action === 'toggle') {
+      todo.done = !todo.done;
+      saveTodos();
+      renderStats();
+      renderTodoList();
+    } else if (action === 'edit') {
+      editingId = id;
+      renderTodoList();
+      const editInput = document.getElementById(`editInput-${id}`);
+      if (editInput) {
+        editInput.focus();
+        editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+      }
+    } else if (action === 'delete') {
+      todos = todos.filter(t => t.id !== id);
+      saveTodos();
+      renderStats();
+      renderTodoList();
+      showToast('已删除');
+    } else if (action === 'save-edit') {
+      const editInput = document.getElementById(`editInput-${id}`);
+      const newTitle = editInput.value.trim();
+      if (newTitle) {
+        todo.title = newTitle;
+        saveTodos();
+      }
+      editingId = null;
+      renderTodoList();
+    } else if (action === 'cancel-edit') {
+      editingId = null;
+      renderTodoList();
+    }
+  });
+
+  // 编辑框回车保存、ESC 取消
+  document.getElementById('todoList').addEventListener('keydown', e => {
+    if (e.target.classList.contains('todo-edit-input')) {
+      const id = e.target.id.replace('editInput-', '');
+      if (e.key === 'Enter') {
+        const todo = todos.find(t => t.id === id);
+        const newTitle = e.target.value.trim();
+        if (newTitle && todo) {
+          todo.title = newTitle;
+          saveTodos();
+        }
+        editingId = null;
+        renderTodoList();
+      } else if (e.key === 'Escape') {
+        editingId = null;
+        renderTodoList();
+      }
+    }
+  });
+}
+
+// ---------- 移动端菜单 ----------
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ---------- 日期显示 ----------
+function updateTodayDate() {
+  const d = new Date();
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  document.getElementById('todayDate').textContent =
+    `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${weekDays[d.getDay()]}`;
+}
+
+// ---------- 初始化 ----------
+const INIT_FLAG_KEY = 'liumo_workbench_initialized';
+
+function init() {
+  const isFirstTime = !localStorage.getItem(INIT_FLAG_KEY);
+  loadTodos();
+  loadQuotes();
+  loadStudyRecords();
+  loadStudyConfig();
+  loadStudyPoints();
+
+  // 仅在首次使用时插入示例数据(用独立标记判断,避免用户删空后重复填充)
+  if (isFirstTime) {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    todos = [
+      {
+        id: uid(),
+        title: '欢迎使用刘莫个人工作台,试试添加你的第一个待办',
+        done: false,
+        priority: 'high',
+        dueDate: formatDate(tomorrow.getTime()),
+        createdAt: Date.now() - 60000
+      },
+      {
+        id: uid(),
+        title: '点击左侧复选框可以标记任务为已完成',
+        done: false,
+        priority: 'medium',
+        dueDate: '',
+        createdAt: Date.now() - 120000
+      },
+      {
+        id: uid(),
+        title: '双击标题或点编辑按钮可以修改内容',
+        done: false,
+        priority: 'low',
+        dueDate: formatDate(nextWeek.getTime()),
+        createdAt: Date.now() - 180000
+      },
+      {
+        id: uid(),
+        title: '这是一个已完成的示例任务',
+        done: true,
+        priority: 'low',
+        dueDate: '',
+        createdAt: Date.now() - 86400000
+      }
+    ];
+    saveTodos();
+
+    quotes = [
+      {
+        id: uid(),
+        text: '落霞与孤鹜齐飞,秋水共长天一色。',
+        source: '王勃《滕王阁序》',
+        category: 'classic',
+        starred: true,
+        createdAt: Date.now() - 3600000
+      },
+      {
+        id: uid(),
+        text: '愿你一生勇敢,不负聪明。要轻得像羽毛,不惹尘埃,不沾忧愁。',
+        source: '林清玄',
+        category: 'prose',
+        starred: false,
+        createdAt: Date.now() - 7200000
+      },
+      {
+        id: uid(),
+        text: '人生不是一场赛跑,而是一段每一步都需要细细品味的旅程。',
+        source: '',
+        category: 'life',
+        starred: false,
+        createdAt: Date.now() - 10800000
+      },
+      {
+        id: uid(),
+        text: '海内存知己,天涯若比邻。',
+        source: '王勃《送杜少府之任蜀州》',
+        category: 'poetry',
+        starred: true,
+        createdAt: Date.now() - 86400000
+      }
+    ];
+    saveQuotes();
+
+    localStorage.setItem(INIT_FLAG_KEY, '1');
+  }
+
+  // 多标签页同步:其他标签页修改数据后,当前页自动刷新
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      loadTodos();
+      if (currentModule === 'todo') { renderStats(); renderTodoList(); }
+    }
+    if (e.key === QUOTES_STORAGE_KEY) {
+      loadQuotes();
+      if (currentModule === 'quotes') { renderQuotesStats(); renderQuoteGrid(); }
+    }
+    if (e.key === STUDY_STORAGE_KEY) {
+      loadStudyRecords();
+      if (currentModule === 'study') { studyRefreshAll(); }
+    }
+    if (e.key === STUDY_CONFIG_KEY) {
+      loadStudyConfig();
+      if (currentModule === 'study') { studyRefreshAll(); }
+    }
+    if (e.key === STUDY_POINTS_KEY) {
+      loadStudyPoints();
+      if (currentModule === 'study') { renderPvzStats(); }
+    }
+  });
+
+  updateTodayDate();
+  renderNav();
+  renderContent();
+}
+
+init();
+</script>
+
+</body>
+</html>
