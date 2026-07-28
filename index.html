@@ -2345,6 +2345,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js" async></script>
 <script>
 /* ========================================================
    刘莫个人工作台 - 主程序
@@ -4086,168 +4087,254 @@ function bindStudyEvents() {
    ======================================================== */
 
 // 今日数据(静态注入,打开即显示)
-const FRESH_DATA = {
-  date: '2026年7月28日',
-  weekday: '星期二',
-  lunar: '农历丙午年 六月十五',
-  weather: {
-    city: '包河区',
-    icon: '⛅',
-    desc: '多云',
-    temp: 30,
-    tempHigh: 33,
-    tempLow: 26,
-    wind: '南风 1级',
-    humidity: '相对湿度 65%',
-    quality: '空气良好 AQI 43',
-    uv: '紫外线中等'
-  },
-  brief: {
-    date: '2026年7月28日 星期二 农历六月十五',
-    quote: '滥用青春胜于虚度青春。 —— 乔治·库特林',
-    items: [
-      '重庆彭水山体崩塌灾害救援现场发现人体残骸,正进行DNA检测确认身份',
-      '中国残联:不久的将来智慧导盲能够让残疾人真正受益',
-      '三地抽检泛酸含量未达标,天丝红牛被罚80万元',
-      '多地向新人发放结婚消费券,芜湖加推总计50万元喜宴券一天被领完',
-      '成都教育局回应"中考立定跳远等标准过高":符合部委相关要求',
-      '高露洁4款商标被宣告无效,"美白"只是名字不是功效',
-      '德国车辆冲撞事件嫌犯确认被击毙,曾试图加入ISIS',
-      '甘肃渭源景区发生山洪后已成功救援174人,伤者生命体征均平稳',
-      '甘肃渭源山洪灾害现场已完成四轮搜救',
-      '处置账号3704个,网信部门严管"自媒体"未规范标注信息来源',
-      '福建女商人改判无罪后,"从犯"丈夫再审未当庭宣判',
-      '8万元买的实习却不敢写进简历!工人日报调查付费内推实习陷阱'
-    ]
-  },
-  history: [
-    { year: '1750', event: '德国作曲家<strong>巴赫</strong>逝世。约翰·塞巴斯蒂安·巴赫,巴洛克时期德国作曲家、键盘演奏家,被誉为"西方音乐之父"。' },
-    { year: '1804', event: '德国唯物主义哲学家<strong>费尔巴哈</strong>诞辰。路德维希·安德列斯·费尔巴哈,德国哲学家,对后世哲学产生深远影响。' },
-    { year: '1830', event: '法国<strong>七月革命</strong>爆发。因波旁王室专制统治令法国人民难以忍受,人群起反抗国王查理十世的统治。' },
-    { year: '1914', event: '<strong>第一次世界大战</strong>开始。由于帝国主义列强重新瓜分世界和争夺全球霸权而爆发的世界级战争。' },
-    { year: '1923', event: '中国计算机科学的先行者<strong>夏培肃</strong>出生。中国科学院院士,我国计算机事业的奠基人之一。' },
-    { year: '1937', event: '抗日英雄<strong>佟麟阁、赵登禹</strong>殉国。原国民革命军第二十九军副军长,追晋陆军上将。' },
-    { year: '1954', event: '委内瑞拉总统<strong>乌戈·查韦斯</strong>出生。第52任委内瑞拉总统。' },
-    { year: '1976', event: '中国河北省唐山市发生<strong>唐山大地震</strong>。强度里氏7.8级,能量相当于400颗广岛原子弹爆炸,死亡人数超过24万。' },
-    { year: '1981', event: '<strong>中国儿童少年基金会</strong>成立。新中国成立后的第一家国家级公募基金会。' },
-    { year: '2004', event: '中国在北极建立第一个科学考察站<strong>黄河站</strong>。位于挪威斯匹次卑尔根群岛的新奥尔松。' },
-    { year: '2004', event: 'DNA之父<strong>佛朗西斯·克里克</strong>逝世。与沃森共同发现DNA双螺旋结构,获诺贝尔生理学医学奖。' },
-    { year: '2010', event: '巴基斯坦发生<strong>特大空难</strong>,一架载有152人的客机坠毁,机上人员全部罹难。' }
-  ],
-  idiom: {
-    name: '讨价还价',
-    meaning: '买卖东西,卖主要价高,买主给价低,双方要反复争议。也比喻谈判时反复争议,或接受任务时讲条件。',
-    source: '明·冯梦龙《古今小说》卷一'
-  }
+// ====== 果然鲜模块（实时数据）======
+// 配置：默认坐标 合肥 包河区，可按需修改
+const FRESH_CITY = '合肥 包河区';
+const FRESH_LAT = 31.82;
+const FRESH_LNG = 117.23;
+
+// WMO 天气代码 -> 中文描述
+const FRESH_WMO = {
+  0:'晴',1:'大致晴朗',2:'局部多云',3:'阴',
+  45:'有雾',48:'雾凇',
+  51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',
+  56:'冻毛毛雨',57:'强冻毛毛雨',
+  61:'小雨',63:'中雨',65:'大雨',
+  66:'冻雨',67:'强冻雨',
+  71:'小雪',73:'中雪',75:'大雪',77:'雪粒',
+  80:'阵雨',81:'强阵雨',82:'暴雨',
+  85:'阵雪',86:'强阵雪',
+  95:'雷阵雨',96:'雷阵雨伴小冰雹',99:'雷阵雨伴大冰雹'
 };
 
-// ---------- 渲染:果然鲜模块 ----------
-function renderFreshModule(content, mod) {
-  const d = FRESH_DATA;
-  const w = d.weather;
-  // 历史上的今天只取最重要的3条
-  const topHistory = d.history.slice(0, 3);
-  // 为每条历史生成一个种子图片（使用picsum）
-  const historyWithImg = topHistory.map((h, i) => ({
-    ...h,
-    img: `https://picsum.photos/seed/hist${h.year}${i}/400/200`
-  }));
+// 当日起本地缓存，避免重复请求接口
+function freshTodayKey(){
+  const n = new Date();
+  return n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();
+}
+function freshCacheGet(k){
+  try { return JSON.parse(localStorage.getItem('liumo_fresh_'+k)); } catch(e){ return null; }
+}
+function freshCacheSet(k,v){
+  try { localStorage.setItem('liumo_fresh_'+k, JSON.stringify(v)); } catch(e){}
+}
 
-  // 生成天气文字
-  const weatherText = `${w.city} ${w.desc} ${w.temp}°C（${w.tempLow}°~${w.tempHigh}°） ${w.wind} ${w.humidity} ${w.quality} ${w.uv}`;
+function freshDateStr(d){
+  const wd = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()];
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+wd;
+}
+function freshLunarStr(d){
+  try {
+    if (typeof Lunar === 'undefined') return '';
+    const l = Lunar.fromDate(d);
+    return '农历'+l.getYearInGanZhi()+'年 '+l.getMonthInChinese()+'月'+l.getDayInChinese();
+  } catch(e){ return ''; }
+}
 
-  // 生成微语简报文字
-  const briefText = `${d.brief.date}\n${d.brief.quote}\n\n${d.brief.items.map((item, i) => `${i+1}. ${item}`).join('\n')}\n\n成语: ${d.idiom.name}\n${d.idiom.meaning}\n出处: ${d.idiom.source}`;
+// 天气：open-meteo（免费、支持 CORS）
+async function fetchFreshWeather(){
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude='+FRESH_LAT+
+    '&longitude='+FRESH_LNG+
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m'+
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FShanghai&forecast_days=1';
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('weather');
+  const j = await r.json();
+  const c = j.current, dl = j.daily;
+  return {
+    city: FRESH_CITY,
+    desc: FRESH_WMO[c.weather_code] || '未知',
+    temp: Math.round(c.temperature_2m),
+    tempHigh: Math.round(dl.temperature_2m_max[0]),
+    tempLow: Math.round(dl.temperature_2m_min[0]),
+    wind: Math.round(c.wind_speed_10m)+' km/h',
+    humidity: '相对湿度 '+Math.round(c.relative_humidity_2m)+'%',
+    apparent: '体感 '+Math.round(c.apparent_temperature)+'°'
+  };
+}
 
-  // 生成历史上的今天文字
-  const historyText = `历史上的今天 ${d.date.slice(5)}\n\n${topHistory.map(h => `${h.year}年: ${h.event.replace(/<[^>]+>/g, '')}`).join('\n\n')}`;
+// 微语简报：60s-api + 一言
+async function fetchFreshBrief(){
+  let items = [], date = '';
+  try {
+    const r = await fetch('https://60s-api.viki.moe/v2/60s');
+    if(r.ok){
+      const j = await r.json();
+      const d = j.data || {};
+      items = (d.news || []).map(x => (typeof x === 'string' ? x : x.title)).filter(Boolean);
+      date = d.date || '';
+    }
+  } catch(e){}
+  let quote = '';
+  try {
+    const r = await fetch('https://v1.hitokoto.cn/?encode=text');
+    if(r.ok) quote = (await r.text()).trim();
+  } catch(e){}
+  return { items, date, quote };
+}
 
+
+// 历史上的今天（失败则优雅降级）
+async function fetchFreshHistory(){
+  try {
+    const r = await fetch('https://v2.xxapi.cn/api/history');
+    if(r.ok){
+      const j = await r.json();
+      const list = (j && j.data) || [];
+      if(Array.isArray(list) && list.length){
+        return list.slice(0,8).map(s => {
+          const m = String(s).match(/^(\d{4})年\d{1,2}月\d{1,2}日\s*(.*)$/);
+          if(m){ return { year: m[1], event: m[2] }; }
+          return { year: '', event: String(s) };
+        });
+      }
+    }
+  } catch(e){}
+  return null;
+}
+
+function renderFreshModule(content, mod){
+  const d = new Date();
+  const dateStr = freshDateStr(d);
+  const lunarStr = freshLunarStr(d);
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">${mod.name}</div>
-      <div class="page-desc">${mod.desc} · 数据更新于 ${d.date}</div>
+      <div class="page-desc">${mod.desc} · 数据更新于 ${dateStr}</div>
     </div>
 
-    <!-- 日历 + 包河区天气（文字形式） -->
-    <div class="fresh-calendar-weather">
+    <div class="fresh-calendar-weather" id="freshCW">
       <div class="fresh-cw-top">
         <div>
-          <div class="fresh-cw-date">${d.date} ${d.weekday}</div>
+          <div class="fresh-cw-date">${dateStr}</div>
           <div class="fresh-cw-day">📦 果然鲜</div>
-          <div class="fresh-cw-lunar">${d.lunar}</div>
+          <div class="fresh-cw-lunar" id="freshLunar">${lunarStr || '农历加载中…'}</div>
         </div>
-        <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(weatherText).replace(/"/g, '&quot;')})" title="复制天气">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          复制
-        </button>
+        <button class="fresh-copy-btn" id="freshCopyWeather" title="复制天气">复制</button>
       </div>
-      <div class="fresh-cw-text-weather">
-        <div class="fresh-cw-line"><span class="fresh-cw-label">天气</span> ${w.city} ${w.desc} ${w.temp}°C</div>
-        <div class="fresh-cw-line"><span class="fresh-cw-label">温度</span> ${w.tempLow}° ~ ${w.tempHigh}°C</div>
-        <div class="fresh-cw-line"><span class="fresh-cw-label">风力</span> ${w.wind}</div>
-        <div class="fresh-cw-line"><span class="fresh-cw-label">湿度</span> ${w.humidity}</div>
-        <div class="fresh-cw-line"><span class="fresh-cw-label">空气</span> ${w.quality}</div>
-        <div class="fresh-cw-line"><span class="fresh-cw-label">紫外</span> ${w.uv}</div>
+      <div class="fresh-cw-text-weather" id="freshWeather">
+        <div class="fresh-cw-line"><span class="fresh-cw-label">天气</span> 加载中…</div>
       </div>
     </div>
 
-    <!-- 微语简报 + 历史上的今天 -->
     <div class="fresh-grid">
-      <!-- 微语简报 -->
       <div class="fresh-card">
         <div class="fresh-card-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6z"/></svg>
           微语简报
-          <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(briefText).replace(/"/g, '&quot;')})" title="复制微语简报">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            复制
-          </button>
+          <button class="fresh-copy-btn" id="freshCopyBrief" title="复制微语简报">复制</button>
         </div>
-        <div class="fresh-brief-date">${d.brief.date}</div>
-        <div class="fresh-quote">${d.brief.quote}</div>
-        <ul class="fresh-brief-list">
-          ${d.brief.items.map((item, i) => `
-            <li class="fresh-brief-item">
-              <span class="fresh-brief-num">${i + 1}</span>
-              <span>${item}</span>
-            </li>
-          `).join('')}
-        </ul>
-        <div class="fresh-idiom">
-          <strong>📜 成语:${d.idiom.name}</strong><br/>
-          ${d.idiom.meaning}<br/>
-          <span style="color:var(--text-muted);">出处:${d.idiom.source}</span>
-        </div>
+        <div class="fresh-brief-date" id="freshBriefDate">${dateStr}</div>
+        <div class="fresh-quote" id="freshQuote">加载中…</div>
+        <ul class="fresh-brief-list" id="freshBriefList"><li class="fresh-brief-item">加载中…</li></ul>
       </div>
 
-      <!-- 历史上的今天（图片卡片形式，只显示3条） -->
       <div class="fresh-card">
         <div class="fresh-card-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M12 14l2 2 4-4"/></svg>
-          历史上的今天 · ${d.date.slice(5)}
-          <button class="fresh-copy-btn" onclick="copyFreshText(${JSON.stringify(historyText).replace(/"/g, '&quot;')})" title="复制历史上的今天">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            复制
-          </button>
+          历史上的今天 · ${dateStr.slice(5)}
+          <button class="fresh-copy-btn" id="freshCopyHistory" title="复制历史上的今天">复制</button>
         </div>
-        <div class="fresh-section-label">回顾历史上的 ${d.date.slice(5)} 发生的重要事件</div>
-        <div class="fresh-history-cards">
-          ${historyWithImg.map(h => `
-            <div class="fresh-history-card">
-              <div class="fresh-history-card-img" style="background-image:url('${h.img}');">
-                <span class="fresh-history-card-year">${h.year}</span>
-              </div>
-              <div class="fresh-history-card-body">
-                <div class="fresh-history-card-year-tag">${h.year}年</div>
-                <div class="fresh-history-card-event">${h.event}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
+        <div class="fresh-section-label" id="freshHistoryLabel">查询中…</div>
+        <div class="fresh-history-cards" id="freshHistory"></div>
       </div>
     </div>
   `;
+  freshLoadAll(dateStr);
 }
+
+async function freshLoadAll(dateStr){
+  const key = freshTodayKey();
+  const cache = freshCacheGet(key) || {};
+
+  // 农历（CDN 异步加载后补一次）
+  if(typeof Lunar !== 'undefined'){
+    const el = document.getElementById('freshLunar');
+    if(el && (el.textContent.indexOf('加载中') >= 0)){
+      const ls = freshLunarStr(new Date());
+      if(ls) el.textContent = ls;
+    }
+  }
+
+  // 天气
+  let w = cache.weather, weatherText = '';
+  if(!w){
+    try { w = await fetchFreshWeather(); freshCacheSet(key, Object.assign(cache, {weather:w})); }
+    catch(e){ w = null; }
+  }
+  if(w){
+    weatherText = w.city+' '+w.desc+' '+w.temp+'°C，'+w.tempLow+'°~'+w.tempHigh+'°， '+w.wind+' '+w.humidity+' '+w.apparent;
+    const we = document.getElementById('freshWeather');
+    if(we) we.innerHTML =
+      '<div class="fresh-cw-line"><span class="fresh-cw-label">天气</span> '+w.city+' '+w.desc+' '+w.temp+'°C</div>'+
+      '<div class="fresh-cw-line"><span class="fresh-cw-label">温度</span> '+w.tempLow+'° ~ '+w.tempHigh+'°C</div>'+
+      '<div class="fresh-cw-line"><span class="fresh-cw-label">风力</span> '+w.wind+'</div>'+
+      '<div class="fresh-cw-line"><span class="fresh-cw-label">湿度</span> '+w.humidity+'</div>'+
+      '<div class="fresh-cw-line"><span class="fresh-cw-label">体感</span> '+w.apparent+'</div>';
+  } else {
+    const we = document.getElementById('freshWeather');
+    if(we) we.innerHTML = '<div class="fresh-cw-line"><span class="fresh-cw-label">天气</span> 获取失败，请检查网络</div>';
+  }
+  const cwBtn = document.getElementById('freshCopyWeather');
+  if(cwBtn) cwBtn.onclick = () => copyFreshText(weatherText || '天气获取失败');
+
+  // 微语简报
+  let b = cache.brief;
+  if(!b){
+    b = await fetchFreshBrief();
+    freshCacheSet(key, Object.assign(cache, {brief:b}));
+  }
+  let briefText = dateStr+'\\n'+(b.quote||'')+'\\n\\n';
+  const qEl = document.getElementById('freshQuote');
+  if(qEl) qEl.textContent = b.quote || '（暂无金句）';
+  const listEl = document.getElementById('freshBriefList');
+  if(listEl){
+    if(b.items && b.items.length){
+      listEl.innerHTML = b.items.map((it,i)=>'<li class="fresh-brief-item"><span class="fresh-brief-num">'+(i+1)+'</span><span>'+it+'</span></li>').join('');
+      briefText += b.items.map((it,i)=>(i+1)+'. '+it).join('\\n');
+    } else {
+      listEl.innerHTML = '<li class="fresh-brief-item">暂无简报</li>';
+    }
+  }
+  if(b.date){ const bd=document.getElementById('freshBriefDate'); if(bd) bd.textContent=b.date; }
+
+  const cbBtn = document.getElementById('freshCopyBrief');
+  if(cbBtn) cbBtn.onclick = () => copyFreshText(briefText);
+
+  // 历史上的今天
+  let hist = cache.history;
+  if(hist === undefined){
+    hist = await fetchFreshHistory();
+    freshCacheSet(key, Object.assign(cache, {history: (hist===null ? '__null__' : hist)}));
+  }
+  if(hist === '__null__') hist = null;
+  const hLabel = document.getElementById('freshHistoryLabel');
+  const hEl = document.getElementById('freshHistory');
+  let historyText = '历史上的今天 '+dateStr.slice(5)+'\\n\\n';
+  if(hist && hist.length){
+    if(hLabel) hLabel.textContent = '盘点'+dateStr.slice(5)+'发生的重要事件';
+    if(hEl){
+      hEl.innerHTML = hist.map(h=>{
+        const img = 'https://picsum.photos/seed/hist'+encodeURIComponent(h.year)+'/400/200';
+        return '<div class="fresh-history-card"><div class="fresh-history-card-img" style="background-image:url(\''+img+'\');"><span class="fresh-history-card-year">'+h.year+'</span></div><div class="fresh-history-card-body"><div class="fresh-history-card-year-tag">'+h.year+'年</div><div class="fresh-history-card-event">'+h.event+'</div></div></div>';
+      }).join('');
+    }
+    historyText += hist.map(h=>h.year+'年: '+h.event).join('\\n\\n');
+  } else {
+    if(hLabel) hLabel.textContent = '历史上的今天数据暂不可用';
+    if(hEl) hEl.innerHTML = '<div class="fresh-history-empty" style="padding:12px;color:var(--text-muted);">暂无数据，可稍后重试</div>';
+  }
+  const chBtn = document.getElementById('freshCopyHistory');
+  if(chBtn) chBtn.onclick = () => copyFreshText(historyText);
+
+  // 农历补填（CDN 异步加载完成后再试一次）
+  setTimeout(()=>{
+    const el = document.getElementById('freshLunar');
+    if(el && el.textContent.indexOf('加载中') >= 0 && typeof Lunar !== 'undefined'){
+      const ls = freshLunarStr(new Date());
+      if(ls) el.textContent = ls;
+    }
+  }, 1200);
+}
+
 
 // 一键复制果然鲜文字
 function copyFreshText(text) {
