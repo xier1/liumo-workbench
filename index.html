@@ -3953,28 +3953,86 @@ function freshLunarStr(d){
   } catch(e){ return ''; }
 }
 
-// 天气：open-meteo（免费、支持 CORS）
+// 风向（度数→方位，气象学为风的来向）
+function freshWindDir(deg){
+  const arr=['北风','东北风','东风','东南风','南风','西南风','西风','西北风'];
+  return arr[Math.round(((deg%360)/45))%8];
+}
+// 风速 km/h → 蒲福风力级别
+function freshBeaufort(kmh){
+  const t=[1,6,12,20,29,39,50,62,75,89,103,118];
+  let lvl=0; for(let i=0;i<t.length;i++){ if(kmh>=t[i]) lvl=i+1; }
+  return lvl;
+}
+// 空气质量等级（依据 PM2.5）
+function freshAqiLevel(pm25){
+  if(pm25==null) return '—';
+  if(pm25<=35) return '优';
+  if(pm25<=75) return '良';
+  if(pm25<=115) return '轻度污染';
+  if(pm25<=150) return '中度污染';
+  if(pm25<=250) return '重度污染';
+  return '严重污染';
+}
+// 紫外线等级
+function freshUvLevel(uv){
+  if(uv==null) return '—';
+  if(uv<3) return '弱';
+  if(uv<6) return '中等';
+  if(uv<8) return '强';
+  if(uv<11) return '很强';
+  return '极强';
+}
+// 体感定性
+function freshFeelsText(app){
+  if(app==null) return '';
+  if(app>=33) return '炎热';
+  if(app>=28) return '闷热';
+  if(app>=20) return '舒适';
+  if(app>=10) return '微凉';
+  return '寒冷';
+}
+// 是否含降水代码
+function freshHasRain(codes){
+  if(!codes) return false;
+  return codes.some(function(c){ return (c>=51&&c<=67)||(c>=80&&c<=82)||(c>=85&&c<=86)||(c>=95&&c<=99); });
+}
+
+// 天气：open-meteo forecast + air-quality（免费、支持 CORS）
 async function fetchFreshWeather(){
-  const url = 'https://api.open-meteo.com/v1/forecast?latitude='+FRESH_LAT+
+  const base = 'https://api.open-meteo.com/v1/forecast?latitude='+FRESH_LAT+
     '&longitude='+FRESH_LNG+
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m'+
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m'+
     '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FShanghai&forecast_days=1';
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('weather');
-  const j = await r.json();
+  const air = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+FRESH_LAT+
+    '&longitude='+FRESH_LNG+
+    '&current=uv_index,pm2_5&timezone=Asia%2FShanghai';
+  const [r1, r2] = await Promise.all([fetch(base), fetch(air)]);
+  if(!r1.ok) throw new Error('weather');
+  const j = await r1.json();
   const c = j.current, dl = j.daily;
+  let uv=null, pm25=null;
+  if(r2.ok){ const a = await r2.json(); if(a.current){ uv = a.current.uv_index; pm25 = a.current.pm2_5; } }
+  const wdir = freshWindDir(c.wind_direction_10m);
+  const wlvl = freshBeaufort(c.wind_speed_10m);
+  const rainy = freshHasRain(dl.weather_code);
+  const overall = (FRESH_WMO[c.weather_code]||'未知') + (rainy ? '，有降雨可能' : '，全天无雨');
   return {
     city: FRESH_CITY,
     desc: FRESH_WMO[c.weather_code] || '未知',
+    overall: overall,
     temp: Math.round(c.temperature_2m),
     tempHigh: Math.round(dl.temperature_2m_max[0]),
     tempLow: Math.round(dl.temperature_2m_min[0]),
-    wind: Math.round(c.wind_speed_10m)+' km/h',
-    humidity: '相对湿度 '+Math.round(c.relative_humidity_2m)+'%',
-    apparent: '体感 '+Math.round(c.apparent_temperature)+'°',
+    wind: wdir + ' ' + wlvl + '级（' + Math.round(c.wind_speed_10m) + 'km/h）',
+    humidity: Math.round(c.relative_humidity_2m) + '%',
+    apparent: Math.round(c.apparent_temperature) + '°C（' + freshFeelsText(c.apparent_temperature) + '）',
+    aqi: freshAqiLevel(pm25),
+    uv: freshUvLevel(uv),
     weatherCode: c.weather_code
   };
 }
+
 
 // 微语简报：60s-api + 一言
 async function fetchFreshBrief(){
@@ -4071,31 +4129,47 @@ async function freshLoadAll(dateStr){
     try { w = await fetchFreshWeather(); freshCacheSet(key, Object.assign(cache, {weather:w})); }
     catch(e){ w = null; }
   }
-  var wmoIcon = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
-    51:'🌦️',53:'🌧️',55:'🌧️',56:'🌧️',57:'🌧️',
+  var wmoIcon = {0:'🌤️',1:'☀️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+    51:'🌧️',53:'🌧️',55:'🌧️',56:'🌧️',57:'🌧️',
     61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
     71:'🌨️',73:'❄️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',
     85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
   if(w){
-    freshWeatherText = w.city+' '+w.desc+' '+w.temp+'°C，'+w.tempLow+'°~'+w.tempHigh+'°， '+w.wind+' '+w.humidity+' '+w.apparent;
+    var d0 = new Date();
+    freshWeatherText =
+      '一、今日日历\n' +
+      '公历：' + freshDateStr(d0) + '\n' +
+      '农历：' + (freshLunarStr(d0)||'—').replace(/^农历/, '') + '\n\n' +
+      '二、' + w.city.replace(/\s/g,'') + '今日天气\n' +
+      '整体：' + w.overall + '\n' +
+      '气温：' + w.tempLow + '°C ~ ' + w.tempHigh + '°C\n' +
+      '当前体感：' + w.apparent + '\n' +
+      '风向风力：' + w.wind + '\n' +
+      '空气湿度：' + w.humidity + '\n' +
+      '空气质量：' + w.aqi + '\n' +
+      '紫外线强度：' + w.uv;
     if(freshPosterState){
       Object.assign(freshPosterState, {
         icon: wmoIcon[w.weatherCode] || '🌤️',
         temp: w.temp+'°',
         desc: w.desc+' · '+w.city,
-        humidity: '💧 '+w.humidity.replace('相对湿度',''),
-        wind: '💨 '+w.wind,
-        feels: '🌡 体感 '+w.apparent.replace('体感 ',''),
-        range: '🌡 '+w.tempLow+'°~'+w.tempHigh+'°'
+        overall: w.overall,
+        tempLow: w.tempLow, tempHigh: w.tempHigh,
+        feels: w.apparent,
+        wind: w.wind,
+        humidity: w.humidity,
+        aqi: w.aqi,
+        uv: w.uv
       });
       freshPosterRedraw();
     }
   } else {
     if(freshPosterState){
-      freshPosterState.desc = '获取失败，请检查网络';
+      freshPosterState.overall = '获取失败，请检查网络';
       freshPosterRedraw();
     }
   }
+
   const cwBtn = document.getElementById('freshCopyWeather');
   if(cwBtn) cwBtn.onclick = copyFreshImage;
 
@@ -4155,6 +4229,7 @@ async function freshLoadAll(dateStr){
 
 // ---------- 果然鲜海报：canvas 绘制 + 复制图片 ----------
 var freshPosterState = null;
+var freshPosterBg = null;
 var freshWeatherText = '';
 
 function roundRectFill(ctx, x, y, w, h, r){
@@ -4172,118 +4247,106 @@ function freshPosterRedraw(){
   if(!cv || !freshPosterState) return;
   var s = freshPosterState;
   var ctx = cv.getContext('2d');
-  var W = 600, H = 440;
+  var W = 640, H = 900;
   var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   if(cv.width !== W*dpr){ cv.width = W*dpr; cv.height = H*dpr; }
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
 
-  // 背景图片：天空渐变
-  var sky = ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#2b6fe0');
-  sky.addColorStop(0.45,'#5b8def');
-  sky.addColorStop(0.75,'#9b6fe0');
-  sky.addColorStop(1,'#c98fe0');
-  ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
-
-  // 太阳光晕
-  var sunX = W-110, sunY = 92;
-  var glow = ctx.createRadialGradient(sunX,sunY,8,sunX,sunY,150);
-  glow.addColorStop(0,'rgba(255,247,220,0.95)');
-  glow.addColorStop(0.4,'rgba(255,236,180,0.45)');
-  glow.addColorStop(1,'rgba(255,236,180,0)');
-  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(sunX,sunY,150,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,250,235,0.95)';
-  ctx.beginPath(); ctx.arc(sunX,sunY,32,0,Math.PI*2); ctx.fill();
-
-  // 云
-  function cloud(x,y,sc,al){
-    ctx.fillStyle = 'rgba(255,255,255,'+al+')';
-    ctx.beginPath();
-    ctx.arc(x,y,sc,0,Math.PI*2);
-    ctx.arc(x+sc*0.9,y+4,sc*0.8,0,Math.PI*2);
-    ctx.arc(x-sc*0.8,y+6,sc*0.7,0,Math.PI*2);
-    ctx.fill();
+  // 背景图片（生成的果然鲜主题图，同域加载避免 canvas 污染）
+  if(freshPosterBg && freshPosterBg.complete && freshPosterBg.naturalWidth){
+    ctx.drawImage(freshPosterBg, 0, 0, W, H);
+  } else {
+    var g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#FDF3D8'); g.addColorStop(1,'#E2F3E0');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
   }
-  cloud(120,68,15,0.5); cloud(300,48,12,0.32); cloud(440,120,10,0.28);
 
-  // 远山
-  ctx.fillStyle = 'rgba(255,255,255,0.10)';
-  ctx.beginPath(); ctx.moveTo(0,H);
-  ctx.quadraticCurveTo(W*0.2,H-68,W*0.42,H-92);
-  ctx.quadraticCurveTo(W*0.65,H-118,W*0.85,H-68);
-  ctx.quadraticCurveTo(W*0.95,H-44,W,H-78); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
-  // 近山
-  ctx.fillStyle = 'rgba(40,30,70,0.22)';
-  ctx.beginPath(); ctx.moveTo(0,H);
-  ctx.quadraticCurveTo(W*0.3,H-28,W*0.55,H-52);
-  ctx.quadraticCurveTo(W*0.8,H-74,W,H-38); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
-
-  // 文字
   var F = 'system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
-  ctx.textBaseline = 'alphabetic';
-  ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+
+  // 顶部品牌色带
+  ctx.fillStyle = '#1F9D55';
+  roundRectFill(ctx, 24, 24, W-48, 62, 16); ctx.fill();
   ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.font = '800 26px ' + F;
+  ctx.fillText('🛒 果然鲜 · 今日天气日历', W/2, 63);
 
-  // 日期
-  ctx.font = '800 60px ' + F;
-  ctx.fillText(String(s.day), 30, 86);
-  var dw = ctx.measureText(String(s.day)).width;
-  ctx.font = '600 22px ' + F;
-  ctx.fillText(s.month + '月', 30 + dw + 16, 80);
-  ctx.shadowBlur = 4;
-  ctx.font = '500 15px ' + F;
-  ctx.fillText(s.weekday + ' · ' + s.year + '年', 32, 112);
-  ctx.font = '400 13px ' + F;
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.fillText(s.lunar, 32, 134);
+  // 内容卡片
+  var cardX = 24, cardY = 102, cardW = W-48, cardH = H-102-78;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  roundRectFill(ctx, cardX, cardY, cardW, cardH, 20); ctx.fill();
+  ctx.strokeStyle = 'rgba(31,157,85,0.30)';
+  ctx.lineWidth = 2;
+  roundRectFill(ctx, cardX, cardY, cardW, cardH, 20); ctx.stroke();
 
-  // 天气主视觉
-  ctx.shadowBlur = 6; ctx.fillStyle = '#fff';
-  if(s.icon){ ctx.font = '60px ' + F; ctx.fillText(s.icon, 30, 222); }
-  var tx = s.icon ? 116 : 30;
-  ctx.font = '800 52px ' + F;
-  ctx.fillText(s.temp, tx, 216);
-  ctx.font = '500 16px ' + F;
-  ctx.fillText(s.desc, 32, 250);
-
-  // 详情 4 项
-  ctx.shadowBlur = 4;
-  var dets = [s.humidity, s.wind, s.feels, s.range];
-  var colW = (W - 60) / 4;
-  for(var i=0;i<dets.length;i++){
-    var x = 30 + i*colW;
-    ctx.fillStyle = 'rgba(255,255,255,0.16)';
-    roundRectFill(ctx, x, 300, colW-12, 58, 10); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.font = '500 13px ' + F;
-    ctx.fillText(dets[i], x + (colW-12)/2, 334);
-    ctx.textAlign = 'left';
-  }
-
-  // 品牌
-  ctx.shadowBlur = 4;
-  ctx.font = '500 14px ' + F;
-  ctx.textAlign = 'right';
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.fillText('🛒 果然鲜生活超市', W-24, H-18);
+  var tx = cardX + 30;
+  var y = cardY + 50;
   ctx.textAlign = 'left';
 
-  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  // 一、今日日历
+  ctx.fillStyle = '#1F9D55';
+  ctx.font = '800 22px ' + F;
+  ctx.fillText('一、今日日历', tx, y);
+  y += 16;
+  ctx.fillStyle = '#374151';
+  ctx.font = '400 17px ' + F;
+  ctx.fillText('公历：' + s.gregorian, tx, y+24); y += 32;
+  ctx.fillText('农历：' + (s.lunar || '—').replace(/^农历/, ''), tx, y+24); y += 46;
+
+  // 二、城市今日天气
+  ctx.fillStyle = '#1F9D55';
+  ctx.font = '800 22px ' + F;
+  ctx.fillText('二、' + (s.city||'本地').replace(/\s/g,'') + '今日天气', tx, y);
+  y += 30;
+  ctx.font = '400 17px ' + F;
+  var rows = [
+    ['整体', s.overall || (s.desc||'—')],
+    ['气温', s.tempLow + '°C ~ ' + s.tempHigh + '°C'],
+    ['当前体感', s.feels || '—'],
+    ['风向风力', s.wind || '—'],
+    ['空气湿度', s.humidity || '—'],
+    ['空气质量', s.aqi || '—'],
+    ['紫外线强度', s.uv || '—']
+  ];
+  for(var i=0;i<rows.length;i++){
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '600 17px ' + F;
+    ctx.fillText(rows[i][0] + '：', tx, y+22);
+    ctx.fillStyle = '#111827';
+    ctx.font = '600 17px ' + F;
+    ctx.fillText(rows[i][1], tx + 100, y+22);
+    y += 36;
+  }
+
+  // 底部备注：果然鲜生活超市
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 19px ' + F;
+  ctx.fillText('果然鲜生活超市', W/2, H-30);
+  ctx.textAlign = 'left';
 }
+
 
 function freshPosterInit(){
   var d = new Date();
   freshPosterState = {
-    day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(),
-    weekday: ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()],
+    gregorian: freshDateStr(d),
     lunar: '农历加载中…',
-    icon: '🌤️', temp: '--°', desc: '天气加载中…',
-    humidity: '💧 --', wind: '💨 --', feels: '🌡 --', range: '🌡 --'
+    city: FRESH_CITY,
+    overall: '天气加载中…',
+    tempLow: '--', tempHigh: '--',
+    feels: '—', wind: '—', humidity: '—', aqi: '—', uv: '—',
+    desc: '天气加载中…'
   };
+  if(!freshPosterBg){
+    freshPosterBg = new Image();
+    freshPosterBg.onload = function(){ if(freshPosterState) freshPosterRedraw(); };
+    freshPosterBg.src = 'assets/fresh-poster-bg.png';
+  }
   freshPosterRedraw();
 }
+
 
 function freshPosterTryLunar(){
   if(typeof Lunar === 'undefined' || !freshPosterState) return;
