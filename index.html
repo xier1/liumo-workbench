@@ -1945,6 +1945,352 @@
     color: var(--text);
     font-size: 14px;
   }
+
+  /* ============ 工作清单模块 ============ */
+  .wl-progress-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .wl-progress-main {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .wl-progress-rate {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .wl-progress-text {
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+
+  .wl-progress-bar {
+    height: 8px;
+    background: var(--bg-soft);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .wl-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  .wl-quad-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .wl-quad-stat {
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .wl-quad-stat:hover {
+    background: var(--bg);
+    transform: translateY(-2px);
+  }
+
+  .wl-quad-name {
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+  }
+
+  .wl-quad-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .wl-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .wl-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .wl-filter-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .wl-filter-btn:hover { background: var(--bg); }
+
+  .wl-filter-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .wl-add-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .wl-add-btn:hover { background: var(--primary-dark); }
+
+  .wl-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .wl-form-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .wl-input, .wl-select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    background: var(--bg);
+    color: var(--text);
+    box-sizing: border-box;
+  }
+
+  .wl-form-row {
+    margin-bottom: 12px;
+  }
+
+  .wl-check-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .wl-weekdays {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .wl-wd {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 13px;
+  }
+
+  .wl-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  .wl-btn-cancel {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .wl-btn-save {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .wl-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wl-task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .wl-task:hover { box-shadow: var(--shadow-md); }
+
+  .wl-task.done { opacity: 0.6; }
+
+  .wl-check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+
+  .wl-check svg { width: 14px; height: 14px; color: #fff; }
+
+  .wl-check.checked {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .wl-task-body { flex: 1; min-width: 0; }
+
+  .wl-task-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .wl-task-title.done {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .wl-task-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .wl-repeat-tag {
+    font-size: 12px;
+    color: var(--text-soft);
+    background: var(--bg-soft);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .wl-quad-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .wl-note-tag {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .wl-task-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .wl-task-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .wl-task-btn:hover { background: var(--bg-soft); }
+
+  .wl-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .wl-reminder {
+    margin-top: 16px;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #9a3412;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .wl-remind-btn {
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  @media (max-width: 768px) {
+    .wl-quad-stats { grid-template-columns: repeat(2, 1fr); }
+    .wl-toolbar { flex-direction: column; align-items: stretch; }
+    .wl-add-btn { width: 100%; }
+  }
+
 </style>
 </head>
 <body>
@@ -1991,6 +2337,13 @@
 
 // ---------- 模块配置 ----------
 const MODULES = [
+  {
+    id: 'worklist',
+    name: '工作清单',
+    desc: '循环任务管理 · 四象限调度 · 实时进度',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    enabled: true
+  },
   {
     id: 'todo',
     name: '待办管理',
@@ -2049,8 +2402,46 @@ let filter = 'all';        // all | active | done
 let search = '';
 let editingId = null;
 
+// ---------- 工作清单状态 ----------
+const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
+const QUADRANT_INFO = {
+  iq:  { name: '重要且紧急', desc: '立即做', color: '#ef4444' },
+  inq: { name: '重要不紧急', desc: '计划做', color: '#3b82f6' },
+  uq:  { name: '紧急不重要', desc: '委托做', color: '#f59e0b' },
+  nuq: { name: '不重要不紧急', desc: '减少做', color: '#10b981' }
+};
+let workTasks = [];           // 任务定义列表
+let workDone = {};            // 完成记录: { "2026-07-29:taskId": true }
+let workFilterQuadrant = 'all';  // all | iq | inq | uq | nuq
+let workShowAddForm = false;
+let workEditingTaskId = null;
+
 // ---------- 存储 ----------
 const STORAGE_KEY = 'liumo_workbench_todos';
+const WORK_TASKS_KEY = 'liumo_workbench_worktasks';
+const WORK_DONE_KEY = 'liumo_workbench_workdone';
+
+function loadWorkTasks() {
+  try {
+    const data = localStorage.getItem(WORK_TASKS_KEY);
+    workTasks = data ? JSON.parse(data) : [];
+  } catch (e) { workTasks = []; }
+}
+
+function saveWorkTasks() {
+  localStorage.setItem(WORK_TASKS_KEY, JSON.stringify(workTasks));
+}
+
+function loadWorkDone() {
+  try {
+    const data = localStorage.getItem(WORK_DONE_KEY);
+    workDone = data ? JSON.parse(data) : {};
+  } catch (e) { workDone = {}; }
+}
+
+function saveWorkDone() {
+  localStorage.setItem(WORK_DONE_KEY, JSON.stringify(workDone));
+}
 
 function loadTodos() {
   try {
@@ -2144,6 +2535,12 @@ function renderContent() {
         <div>敬请期待</div>
       </div>
     `;
+    return;
+  }
+
+  // 工作清单模块
+  if (currentModule === 'worklist') {
+    renderWorkListModule(content, mod);
     return;
   }
 
@@ -2320,6 +2717,8 @@ function renderQuotesModule(content, mod) {
 
 // ---------- 渲染:好词好句统计 ----------
 function renderQuotesStats() {
+  const statsEl = document.getElementById('quotesStats');
+  if (!statsEl) return;
   const total = quotes.length;
   const starred = quotes.filter(q => q.starred).length;
   const cats = new Set(quotes.map(q => q.category)).size;
@@ -3852,6 +4251,8 @@ function copyFreshText(text) {
 
 // ---------- 渲染:统计 ----------
 function renderStats() {
+  const statsEl = document.getElementById('stats');
+  if (!statsEl) return;  // 仅在待办模块存在 stats 元素时渲染
   const total = todos.length;
   const done = todos.filter(t => t.done).length;
   const active = total - done;
@@ -4134,9 +4535,22 @@ function init() {
   loadStudyRecords();
   loadStudyConfig();
   loadStudyPoints();
+  loadWorkTasks();
+  loadWorkDone();
 
   // 仅在首次使用时插入示例数据(用独立标记判断,避免用户删空后重复填充)
   if (isFirstTime) {
+    // 默认工作清单示例
+    workTasks = [
+      { id: uid(), title: '晨间复盘: 规划今日重点', repeat: { type: 'daily' }, important: true, urgent: false, note: '' },
+      { id: uid(), title: '处理紧急客户邮件', repeat: { type: 'daily' }, important: true, urgent: true, note: '' },
+      { id: uid(), title: '每周项目周报', repeat: { type: 'weekly', weekdays: [5] }, important: true, urgent: false, note: '' },
+      { id: uid(), title: '每月1号还信用卡', repeat: { type: 'monthly', days: [1] }, important: true, urgent: false, note: '' },
+      { id: uid(), title: '每月15/30号数据汇总', repeat: { type: 'monthly', days: [15,30] }, important: false, urgent: false, note: '' },
+      { id: uid(), title: '季度复盘会议', repeat: { type: 'quarterly' }, important: true, urgent: false, note: '' }
+    ];
+    saveWorkTasks();
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -4245,9 +4659,408 @@ function init() {
   updateTodayDate();
   renderNav();
   renderContent();
+  bindWorkListEvents();
+  wlCheckReminderOnLoad();
 }
 
 init();
+
+
+// ============================================================
+// 工作清单模块
+// ============================================================
+
+// 获取今天日期字符串 YYYY-MM-DD
+function wlTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// 判断任务在今天是否应该出现
+function wlIsTaskDueToday(task, dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDate();
+  const wd = d.getDay(); // 0=周日
+  const month = d.getMonth() + 1;
+  const r = task.repeat || { type: 'daily' };
+  switch (r.type) {
+    case 'daily': return true;
+    case 'once': return r.date === dateStr;
+    case 'weekly': return (r.weekdays || []).includes(wd);
+    case 'monthly': return (r.days || []).includes(day);
+    case 'quarterly': return month % 3 === 1 && day <= 3; // 每季度首月前3天
+    case 'yearly': return r.date && r.date.slice(5) === dateStr.slice(5);
+    default: return true;
+  }
+}
+
+// 获取今天的任务列表(含完成状态)
+function wlGetTodayTasks() {
+  const today = wlTodayStr();
+  return workTasks
+    .filter(t => wlIsTaskDueToday(t, today))
+    .map(t => {
+      const doneKey = `${today}:${t.id}`;
+      return { ...t, done: !!workDone[doneKey], doneKey };
+    })
+    .sort((a, b) => {
+      // 未完成排前面，再按象限优先级(重要紧急最前)
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      const qa = (a.important?2:0) + (a.urgent?1:0);
+      const qb = (b.important?2:0) + (b.urgent?1:0);
+      return qb - qa;
+    });
+}
+
+// 获取象限分类
+function wlGetQuadrant(task) {
+  if (task.important && task.urgent) return 'iq';      // 重要紧急
+  if (task.important && !task.urgent) return 'inq';    // 重要不紧急
+  if (!task.important && task.urgent) return 'uq';     // 紧急不重要
+  return 'nuq';                                         // 不重要不紧急
+}
+
+// 渲染工作清单模块
+function renderWorkListModule(content, mod) {
+  const today = wlTodayStr();
+  const weekday = WEEKDAY_NAMES[new Date().getDay()];
+  const allToday = wlGetTodayTasks();
+  const showTasks = workFilterQuadrant === 'all'
+    ? allToday
+    : allToday.filter(t => wlGetQuadrant(t) === workFilterQuadrant);
+
+  const doneCount = allToday.filter(t => t.done).length;
+  const total = allToday.length;
+  const rate = total === 0 ? 0 : Math.round(doneCount / total * 100);
+
+  // 象限统计
+  const quadStats = { iq:0, inq:0, uq:0, nuq:0 };
+  const quadDone = { iq:0, inq:0, uq:0, nuq:0 };
+  allToday.forEach(t => {
+    const q = wlGetQuadrant(t);
+    quadStats[q]++;
+    if (t.done) quadDone[q]++;
+  });
+
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc} · ${today} ${weekday}</div>
+    </div>
+
+    <!-- 进度概览 -->
+    <div class="wl-progress-card">
+      <div class="wl-progress-main">
+        <div class="wl-progress-rate">${rate}%</div>
+        <div class="wl-progress-text">今日完成 ${doneCount}/${total} 项</div>
+      </div>
+      <div class="wl-progress-bar">
+        <div class="wl-progress-fill" style="width:${rate}%;background:linear-gradient(90deg,#3b82f6,#6366f1);"></div>
+      </div>
+      <div class="wl-quad-stats">
+        ${['iq','inq','uq','nuq'].map(q => `
+          <div class="wl-quad-stat" data-wl-quad="${q}" style="border-left:3px solid ${QUADRANT_INFO[q].color};">
+            <div class="wl-quad-name">${QUADRANT_INFO[q].name}</div>
+            <div class="wl-quad-num">${quadDone[q]}/${quadStats[q]}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="wl-toolbar">
+      <div class="wl-filters">
+        <button class="wl-filter-btn ${workFilterQuadrant==='all'?'active':''}" data-wl-filter="all">全部</button>
+        <button class="wl-filter-btn ${workFilterQuadrant==='iq'?'active':''}" data-wl-filter="iq" style="color:${QUADRANT_INFO.iq.color}">重要紧急</button>
+        <button class="wl-filter-btn ${workFilterQuadrant==='inq'?'active':''}" data-wl-filter="inq" style="color:${QUADRANT_INFO.inq.color}">重要不紧急</button>
+        <button class="wl-filter-btn ${workFilterQuadrant==='uq'?'active':''}" data-wl-filter="uq" style="color:${QUADRANT_INFO.uq.color}">紧急不重要</button>
+        <button class="wl-filter-btn ${workFilterQuadrant==='nuq'?'active':''}" data-wl-filter="nuq" style="color:${QUADRANT_INFO.nuq.color}">不重要不紧急</button>
+      </div>
+      <button class="wl-add-btn" data-wl-action="toggle-add">+ 添加任务</button>
+    </div>
+
+    <!-- 添加/编辑表单 -->
+    ${workShowAddForm ? wlRenderForm() : ''}
+
+    <!-- 任务列表 -->
+    <div class="wl-task-list">
+      ${showTasks.length === 0 ? `
+        <div class="wl-empty">
+          <div style="font-size:40px;margin-bottom:10px;">📋</div>
+          <div>${workFilterQuadrant === 'all' ? '今天没有安排任务' : '该象限暂无今日任务'}</div>
+        </div>
+      ` : showTasks.map(t => wlRenderTask(t)).join('')}
+    </div>
+
+    <!-- 提醒区 -->
+    ${doneCount < total ? `
+      <div class="wl-reminder">
+        ⏰ 今日还有 <strong>${total - doneCount}</strong> 项任务待完成
+        <button class="wl-remind-btn" data-wl-action="notify">发送提醒通知</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+// 渲染单个任务
+function wlRenderTask(t) {
+  const q = wlGetQuadrant(t);
+  const qInfo = QUADRANT_INFO[q];
+  return `
+    <div class="wl-task ${t.done ? 'done' : ''}" data-wl-id="${t.id}">
+      <div class="wl-check ${t.done ? 'checked' : ''}" data-wl-action="toggle-done" data-wl-id="${t.id}">
+        ${t.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <div class="wl-task-body">
+        <div class="wl-task-title ${t.done ? 'done' : ''}">${escapeHtml(t.title)}</div>
+        <div class="wl-task-meta">
+          <span class="wl-repeat-tag">${wlRepeatText(t.repeat)}</span>
+          <span class="wl-quad-tag" style="background:${qInfo.color}1a;color:${qInfo.color};">${qInfo.name}</span>
+          ${t.note ? `<span class="wl-note-tag">📝 ${escapeHtml(t.note)}</span>` : ''}
+        </div>
+      </div>
+      <div class="wl-task-actions">
+        <button class="wl-task-btn" data-wl-action="edit" data-wl-id="${t.id}" title="编辑">✏️</button>
+        <button class="wl-task-btn" data-wl-action="delete" data-wl-id="${t.id}" title="删除">🗑️</button>
+      </div>
+    </div>
+  `;
+}
+
+// 渲染添加/编辑表单
+function wlRenderForm() {
+  const editing = workEditingTaskId ? workTasks.find(t => t.id === workEditingTaskId) : null;
+  const r = editing ? (editing.repeat || {type:'daily'}) : {type:'daily'};
+  const isEdit = !!editing;
+  return `
+    <div class="wl-form">
+      <div class="wl-form-title">${isEdit ? '编辑任务' : '添加任务'}</div>
+      <input type="text" class="wl-input" id="wlTaskTitle" placeholder="任务内容" value="${isEdit ? escapeAttr(editing.title) : ''}" />
+      <div class="wl-form-row">
+        <label class="wl-check-label">
+          <input type="checkbox" id="wlImportant" ${editing && editing.important ? 'checked' : ''} /> 重要
+        </label>
+        <label class="wl-check-label">
+          <input type="checkbox" id="wlUrgent" ${editing && editing.urgent ? 'checked' : ''} /> 紧急
+        </label>
+      </div>
+      <div class="wl-form-row">
+        <select class="wl-select" id="wlRepeatType">
+          <option value="daily" ${r.type==='daily'?'selected':''}>每天</option>
+          <option value="weekly" ${r.type==='weekly'?'selected':''}>每周固定星期</option>
+          <option value="monthly" ${r.type==='monthly'?'selected':''}>每月固定日期</option>
+          <option value="quarterly" ${r.type==='quarterly'?'selected':''}>每季度</option>
+          <option value="yearly" ${r.type==='yearly'?'selected':''}>每年</option>
+          <option value="once" ${r.type==='once'?'selected':''}>一次性</option>
+        </select>
+      </div>
+      <div class="wl-form-row" id="wlRepeatDetail"></div>
+      <input type="text" class="wl-input" id="wlNote" placeholder="备注(可选)" value="${isEdit ? escapeAttr(editing.note||'') : ''}" />
+      <div class="wl-form-actions">
+        <button class="wl-btn-cancel" data-wl-action="cancel-form">取消</button>
+        <button class="wl-btn-save" data-wl-action="save-task">${isEdit ? '保存' : '添加'}</button>
+      </div>
+    </div>
+  `;
+}
+
+// 循环规则文字
+function wlRepeatText(r) {
+  r = r || { type: 'daily' };
+  switch (r.type) {
+    case 'daily': return '每日';
+    case 'weekly': return '每周 ' + (r.weekdays||[]).map(w => WEEKDAY_NAMES[w]).join('、');
+    case 'monthly': return '每月 ' + (r.days||[]).join('、') + ' 号';
+    case 'quarterly': return '每季度';
+    case 'yearly': return '每年 ' + (r.date||'').slice(5);
+    case 'once': return '一次性 ' + (r.date||'');
+    default: return '每日';
+  }
+}
+
+// 渲染循环规则详情输入
+function wlRenderRepeatDetail() {
+  const sel = document.getElementById('wlRepeatType');
+  if (!sel) return;
+  const type = sel.value;
+  const detailEl = document.getElementById('wlRepeatDetail');
+  if (!detailEl) return;
+
+  if (type === 'weekly') {
+    detailEl.innerHTML = '<div class="wl-weekdays">' + WEEKDAY_NAMES.map((n,i) =>
+      `<label class="wl-wd"><input type="checkbox" value="${i}" ${i>=1&&i<=5?'checked':''}/> ${n.slice(1)}</label>`
+    ).join('') + '</div>';
+  } else if (type === 'monthly') {
+    detailEl.innerHTML = '<input type="text" class="wl-input" id="wlDays" placeholder="输入日期,多个用逗号分隔 如 1,15,30" />';
+  } else if (type === 'once' || type === 'yearly') {
+    detailEl.innerHTML = '<input type="date" class="wl-input" id="wlDate" />';
+  } else {
+    detailEl.innerHTML = '';
+  }
+}
+
+// 保存任务
+function wlSaveTask() {
+  const title = document.getElementById('wlTaskTitle').value.trim();
+  if (!title) { showToast('请输入任务内容'); return; }
+
+  const important = document.getElementById('wlImportant').checked;
+  const urgent = document.getElementById('wlUrgent').checked;
+  const note = document.getElementById('wlNote').value.trim();
+  const type = document.getElementById('wlRepeatType').value;
+
+  let repeat = { type };
+  if (type === 'weekly') {
+    const wds = Array.from(document.querySelectorAll('#wlRepeatDetail input:checked')).map(c => parseInt(c.value));
+    repeat.weekdays = wds.length ? wds : [1,2,3,4,5];
+  } else if (type === 'monthly') {
+    const daysStr = document.getElementById('wlDays').value.trim();
+    const days = daysStr ? daysStr.split(/[,，\s]+/).map(Number).filter(n => n>=1 && n<=31) : [1];
+    repeat.days = days;
+  } else if (type === 'once' || type === 'yearly') {
+    const dateVal = document.getElementById('wlDate').value;
+    repeat.date = dateVal || wlTodayStr();
+  }
+
+  if (workEditingTaskId) {
+    const task = workTasks.find(t => t.id === workEditingTaskId);
+    if (task) {
+      task.title = title; task.important = important; task.urgent = urgent;
+      task.note = note; task.repeat = repeat;
+    }
+    showToast('任务已更新');
+  } else {
+    workTasks.push({ id: uid(), title, repeat, important, urgent, note });
+    showToast('任务已添加');
+  }
+
+  workShowAddForm = false;
+  workEditingTaskId = null;
+  saveWorkTasks();
+  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
+}
+
+// 删除任务
+function wlDeleteTask(id) {
+  if (!confirm('确定删除该任务?')) return;
+  workTasks = workTasks.filter(t => t.id !== id);
+  saveWorkTasks();
+  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
+  showToast('任务已删除');
+}
+
+// 切换完成状态
+function wlToggleDone(id) {
+  const today = wlTodayStr();
+  const key = `${today}:${id}`;
+  if (workDone[key]) {
+    delete workDone[key];
+  } else {
+    workDone[key] = true;
+    // 完成后检查是否全部完成，发通知
+    const all = wlGetTodayTasks();
+    if (all.every(t => t.done)) {
+      wlNotify('🎉 今日任务全部完成！', '你今天的所有清单任务都已完成。');
+    }
+  }
+  saveWorkDone();
+  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
+}
+
+// 浏览器通知
+function wlNotify(title, body) {
+  try {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') new Notification(title, { body });
+        });
+      }
+    }
+  } catch (e) {}
+}
+
+// 工作清单事件绑定(在 init 末尾调用)
+function bindWorkListEvents() {
+  const container = document.getElementById('content');
+
+  // 象限筛选点击
+  container.addEventListener('click', (e) => {
+    const quadEl = e.target.closest('[data-wl-quad]');
+    if (quadEl) {
+      const q = quadEl.getAttribute('data-wl-quad');
+      workFilterQuadrant = (workFilterQuadrant === q) ? 'all' : q;
+      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+      return;
+    }
+
+    const filterBtn = e.target.closest('[data-wl-filter]');
+    if (filterBtn) {
+      workFilterQuadrant = filterBtn.getAttribute('data-wl-filter');
+      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+      return;
+    }
+
+    const actionEl = e.target.closest('[data-wl-action]');
+    if (!actionEl) return;
+    const action = actionEl.getAttribute('data-wl-action');
+    const id = actionEl.getAttribute('data-wl-id');
+
+    switch (action) {
+      case 'toggle-add':
+        workShowAddForm = !workShowAddForm;
+        workEditingTaskId = null;
+        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+        if (workShowAddForm) setTimeout(wlRenderRepeatDetail, 50);
+        break;
+      case 'cancel-form':
+        workShowAddForm = false;
+        workEditingTaskId = null;
+        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+        break;
+      case 'save-task':
+        wlSaveTask();
+        break;
+      case 'toggle-done':
+        wlToggleDone(id);
+        break;
+      case 'edit':
+        workShowAddForm = true;
+        workEditingTaskId = id;
+        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+        setTimeout(wlRenderRepeatDetail, 50);
+        break;
+      case 'delete':
+        wlDeleteTask(id);
+        break;
+      case 'notify':
+        wlNotify('工作清单提醒', `今日还有任务待完成，加油！`);
+        showToast('已发送提醒通知');
+        break;
+    }
+  });
+
+  // 循环类型变化时更新详情
+  container.addEventListener('change', (e) => {
+    if (e.target.id === 'wlRepeatType') {
+      wlRenderRepeatDetail();
+    }
+  });
+}
+
+// 工作清单提醒检查(页面加载时)
+function wlCheckReminderOnLoad() {
+  const all = wlGetTodayTasks();
+  const pending = all.filter(t => !t.done);
+  if (pending.length > 0) {
+    setTimeout(() => {
+      showToast(`今日有 ${pending.length} 项任务待完成`);
+    }, 1500);
+  }
+}
+
 </script>
 
 </body>
