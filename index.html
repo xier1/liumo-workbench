@@ -2291,6 +2291,21 @@
     .wl-add-btn { width: 100%; }
   }
 
+
+  /* 视图切换: 当日任务 / 全部任务 */
+  .wl-view-seg { display:inline-flex; background:var(--bg-soft); border:1px solid var(--border); border-radius:20px; padding:3px; gap:4px; }
+  .wl-view-btn { background:transparent; border:none; color:var(--text-soft); cursor:pointer; padding:6px 16px; border-radius:16px; font-size:13px; font-weight:500; transition:all .2s; }
+  .wl-view-btn.active { background:var(--primary); color:#fff; }
+
+  /* 四象限任务清单网格 */
+  .wl-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px; }
+  .wl-quad-cell { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; min-height:160px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); }
+  .wl-quad-head { margin-bottom:10px; }
+  .wl-quad-title { font-weight:700; font-size:15px; }
+  .wl-quad-sub { color:var(--text-soft); font-size:12px; margin-top:3px; }
+  .wl-quad-list { display:flex; flex-direction:column; gap:8px; flex:1; }
+  .wl-quad-empty { color:var(--text-soft); font-size:12px; text-align:center; padding:18px 0; }
+  @media (max-width:720px){ .wl-quad-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -2396,7 +2411,7 @@ const MODULES = [
 ];
 
 // ---------- 状态 ----------
-let currentModule = 'todo';
+let currentModule = 'worklist';
 let todos = [];
 let filter = 'all';        // all | active | done
 let search = '';
@@ -2413,6 +2428,7 @@ const QUADRANT_INFO = {
 let workTasks = [];           // 任务定义列表
 let workDone = {};            // 完成记录: { "2026-07-29:taskId": true }
 let workFilterQuadrant = 'all';  // all | iq | inq | uq | nuq
+let workView = 'today';          // today | all  (当日任务 / 全部任务)
 let workShowAddForm = false;
 let workEditingTaskId = null;
 
@@ -4724,23 +4740,20 @@ function wlGetQuadrant(task) {
 function renderWorkListModule(content, mod) {
   const today = wlTodayStr();
   const weekday = WEEKDAY_NAMES[new Date().getDay()];
-  const allToday = wlGetTodayTasks();
-  const showTasks = workFilterQuadrant === 'all'
-    ? allToday
-    : allToday.filter(t => wlGetQuadrant(t) === workFilterQuadrant);
+  const allToday = (workView === 'today')
+    ? wlGetTodayTasks()
+    : workTasks.map(t => {
+        const dk = today + ':' + t.id;
+        return Object.assign({}, t, { done: !!workDone[dk], doneKey: dk });
+      });
 
   const doneCount = allToday.filter(t => t.done).length;
   const total = allToday.length;
   const rate = total === 0 ? 0 : Math.round(doneCount / total * 100);
 
-  // 象限统计
-  const quadStats = { iq:0, inq:0, uq:0, nuq:0 };
-  const quadDone = { iq:0, inq:0, uq:0, nuq:0 };
-  allToday.forEach(t => {
-    const q = wlGetQuadrant(t);
-    quadStats[q]++;
-    if (t.done) quadDone[q]++;
-  });
+  // 象限分组
+  const quadTasks = { iq:[], inq:[], uq:[], nuq:[] };
+  allToday.forEach(t => { quadTasks[wlGetQuadrant(t)].push(t); });
 
   content.innerHTML = `
     <div class="page-header">
@@ -4752,7 +4765,7 @@ function renderWorkListModule(content, mod) {
     <div class="wl-progress-card">
       <div class="wl-progress-main">
         <div class="wl-progress-rate">${rate}%</div>
-        <div class="wl-progress-text">今日完成 ${doneCount}/${total} 项</div>
+        <div class="wl-progress-text">${workView==='today'?'今日':'全部'}完成 ${doneCount}/${total} 项</div>
       </div>
       <div class="wl-progress-bar">
         <div class="wl-progress-fill" style="width:${rate}%;background:linear-gradient(90deg,#3b82f6,#6366f1);"></div>
@@ -4761,7 +4774,7 @@ function renderWorkListModule(content, mod) {
         ${['iq','inq','uq','nuq'].map(q => `
           <div class="wl-quad-stat" data-wl-quad="${q}" style="border-left:3px solid ${QUADRANT_INFO[q].color};">
             <div class="wl-quad-name">${QUADRANT_INFO[q].name}</div>
-            <div class="wl-quad-num">${quadDone[q]}/${quadStats[q]}</div>
+            <div class="wl-quad-num">${quadTasks[q].filter(t=>t.done).length}/${quadTasks[q].length}</div>
           </div>
         `).join('')}
       </div>
@@ -4769,12 +4782,9 @@ function renderWorkListModule(content, mod) {
 
     <!-- 工具栏 -->
     <div class="wl-toolbar">
-      <div class="wl-filters">
-        <button class="wl-filter-btn ${workFilterQuadrant==='all'?'active':''}" data-wl-filter="all">全部</button>
-        <button class="wl-filter-btn ${workFilterQuadrant==='iq'?'active':''}" data-wl-filter="iq" style="color:${QUADRANT_INFO.iq.color}">重要紧急</button>
-        <button class="wl-filter-btn ${workFilterQuadrant==='inq'?'active':''}" data-wl-filter="inq" style="color:${QUADRANT_INFO.inq.color}">重要不紧急</button>
-        <button class="wl-filter-btn ${workFilterQuadrant==='uq'?'active':''}" data-wl-filter="uq" style="color:${QUADRANT_INFO.uq.color}">紧急不重要</button>
-        <button class="wl-filter-btn ${workFilterQuadrant==='nuq'?'active':''}" data-wl-filter="nuq" style="color:${QUADRANT_INFO.nuq.color}">不重要不紧急</button>
+      <div class="wl-view-seg">
+        <button class="wl-view-btn ${workView==='today'?'active':''}" data-wl-view="today">当日任务</button>
+        <button class="wl-view-btn ${workView==='all'?'active':''}" data-wl-view="all">全部任务</button>
       </div>
       <button class="wl-add-btn" data-wl-action="toggle-add">+ 添加任务</button>
     </div>
@@ -4782,14 +4792,19 @@ function renderWorkListModule(content, mod) {
     <!-- 添加/编辑表单 -->
     ${workShowAddForm ? wlRenderForm() : ''}
 
-    <!-- 任务列表 -->
-    <div class="wl-task-list">
-      ${showTasks.length === 0 ? `
-        <div class="wl-empty">
-          <div style="font-size:40px;margin-bottom:10px;">📋</div>
-          <div>${workFilterQuadrant === 'all' ? '今天没有安排任务' : '该象限暂无今日任务'}</div>
+    <!-- 四象限任务清单 -->
+    <div class="wl-quad-grid">
+      ${['iq','inq','uq','nuq'].map(q => `
+        <div class="wl-quad-cell" style="border-top:3px solid ${QUADRANT_INFO[q].color};">
+          <div class="wl-quad-head">
+            <div class="wl-quad-title" style="color:${QUADRANT_INFO[q].color};">${QUADRANT_INFO[q].name}</div>
+            <div class="wl-quad-sub">${QUADRANT_INFO[q].desc} · ${quadTasks[q].length} 项</div>
+          </div>
+          <div class="wl-quad-list">
+            ${quadTasks[q].length === 0 ? `<div class="wl-quad-empty">暂无任务</div>` : quadTasks[q].map(t => wlRenderTask(t)).join('')}
+          </div>
         </div>
-      ` : showTasks.map(t => wlRenderTask(t)).join('')}
+      `).join('')}
     </div>
 
     <!-- 提醒区 -->
@@ -4999,6 +5014,13 @@ function bindWorkListEvents() {
     const filterBtn = e.target.closest('[data-wl-filter]');
     if (filterBtn) {
       workFilterQuadrant = filterBtn.getAttribute('data-wl-filter');
+      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
+      return;
+    }
+
+    const viewBtn = e.target.closest('[data-wl-view]');
+    if (viewBtn) {
+      workView = viewBtn.getAttribute('data-wl-view');
       renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
       return;
     }
