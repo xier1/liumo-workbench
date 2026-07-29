@@ -4928,6 +4928,7 @@ async function restoreFromCloud(){
     if(!f){ showToast('云端暂无数据'); return; }
     const data = JSON.parse(f.content);
     SKIP_SYNC = true;
+    clearLocalUserData();
     for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
     reloadAllData();
     SKIP_SYNC = false;
@@ -4950,6 +4951,16 @@ async function findSyncGist(tok){
   } catch(e){ return null; }
 }
 
+function clearLocalUserData(){
+  const keep = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.indexOf(SYNC_PREFIX) === 0) keep[k] = localStorage.getItem(k);
+  }
+  localStorage.clear();
+  for(const k in keep) localStorage.setItem(k, keep[k]);
+}
+
 async function tryCloudRestoreFirst(){
   let gid = localStorage.getItem(SYNC_GIST_KEY);
   const tok = localStorage.getItem(SYNC_TOKEN_KEY);
@@ -4965,6 +4976,10 @@ async function tryCloudRestoreFirst(){
     const f = j.files && j.files[SYNC_FILE];
     if(!f) return false;
     const data = JSON.parse(f.content);
+    if(Object.keys(data).length === 0) return false;
+    let hasLocal = false;
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && !k.startsWith(SYNC_PREFIX) && k!=='liumo_workbench_initialized'){ hasLocal=true; break; } }
+    if(hasLocal) return false;
     SKIP_SYNC = true;
     for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
     reloadAllData();
