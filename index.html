@@ -1729,6 +1729,103 @@
 
   .subnote-btn.cancel:hover { color: var(--danger); border-color: var(--danger); }
 
+  /* ========== 果然鲜 · 活动列表（标题 + 类别 + 图片 + 双页签） ========== */
+  .act-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .act-tab {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .act-tab:hover { border-color: #d1d5db; color: var(--text); }
+  .act-tab.active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+  .act-count {
+    display: inline-block; min-width: 20px; padding: 0 6px;
+    font-size: 12px; line-height: 18px; text-align: center;
+    background: var(--primary); color: #fff; border-radius: 999px;
+  }
+  .act-tab:not(.active) .act-count { background: #cbd5e1; }
+
+  .act-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+  }
+  .act-field { margin-bottom: 14px; }
+  .act-field:last-of-type { margin-bottom: 0; }
+  .act-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-soft); margin-bottom: 7px; }
+  .act-label .req { color: var(--danger); }
+  .act-title-input, .act-detail-input {
+    width: 100%; padding: 11px 14px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--bg); font-family: inherit;
+    font-size: 14px; color: var(--text); transition: all var(--transition); line-height: 1.6;
+  }
+  .act-title-input:focus, .act-detail-input:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+  }
+  .act-detail-input { resize: vertical; }
+
+  .act-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .act-seg-btn {
+    padding: 8px 20px; background: var(--card); border: none; cursor: pointer;
+    font-size: 14px; color: var(--text-soft); transition: all var(--transition);
+    border-right: 1px solid var(--border);
+  }
+  .act-seg-btn:last-child { border-right: none; }
+  .act-seg-btn:hover { background: var(--bg-soft); }
+  .act-seg-btn.active { background: var(--primary); color: #fff; }
+
+  .act-imgs { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .act-img-add {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border: 1px dashed var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text-soft); cursor: pointer; font-size: 14px;
+    transition: all var(--transition);
+  }
+  .act-img-add:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .act-thumbs { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; }
+  .act-thumb { position: relative; width: 76px; height: 76px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); }
+  .act-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .act-thumb-remove {
+    position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+    border: none; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff;
+    font-size: 14px; line-height: 20px; cursor: pointer; padding: 0;
+  }
+  .act-thumb-remove:hover { background: var(--danger); }
+
+  .act-form-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-ghost {
+    padding: 10px 18px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--card); color: var(--text-soft); cursor: pointer; font-size: 14px; transition: all var(--transition);
+  }
+  .btn-ghost:hover { color: var(--danger); border-color: var(--danger); }
+
+  .act-list { display: flex; flex-direction: column; gap: 12px; }
+  .act-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow-sm); transition: all var(--transition);
+  }
+  .act-card:hover { box-shadow: var(--shadow-md); border-color: #d1d5db; }
+  .act-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .act-badge { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 500; }
+  .act-badge.daily { background: rgba(59,130,246,.12); color: #2563eb; }
+  .act-badge.festival { background: rgba(249,115,22,.14); color: #ea580c; }
+  .act-card-actions { display: flex; gap: 6px; }
+  .act-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; word-break: break-word; }
+  .act-card-detail { font-size: 14px; color: var(--text-soft); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .act-card-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .act-card-img { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .act-card-meta { margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+
   .fresh-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -4422,35 +4519,327 @@ function bindSubNotes(moduleId) {
   }
 }
 
+// ========================================================
+//   果然鲜 · 二级类目「活动列表」专属能力
+//   数据隔离存储：localStorage key = liumo_activities_fresh
+//   条目模型：{ id, title, category:'daily'|'festival', detail, images:[dataURL], createdAt, updatedAt }
+//   兼容：旧版「文本笔记」(liumo_subnotes_fresh) 首次进入时迁移为「日常活动」。
+// ========================================================
+let actTab = 'daily';          // 当前页签：daily / festival
+let actSelectedCat = 'daily';  // 表单当前选中的类别
+let actEditingId = null;       // 正在编辑的条目 id（null = 新增）
+let actDraftImages = [];       // 表单草稿图片（压缩后的 dataURL）
+
+const ACT_KEY = 'liumo_activities_fresh';
+
+function readActivities() {
+  try { return JSON.parse(localStorage.getItem(ACT_KEY) || '[]'); } catch (e) { return []; }
+}
+function writeActivities(arr) {
+  localStorage.setItem(ACT_KEY, JSON.stringify(arr));
+}
+
+// 旧版纯文本笔记 -> 活动（首行作标题，其余作详情，归为日常活动）
+function migrateActivities() {
+  const oldKey = 'liumo_subnotes_fresh';
+  let old = [];
+  try { old = JSON.parse(localStorage.getItem(oldKey) || '[]'); } catch (e) {}
+  if (Array.isArray(old) && old.length && !localStorage.getItem(ACT_KEY)) {
+    const migrated = old.map(n => {
+      const text = (n.text || '').trim();
+      const idx = text.indexOf('\n');
+      const title = (idx > 0 ? text.slice(0, idx) : text).trim() || '未命名活动';
+      const detail = idx > 0 ? text.slice(idx + 1).trim() : '';
+      return {
+        id: n.id || uid(), title, category: 'daily', detail,
+        images: [], createdAt: n.createdAt || Date.now(), updatedAt: n.updatedAt || Date.now()
+      };
+    });
+    writeActivities(migrated);
+    localStorage.removeItem(oldKey);
+  }
+}
+
+// 图片压缩：最长边 ~1000px，输出 JPEG（quality≈0.8），便于持久化到 localStorage
+function compressImage(file, maxSide, quality) {
+  maxSide = maxSide || 1000; quality = quality || 0.8;
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) { reject(new Error('not-image')); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('read'));
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('img'));
+      img.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext && canvas.getContext('2d');
+        if (!ctx) { reject(new Error('ctx')); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+        catch (err) { reject(err); }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function actCounts() {
+  const list = readActivities();
+  return {
+    daily: list.filter(a => a.category === 'daily').length,
+    festival: list.filter(a => a.category === 'festival').length
+  };
+}
+
+function renderActTabs() {
+  const c = document.getElementById('act-tabs');
+  if (!c) return;
+  const k = actCounts();
+  c.innerHTML = `
+    <button type="button" class="act-tab ${actTab === 'daily' ? 'active' : ''}" data-tab="daily">日常活动 <span class="act-count">${k.daily}</span></button>
+    <button type="button" class="act-tab ${actTab === 'festival' ? 'active' : ''}" data-tab="festival">节日活动 <span class="act-count">${k.festival}</span></button>`;
+}
+
+function renderActForm() {
+  const c = document.getElementById('act-form-container');
+  if (!c) return;
+  c.innerHTML = `
+    <div class="act-form">
+      <div class="act-field">
+        <label class="act-label">标题 <span class="req">*</span></label>
+        <input class="act-title-input" id="act-title" type="text" placeholder="例如：周末社区试吃活动" />
+      </div>
+      <div class="act-field">
+        <label class="act-label">类别</label>
+        <div class="act-seg" id="act-seg">
+          <button type="button" class="act-seg-btn ${actSelectedCat === 'daily' ? 'active' : ''}" data-cat="daily">日常活动</button>
+          <button type="button" class="act-seg-btn ${actSelectedCat === 'festival' ? 'active' : ''}" data-cat="festival">节日活动</button>
+        </div>
+      </div>
+      <div class="act-field">
+        <label class="act-label">详情</label>
+        <textarea class="act-detail-input" id="act-detail" rows="3" placeholder="时间、地点、内容…"></textarea>
+      </div>
+      <div class="act-field">
+        <label class="act-label">图片</label>
+        <div class="act-imgs">
+          <button type="button" class="act-img-add" id="act-img-add">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            添加图片
+          </button>
+          <input type="file" id="act-file" accept="image/*" multiple hidden />
+          <div class="act-thumbs" id="act-thumbs"></div>
+        </div>
+      </div>
+      <div class="act-form-actions">
+        <button class="btn-add" id="act-save">添加活动</button>
+        <button class="btn-ghost" id="act-cancel" hidden>取消编辑</button>
+      </div>
+    </div>`;
+  renderActThumbs();
+}
+
+function renderActThumbs() {
+  const c = document.getElementById('act-thumbs');
+  if (!c) return;
+  if (!actDraftImages.length) { c.innerHTML = ''; return; }
+  c.innerHTML = actDraftImages.map((src, i) => `
+    <div class="act-thumb">
+      <img src="${src}" alt="预览" />
+      <button type="button" class="act-thumb-remove" data-idx="${i}" title="删除">×</button>
+    </div>`).join('');
+}
+
+function renderActList() {
+  const c = document.getElementById('act-list');
+  if (!c) return;
+  const list = readActivities().filter(a => a.category === actTab).sort((x, y) => y.createdAt - x.createdAt);
+  if (!list.length) {
+    const label = actTab === 'daily' ? '日常' : '节日';
+    c.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="empty-title">还没有${label}活动</div>
+        <div class="empty-desc">在上方添加第一条记录吧</div>
+      </div>`;
+    return;
+  }
+  c.innerHTML = list.map(a => `
+    <div class="act-card">
+      <div class="act-card-head">
+        <span class="act-badge ${a.category}">${a.category === 'daily' ? '日常活动' : '节日活动'}</span>
+        <div class="act-card-actions">
+          <button class="action-btn" data-act="edit" data-id="${a.id}" title="编辑">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn delete" data-act="delete" data-id="${a.id}" title="删除">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="act-card-title">${escapeHtml(a.title)}</div>
+      ${a.detail ? `<div class="act-card-detail">${escapeHtml(a.detail)}</div>` : ''}
+      ${(a.images && a.images.length) ? `<div class="act-card-imgs">${a.images.map(src => `<img class="act-card-img" src="${src}" alt="" />`).join('')}</div>` : ''}
+      <div class="act-card-meta">${formatDate(a.createdAt)}${a.updatedAt && a.updatedAt !== a.createdAt ? ' · 已编辑' : ''}</div>
+    </div>`).join('');
+}
+
+function syncSegUI() {
+  const seg = document.getElementById('act-seg');
+  if (!seg) return;
+  seg.querySelectorAll('.act-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === actSelectedCat));
+}
+
+function actResetForm() {
+  actEditingId = null;
+  actDraftImages = [];
+  const t = document.getElementById('act-title'), d = document.getElementById('act-detail');
+  if (t) t.value = '';
+  if (d) d.value = '';
+  actSelectedCat = actTab;
+  syncSegUI();
+  renderActThumbs();
+  const save = document.getElementById('act-save'), cancel = document.getElementById('act-cancel');
+  if (save) save.textContent = '添加活动';
+  if (cancel) cancel.hidden = true;
+}
+
+function actSave() {
+  const wasEdit = !!actEditingId;
+  const t = document.getElementById('act-title'), d = document.getElementById('act-detail');
+  const title = t.value.trim();
+  if (!title) { showToast('请填写标题'); if (t) t.focus(); return; }
+  const detail = d.value.trim();
+  const list = readActivities();
+  if (actEditingId) {
+    const a = list.find(x => x.id === actEditingId);
+    if (a) { a.title = title; a.category = actSelectedCat; a.detail = detail; a.images = actDraftImages.slice(); a.updatedAt = Date.now(); }
+  } else {
+    list.unshift({ id: uid(), title, category: actSelectedCat, detail, images: actDraftImages.slice(), createdAt: Date.now(), updatedAt: Date.now() });
+  }
+  writeActivities(list);
+  actResetForm();
+  renderActTabs();
+  renderActList();
+  showToast(wasEdit ? '已更新' : '已添加');
+}
+
+function actStartEdit(id) {
+  const a = readActivities().find(x => x.id === id);
+  if (!a) return;
+  actEditingId = id;
+  actDraftImages = (a.images || []).slice();
+  const t = document.getElementById('act-title'), d = document.getElementById('act-detail');
+  if (t) t.value = a.title;
+  if (d) d.value = a.detail || '';
+  actSelectedCat = a.category;
+  syncSegUI();
+  renderActThumbs();
+  const save = document.getElementById('act-save'), cancel = document.getElementById('act-cancel');
+  if (save) save.textContent = '保存修改';
+  if (cancel) cancel.hidden = false;
+  if (t) t.focus();
+  const form = document.getElementById('act-form-container');
+  if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function bindActivities() {
+  const tabs = document.getElementById('act-tabs');
+  const form = document.getElementById('act-form-container');
+  const list = document.getElementById('act-list');
+
+  if (tabs) {
+    tabs.addEventListener('click', e => {
+      const t = e.target.closest('.act-tab');
+      if (!t) return;
+      actTab = t.dataset.tab;
+      actSelectedCat = actTab;
+      renderActTabs();
+      syncSegUI();
+      renderActList();
+    });
+  }
+
+  if (form) {
+    form.addEventListener('click', e => {
+      const segBtn = e.target.closest('.act-seg-btn');
+      if (segBtn) { actSelectedCat = segBtn.dataset.cat; syncSegUI(); return; }
+      if (e.target.closest('#act-img-add')) { const f = document.getElementById('act-file'); if (f) f.click(); return; }
+      const rm = e.target.closest('.act-thumb-remove');
+      if (rm) {
+        const i = parseInt(rm.dataset.idx, 10);
+        if (!isNaN(i)) { actDraftImages.splice(i, 1); renderActThumbs(); }
+        return;
+      }
+      if (e.target.closest('#act-save')) { actSave(); return; }
+      if (e.target.closest('#act-cancel')) { actResetForm(); return; }
+    });
+
+    const fileEl = document.getElementById('act-file');
+    if (fileEl) {
+      fileEl.addEventListener('change', async e => {
+        const files = Array.from(e.target.files || []);
+        for (const f of files) {
+          try { const d = await compressImage(f); actDraftImages.push(d); }
+          catch (err) { showToast('图片处理失败'); }
+        }
+        renderActThumbs();
+        e.target.value = '';
+      });
+    }
+  }
+
+  if (list) {
+    list.addEventListener('click', e => {
+      const btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      const id = btn.dataset.id, act = btn.dataset.act;
+      if (act === 'edit') { actStartEdit(id); }
+      else if (act === 'delete') {
+        if (typeof confirm === 'function' && !confirm('确定删除该活动？')) return;
+        const arr = readActivities().filter(x => x.id !== id);
+        writeActivities(arr);
+        if (actEditingId === id) actResetForm();
+        renderActTabs();
+        renderActList();
+        showToast('已删除');
+      }
+    });
+  }
+}
+
+// 二级类目：活动列表（标题 + 类别 + 详情 + 图片，双页签切换）
+function renderFreshActivities(content, mod) {
+  migrateActivities();
+  actEditingId = null;
+  actDraftImages = [];
+  actSelectedCat = actTab;
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">活动列表</div>
+      <div class="page-desc">果然鲜 · 日常与节日活动记录（支持图片）</div>
+    </div>
+    <div class="act-tabs" id="act-tabs"></div>
+    <div id="act-form-container"></div>
+    <div class="act-list" id="act-list"></div>
+  `;
+  renderActTabs();
+  renderActForm();
+  renderActList();
+  bindActivities();
+}
+
 function renderFreshModule(content, mod) {
   const sub = currentSub || (mod.children && mod.children[0] && mod.children[0].id) || 'activities';
   if (sub === 'activities') renderFreshActivities(content, mod);
   else renderFreshOther(content, mod);
-}
-
-// 二级类目：活动列表（常规笔记，复用通用 subNotes 子面板）
-function renderFreshActivities(content, mod) {
-  const d = new Date();
-  const dateStr = freshDateStr(d);
-  subNotesEditingId = null;   // 进入时清空可能的残留编辑态
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">活动列表</div>
-      <div class="page-desc">果然鲜 · 随手记录活动与待办</div>
-    </div>
-    <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <textarea class="subnote-input" id="subnote-input-fresh" rows="3" placeholder="记录一条活动 / 笔记，Ctrl/⌘ + Enter 保存..."></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn-add" id="subnote-add-fresh">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          添加笔记
-        </button>
-      </div>
-    </div>
-    <div class="subnote-list" id="subnote-list-fresh"></div>
-  `;
-  bindSubNotes('fresh');
-  renderSubNotes('fresh');
 }
 
 // 二级类目：其他（原果然鲜内容：天气日历 / 微语简报 / 历史上的今天）
