@@ -2183,6 +2183,11 @@
             <button id="syncRestore" class="sync-mini" type="button">云端恢复</button>
             <button id="syncDisconnect" class="sync-mini" type="button">断开</button>
           </div>
+          <div class="sync-actions">
+            <button id="syncExport" class="sync-mini" type="button">导出备份</button>
+            <button id="syncImport" class="sync-mini" type="button">导入备份</button>
+            <input id="syncImportFile" type="file" accept="application/json,.json" hidden />
+          </div>
           <div class="sync-tip">数据存于你的 GitHub 私密 Gist，清缓存/换设备可恢复</div>
         </div>
       </div>
@@ -4972,6 +4977,36 @@ function reloadAllData(){
   loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone();
 }
 
+function exportBackup(){
+  const data = gatherLocal();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const ds = d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
+  a.href = url; a.download = 'liumo-backup-'+ds+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  showToast('已导出备份文件');
+}
+
+function importBackupFromFile(file){
+  const reader = new FileReader();
+  reader.onload = function(){
+    try {
+      const data = JSON.parse(reader.result);
+      SKIP_SYNC = true;
+      for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+      reloadAllData();
+      SKIP_SYNC = false;
+      renderContent();
+      showToast('已从备份文件恢复数据');
+      if(localStorage.getItem(SYNC_AUTO_KEY) === '1') syncPushNow(true);
+    } catch(e){ showToast('导入失败: 文件格式错误'); }
+  };
+  reader.readAsText(file);
+}
+
 function bindSyncUI(){
   const btn = document.getElementById('syncBtn');
   if(!btn) return;
@@ -4994,6 +5029,13 @@ function bindSyncUI(){
     localStorage.removeItem(SYNC_AUTO_KEY);
     setSyncStatus('未配置'); tokEl.value=''; autoEl.checked=false;
     showToast('已断开云端同步');
+  };
+  document.getElementById('syncExport').onclick = exportBackup;
+  document.getElementById('syncImport').onclick = function(){ document.getElementById('syncImportFile').click(); };
+  document.getElementById('syncImportFile').onchange = function(e){
+    const f = e.target.files && e.target.files[0];
+    if(f) importBackupFromFile(f);
+    e.target.value = '';
   };
 }
 
