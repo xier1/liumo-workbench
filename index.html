@@ -2128,6 +2128,18 @@
   .wl-quad-list { display:flex; flex-direction:column; gap:8px; flex:1; }
   .wl-quad-empty { color:var(--text-soft); font-size:12px; text-align:center; padding:18px 0; }
   @media (max-width:720px){ .wl-quad-grid { grid-template-columns:1fr; } }
+  /* 云端同步面板 */
+  .sync-box { margin-top: 12px; }
+  .sync-row { display: flex; align-items: center; gap: 8px; }
+  .sync-btn { background: #1F9D55; color: #fff; border: none; border-radius: 8px; padding: 7px 10px; font-size: 12px; cursor: pointer; }
+  .sync-status { font-size: 11px; color: var(--text-muted); }
+  .sync-panel { margin-top: 10px; padding: 10px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .sync-label { font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; }
+  .sync-input { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); font-size: 12px; }
+  .sync-check { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .sync-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sync-mini { flex: 1; min-width: 64px; padding: 6px 4px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
+  .sync-tip { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -2156,6 +2168,24 @@
 
     <div class="sidebar-footer">
       <div id="todayDate"></div>
+      <div class="sync-box">
+        <div class="sync-row">
+          <button id="syncBtn" class="sync-btn" type="button">☁ 云端同步</button>
+          <span id="syncStatus" class="sync-status">未配置</span>
+        </div>
+        <div id="syncPanel" class="sync-panel" hidden>
+          <label class="sync-label">GitHub Token（仅 gist 权限）
+            <input id="syncToken" class="sync-input" type="password" placeholder="ghp_..." autocomplete="off" />
+          </label>
+          <label class="sync-check"><input id="syncAuto" type="checkbox" /> 自动同步（改动实时上传）</label>
+          <div class="sync-actions">
+            <button id="syncNow" class="sync-mini" type="button">立即同步</button>
+            <button id="syncRestore" class="sync-mini" type="button">云端恢复</button>
+            <button id="syncDisconnect" class="sync-mini" type="button">断开</button>
+          </div>
+          <div class="sync-tip">数据存于你的 GitHub 私密 Gist，清缓存/换设备可恢复</div>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -4665,7 +4695,7 @@ function updateTodayDate() {
 // ---------- 初始化 ----------
 const INIT_FLAG_KEY = 'liumo_workbench_initialized';
 
-function init() {
+async function init() {
   const isFirstTime = !localStorage.getItem(INIT_FLAG_KEY);
   loadTodos();
   loadQuotes();
@@ -4675,8 +4705,11 @@ function init() {
   loadWorkTasks();
   loadWorkDone();
 
-  // 仅在首次使用时插入示例数据(用独立标记判断,避免用户删空后重复填充)
-  if (isFirstTime) {
+  // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
+  const restored = await tryCloudRestoreFirst();
+
+  // 仅在首次使用且云端未恢复时插入示例数据
+  if (isFirstTime && !restored) {
     // 默认工作清单示例
     workTasks = [
       { id: uid(), title: '晨间复盘: 规划今日重点', repeat: { type: 'daily' }, important: true, urgent: false, note: '' },
@@ -4798,7 +4831,178 @@ function init() {
   renderContent();
   bindWorkListEvents();
   wlCheckReminderOnLoad();
+  initCloudSync();
 }
+
+// ===================== 云端同步（GitHub Gist） =====================
+let SKIP_SYNC = false;
+let syncTimer = null;
+const SYNC_PREFIX = 'liumo_sync_';
+const SYNC_TOKEN_KEY = SYNC_PREFIX + 'token';
+const SYNC_GIST_KEY = SYNC_PREFIX + 'gist';
+const SYNC_AUTO_KEY = SYNC_PREFIX + 'auto';
+const SYNC_FILE = 'liumo-workbench-data.json';
+
+// 拦截 setItem, 实现改动后防抖自动同步
+(function(){
+  const _set = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(k, v){
+    _set.call(this, k, v);
+    if(!SKIP_SYNC && typeof k === 'string' && !k.startsWith(SYNC_PREFIX)) scheduleSync();
+  };
+})();
+
+function scheduleSync(){
+  if(localStorage.getItem(SYNC_AUTO_KEY) !== '1') return;
+  if(!localStorage.getItem(SYNC_TOKEN_KEY) || !localStorage.getItem(SYNC_GIST_KEY)) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(function(){ syncPushNow(true); }, 2000);
+}
+
+function gatherLocal(){
+  const o = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && !k.startsWith(SYNC_PREFIX)) o[k] = localStorage.getItem(k);
+  }
+  return o;
+}
+
+function timeStr(){
+  const d = new Date();
+  return ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+}
+function setSyncStatus(t){
+  const el = document.getElementById('syncStatus');
+  if(el) el.textContent = t;
+}
+
+async function syncPushNow(silent){
+  const tok = localStorage.getItem(SYNC_TOKEN_KEY);
+  const gid = localStorage.getItem(SYNC_GIST_KEY);
+  if(!tok){ if(!silent) showToast('请先在云端同步面板填入 GitHub Token'); return; }
+  const content = JSON.stringify(gatherLocal());
+  const payload = JSON.stringify({ public:false, files: { [SYNC_FILE]: { content: content } } });
+  try {
+    let url = 'https://api.github.com/gists', method = 'POST';
+    if(gid){ url = 'https://api.github.com/gists/' + gid; method = 'PATCH'; }
+    const res = await fetch(url, {
+      method: method,
+      headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: payload
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    if(!gid && j.id){
+      SKIP_SYNC = true;
+      localStorage.setItem(SYNC_GIST_KEY, j.id);
+      SKIP_SYNC = false;
+    }
+    setSyncStatus('已同步 ' + timeStr());
+    if(!silent) showToast('已同步到云端');
+  } catch(e){
+    setSyncStatus('同步失败');
+    if(!silent) showToast('同步失败: ' + e.message);
+  }
+}
+
+async function restoreFromCloud(){
+  let gid = localStorage.getItem(SYNC_GIST_KEY);
+  const tok = localStorage.getItem(SYNC_TOKEN_KEY);
+  if(!tok){ showToast('请先配置云端同步（填入 Token）'); return; }
+  if(!gid){ gid = await findSyncGist(tok); if(gid){ localStorage.setItem(SYNC_GIST_KEY, gid); } }
+  if(!gid){ showToast('未找到云端备份 Gist，请先「立即同步」'); return; }
+  if(!confirm('从云端恢复将覆盖本地当前数据，确定继续？')) return;
+  try {
+    const res = await fetch('https://api.github.com/gists/' + gid, {
+      headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    const f = j.files && j.files[SYNC_FILE];
+    if(!f){ showToast('云端暂无数据'); return; }
+    const data = JSON.parse(f.content);
+    SKIP_SYNC = true;
+    for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+    reloadAllData();
+    SKIP_SYNC = false;
+    renderContent();
+    showToast('已从云端恢复数据');
+    setSyncStatus('已配置');
+  } catch(e){ showToast('恢复失败: ' + e.message); }
+}
+
+async function findSyncGist(tok){
+  try {
+    const u = await fetch('https://api.github.com/user', { headers:{ Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' } });
+    if(!u.ok) return null;
+    const me = await u.json();
+    const r = await fetch('https://api.github.com/users/'+me.login+'/gists?per_page=100', { headers:{ Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' } });
+    if(!r.ok) return null;
+    const list = await r.json();
+    for(const g of list){ if(g.files && g.files[SYNC_FILE]) return g.id; }
+    return null;
+  } catch(e){ return null; }
+}
+
+async function tryCloudRestoreFirst(){
+  let gid = localStorage.getItem(SYNC_GIST_KEY);
+  const tok = localStorage.getItem(SYNC_TOKEN_KEY);
+  if(!tok) return false;
+  if(!gid){ gid = await findSyncGist(tok); if(gid){ localStorage.setItem(SYNC_GIST_KEY, gid); } }
+  if(!gid) return false;
+  try {
+    const res = await fetch('https://api.github.com/gists/' + gid, {
+      headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
+    });
+    if(!res.ok) return false;
+    const j = await res.json();
+    const f = j.files && j.files[SYNC_FILE];
+    if(!f) return false;
+    const data = JSON.parse(f.content);
+    SKIP_SYNC = true;
+    for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+    reloadAllData();
+    SKIP_SYNC = false;
+    return Object.keys(data).length > 0;
+  } catch(e){ return false; }
+}
+
+function reloadAllData(){
+  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone();
+}
+
+function bindSyncUI(){
+  const btn = document.getElementById('syncBtn');
+  if(!btn) return;
+  const panel = document.getElementById('syncPanel');
+  btn.onclick = function(){ panel.hidden = !panel.hidden; };
+  const tokEl = document.getElementById('syncToken');
+  const autoEl = document.getElementById('syncAuto');
+  tokEl.value = localStorage.getItem(SYNC_TOKEN_KEY) || '';
+  autoEl.checked = localStorage.getItem(SYNC_AUTO_KEY) === '1';
+  tokEl.oninput = function(){ localStorage.setItem(SYNC_TOKEN_KEY, tokEl.value.trim()); };
+  autoEl.onchange = function(){
+    localStorage.setItem(SYNC_AUTO_KEY, autoEl.checked ? '1' : '0');
+    if(autoEl.checked) syncPushNow(true);
+  };
+  document.getElementById('syncNow').onclick = function(){ syncPushNow(false); };
+  document.getElementById('syncRestore').onclick = function(){ restoreFromCloud(); };
+  document.getElementById('syncDisconnect').onclick = function(){
+    localStorage.removeItem(SYNC_TOKEN_KEY);
+    localStorage.removeItem(SYNC_GIST_KEY);
+    localStorage.removeItem(SYNC_AUTO_KEY);
+    setSyncStatus('未配置'); tokEl.value=''; autoEl.checked=false;
+    showToast('已断开云端同步');
+  };
+}
+
+function initCloudSync(){
+  bindSyncUI();
+  if(localStorage.getItem(SYNC_GIST_KEY) && localStorage.getItem(SYNC_TOKEN_KEY)) setSyncStatus('已配置');
+  else setSyncStatus('未配置');
+}
+
 
 init();
 
