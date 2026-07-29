@@ -4949,14 +4949,18 @@ async function syncPushNow(silent, opts){
   const localData = gatherLocal();
   const content = JSON.stringify({ updatedAt: now, data: localData });
   const payload = JSON.stringify({ public:false, files: { [SYNC_FILE]: { content: content } } });
-  try {
+  async function doPush(g){
     let url = 'https://api.github.com/gists', method = 'POST';
-    if(gid){ url = 'https://api.github.com/gists/' + gid; method = 'PATCH'; }
-    const res = await fetch(url, {
-      method: method,
-      headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
-      body: payload
-    });
+    if(g){ url = 'https://api.github.com/gists/' + g; method = 'PATCH'; }
+    return fetch(url, { method: method, headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json', 'Content-Type':'application/json' }, body: payload });
+  }
+  try {
+    let res = await doPush(gid);
+    if(res.status === 404 && gid){            // Gist 已不存在（被删除等），清空 GID 重建
+      localStorage.removeItem(SYNC_GIST_KEY);
+      gid = null;
+      res = await doPush(null);
+    }
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const j = await res.json();
     if(!gid && j.id){
@@ -4982,9 +4986,16 @@ async function restoreFromCloud(){
   if(!gid){ showToast('未找到云端备份 Gist，请先「立即同步」'); return; }
   if(!confirm('从云端恢复将覆盖本地当前数据，确定继续？')) return;
   try {
-    const res = await fetch('https://api.github.com/gists/' + gid, {
+    let res = await fetch('https://api.github.com/gists/' + gid, {
       headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
     });
+    if(res.status === 404){            // GID 失效，重新查找最新备份
+      localStorage.removeItem(SYNC_GIST_KEY);
+      gid = await findSyncGist(tok);
+      if(gid){ localStorage.setItem(SYNC_GIST_KEY, gid); res = await fetch('https://api.github.com/gists/'+gid, { headers:{ Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' } }); }
+      else { showToast('未找到云端备份 Gist，请先「立即同步」'); return; }
+    }
+    if(res.status === 401){ showToast('恢复失败: Token 无效/无权限，请确认填入的是带 gist 权限的 Token'); return; }
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const j = await res.json();
     const f = j.files && j.files[SYNC_FILE];
