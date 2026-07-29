@@ -4847,6 +4847,29 @@ const SYNC_TOKEN_KEY = SYNC_PREFIX + 'token';
 const SYNC_GIST_KEY = SYNC_PREFIX + 'gist';
 const SYNC_AUTO_KEY = SYNC_PREFIX + 'auto';
 const SYNC_FILE = 'liumo-workbench-data.json';
+const SYNC_LASTPUSH_KEY = SYNC_PREFIX + 'lastpush';
+
+// 解析云端快照：兼容新格式 {updatedAt,data} 与旧格式（裸平铺 JSON）
+function safeParseSnapshot(content){
+  try {
+    const o = JSON.parse(content);
+    if(o && typeof o === 'object' && o.data && typeof o.data === 'object') return o;
+    return { updatedAt: null, data: (o && typeof o === 'object') ? o : {} };
+  } catch(e){ return null; }
+}
+
+// 把云端快照写入本地（保留同步配置键），可选回写 lastpush 时间戳
+async function applyCloudSnapshot(snap, opts){
+  opts = opts || {};
+  const data = snap && snap.data ? snap.data : {};
+  SKIP_SYNC = true;
+  clearLocalUserData();
+  for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+  reloadAllData();
+  SKIP_SYNC = false;
+  renderContent();
+  if(opts.setLastPush && snap && snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_KEY, snap.updatedAt);
+}
 
 // 拦截 setItem, 实现改动后防抖自动同步
 (function(){
@@ -4882,11 +4905,36 @@ function setSyncStatus(t){
   if(el) el.textContent = t;
 }
 
-async function syncPushNow(silent){
+async function syncPushNow(silent, opts){
+  opts = opts || {};
   const tok = localStorage.getItem(SYNC_TOKEN_KEY);
   const gid = localStorage.getItem(SYNC_GIST_KEY);
   if(!tok){ if(!silent) showToast('请先在云端同步面板填入 GitHub Token'); return; }
-  const content = JSON.stringify(gatherLocal());
+  // 冲突感知：云端版本比我们上次推送的更新时，拉取云端而不是覆盖它
+  if(gid && !opts.force){
+    try {
+      const cres = await fetch('https://api.github.com/gists/' + gid, {
+        headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
+      });
+      if(cres.ok){
+        const cj = await cres.json();
+        const cf = cj.files && cj.files[SYNC_FILE];
+        if(cf){
+          const cs = safeParseSnapshot(cf.content);
+          const cloudAt = cs && cs.updatedAt ? Date.parse(cs.updatedAt) : 0;
+          const localAt = Date.parse(localStorage.getItem(SYNC_LASTPUSH_KEY) || '0');
+          if(cloudAt > localAt){
+            await applyCloudSnapshot(cs, { setLastPush:false });
+            setSyncStatus('已合并云端更新 ' + timeStr());
+            if(!silent) showToast('云端有更新，已合并（未覆盖）');
+            return;
+          }
+        }
+      }
+    } catch(e){ /* 忽略，继续推送 */ }
+  }
+  const now = new Date().toISOString();
+  const content = JSON.stringify({ updatedAt: now, data: gatherLocal() });
   const payload = JSON.stringify({ public:false, files: { [SYNC_FILE]: { content: content } } });
   try {
     let url = 'https://api.github.com/gists', method = 'POST';
@@ -4903,6 +4951,7 @@ async function syncPushNow(silent){
       localStorage.setItem(SYNC_GIST_KEY, j.id);
       SKIP_SYNC = false;
     }
+    localStorage.setItem(SYNC_LASTPUSH_KEY, now);
     setSyncStatus('已同步 ' + timeStr());
     if(!silent) showToast('已同步到云端');
   } catch(e){
@@ -4912,6 +4961,7 @@ async function syncPushNow(silent){
 }
 
 async function restoreFromCloud(){
+  clearTimeout(syncTimer); // 取消可能待推送的本地改动，避免把云端覆盖掉
   let gid = localStorage.getItem(SYNC_GIST_KEY);
   const tok = localStorage.getItem(SYNC_TOKEN_KEY);
   if(!tok){ showToast('请先配置云端同步（填入 Token）'); return; }
@@ -4926,13 +4976,9 @@ async function restoreFromCloud(){
     const j = await res.json();
     const f = j.files && j.files[SYNC_FILE];
     if(!f){ showToast('云端暂无数据'); return; }
-    const data = JSON.parse(f.content);
-    SKIP_SYNC = true;
-    clearLocalUserData();
-    for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
-    reloadAllData();
-    SKIP_SYNC = false;
-    renderContent();
+    const snap = safeParseSnapshot(f.content);
+    if(!snap){ showToast('云端数据格式异常'); return; }
+    await applyCloudSnapshot(snap, { setLastPush:true });
     showToast('已从云端恢复数据');
     setSyncStatus('已配置');
   } catch(e){ showToast('恢复失败: ' + e.message); }
@@ -4975,7 +5021,9 @@ async function tryCloudRestoreFirst(){
     const j = await res.json();
     const f = j.files && j.files[SYNC_FILE];
     if(!f) return false;
-    const data = JSON.parse(f.content);
+    const snap = safeParseSnapshot(f.content);
+    if(!snap) return false;
+    const data = snap.data || {};
     if(Object.keys(data).length === 0) return false;
     let hasLocal = false;
     for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && !k.startsWith(SYNC_PREFIX) && k!=='liumo_workbench_initialized'){ hasLocal=true; break; } }
@@ -4984,6 +5032,7 @@ async function tryCloudRestoreFirst(){
     for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
     reloadAllData();
     SKIP_SYNC = false;
+    if(snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_KEY, snap.updatedAt);
     return Object.keys(data).length > 0;
   } catch(e){ return false; }
 }
