@@ -4871,12 +4871,15 @@ async function applyCloudSnapshot(snap, opts){
   opts = opts || {};
   const data = snap && snap.data ? snap.data : {};
   SKIP_SYNC = true;
-  clearLocalUserData();
-  for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
-  reloadAllData();
-  SKIP_SYNC = false;
-  renderContent();
-  if(opts.setLastPush && snap) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
+  try {
+    clearLocalUserData();
+    for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+    reloadAllData();
+    renderContent();
+    if(opts.setLastPush && snap) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
+  } finally {
+    SKIP_SYNC = false; // 任何异常都必须释放，否则自动同步会永久失效
+  }
 }
 
 // 拦截 setItem, 实现改动后防抖自动同步
@@ -5059,10 +5062,13 @@ async function tryCloudRestoreFirst(){
     for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && !k.startsWith(SYNC_PREFIX) && k!=='liumo_workbench_initialized'){ hasLocal=true; break; } }
     if(hasLocal) return false;
     SKIP_SYNC = true;
-    for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
-    reloadAllData();
-    SKIP_SYNC = false;
-    if(snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
+    try {
+      for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+      reloadAllData();
+      if(snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
+    } finally {
+      SKIP_SYNC = false; // 异常也必须释放，避免自动同步永久失效
+    }
     return Object.keys(data).length > 0;
   } catch(e){ return false; }
 }
@@ -5090,10 +5096,13 @@ function importBackupFromFile(file){
     try {
       const data = JSON.parse(reader.result);
       SKIP_SYNC = true;
-      for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
-      reloadAllData();
-      SKIP_SYNC = false;
-      renderContent();
+      try {
+        for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
+        reloadAllData();
+        renderContent();
+      } finally {
+        SKIP_SYNC = false; // 导入异常也必须释放，避免自动同步永久失效
+      }
       showToast('已从备份文件恢复数据');
       if(localStorage.getItem(SYNC_AUTO_KEY) === '1') syncPushNow(true);
     } catch(e){ showToast('导入失败: 文件格式错误'); }
