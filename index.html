@@ -1599,6 +1599,114 @@
     .fresh-grid { grid-template-columns: 1fr; }
   }
 
+  /* 果然鲜 · 二级类目导航 */
+  .fresh-subnav {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+
+  .fresh-subnav-btn {
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all var(--transition);
+  }
+
+  .fresh-subnav-btn:hover { color: var(--text); background: var(--bg-soft); }
+
+  .fresh-subnav-btn.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* 果然鲜 · 活动列表（常规笔记） */
+  .fresh-act-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    resize: vertical;
+    line-height: 1.6;
+    transition: all var(--transition);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .fresh-act-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+
+  .fresh-act-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fresh-act-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+  }
+
+  .fresh-act-item:hover { box-shadow: var(--shadow-md); border-color: #d1d5db; }
+
+  .fresh-act-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .fresh-act-meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .fresh-act-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: flex-end;
+  }
+
+  .fresh-act-btn {
+    padding: 5px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+  }
+
+  .fresh-act-btn:hover { background: var(--bg-soft); color: var(--text); }
+
+  .fresh-act-btn.save {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .fresh-act-btn.save:hover { background: var(--primary-hover); }
+
+  .fresh-act-btn.cancel:hover { color: var(--danger); border-color: var(--danger); }
+
   .fresh-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -2240,7 +2348,7 @@ const MODULES = [
   {
     id: 'fresh',
     name: '果然鲜',
-    desc: '今日日历天气 · 微语简报 · 历史上的今天',
+    desc: '活动笔记 · 今日日历天气 · 微语简报 · 历史上的今天',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
     enabled: true
   },
@@ -4091,42 +4199,207 @@ async function fetchFreshHistory(){
   return null;
 }
 
+// 果然鲜 · 二级类目（活动列表 / 其他）
+let freshTab = 'activities';   // activities | other
+
+// 活动列表：常规笔记
+let freshActivities = [];
+let freshActEditingId = null;
+const FRESH_ACT_KEY = 'liumo_fresh_activities';
+
+function loadFreshActivities() {
+  try {
+    const data = localStorage.getItem(FRESH_ACT_KEY);
+    freshActivities = data ? JSON.parse(data) : [];
+  } catch (e) { freshActivities = []; }
+}
+
+function saveFreshActivities() {
+  localStorage.setItem(FRESH_ACT_KEY, JSON.stringify(freshActivities));
+}
+
+// 二级类目导航切换（仅切换显示，不重建 DOM）
+function bindFreshSubnav() {
+  const nav = document.getElementById('freshSubnav');
+  if (!nav) return;
+  nav.querySelectorAll('.fresh-subnav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      freshTab = btn.dataset.ftab;
+      nav.querySelectorAll('.fresh-subnav-btn').forEach(b => b.classList.toggle('active', b === btn));
+      const act = document.getElementById('freshTabActivities');
+      const oth = document.getElementById('freshTabOther');
+      if (act) act.style.display = (freshTab === 'activities') ? '' : 'none';
+      if (oth) oth.style.display = (freshTab === 'other') ? '' : 'none';
+    });
+  });
+}
+
+// 活动列表：渲染笔记列表
+function renderFreshActivitiesList() {
+  const el = document.getElementById('freshActList');
+  if (!el) return;
+
+  if (freshActivities.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="empty-title">还没有活动笔记</div>
+        <div class="empty-desc">在上方写下第一条记录吧 · 切到「其他」可看天气日历 / 微语简报 / 历史上的今天</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = freshActivities.map(a => {
+    if (freshActEditingId === a.id) {
+      return `
+        <div class="fresh-act-item" data-id="${a.id}">
+          <textarea class="fresh-act-input" id="freshActEdit-${a.id}" rows="3">${escapeHtml(a.text)}</textarea>
+          <div class="fresh-act-actions">
+            <button class="fresh-act-btn save" data-act="save" data-id="${a.id}">保存</button>
+            <button class="fresh-act-btn cancel" data-act="cancel" data-id="${a.id}">取消</button>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="fresh-act-item" data-id="${a.id}">
+        <div class="fresh-act-text">${escapeHtml(a.text)}</div>
+        <div class="fresh-act-meta">${formatDate(a.createdAt)}${a.updatedAt && a.updatedAt !== a.createdAt ? ' · 已编辑' : ''}</div>
+        <div class="fresh-act-actions">
+          <button class="action-btn" data-act="edit" data-id="${a.id}" title="编辑">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn delete" data-act="delete" data-id="${a.id}" title="删除">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// 活动列表：事件绑定
+function bindFreshActivities() {
+  const addBtn = document.getElementById('freshActAdd');
+  const input = document.getElementById('freshActInput');
+
+  function addAct() {
+    const text = input.value.trim();
+    if (!text) { showToast('请输入内容'); input.focus(); return; }
+    freshActivities.unshift({ id: uid(), text, createdAt: Date.now(), updatedAt: Date.now() });
+    saveFreshActivities();
+    input.value = '';
+    renderFreshActivitiesList();
+    input.focus();
+    showToast('已添加');
+  }
+
+  if (addBtn && input) {
+    addBtn.addEventListener('click', addAct);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); addAct(); }
+    });
+  }
+
+  const list = document.getElementById('freshActList');
+  if (list) {
+    list.addEventListener('click', e => {
+      const t = e.target.closest('[data-act]');
+      if (!t) return;
+      const act = t.dataset.act, id = t.dataset.id;
+      const a = freshActivities.find(x => x.id === id);
+      if (!a) return;
+
+      if (act === 'edit') {
+        freshActEditingId = id;
+        renderFreshActivitiesList();
+        const ta = document.getElementById('freshActEdit-' + id);
+        if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+      } else if (act === 'delete') {
+        freshActivities = freshActivities.filter(x => x.id !== id);
+        saveFreshActivities();
+        renderFreshActivitiesList();
+        showToast('已删除');
+      } else if (act === 'save') {
+        const v = document.getElementById('freshActEdit-' + id).value.trim();
+        if (!v) { showToast('内容不能为空'); return; }
+        a.text = v; a.updatedAt = Date.now();
+        saveFreshActivities();
+        freshActEditingId = null;
+        renderFreshActivitiesList();
+        showToast('已保存');
+      } else if (act === 'cancel') {
+        freshActEditingId = null;
+        renderFreshActivitiesList();
+      }
+    });
+  }
+}
+
 function renderFreshModule(content, mod){
   const d = new Date();
   const dateStr = freshDateStr(d);
   const lunarStr = freshLunarStr(d);
+  loadFreshActivities();
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">${mod.name}</div>
       <div class="page-desc">${mod.desc} · 数据更新于 ${dateStr}</div>
     </div>
 
-    <div class="fresh-poster-wrap" id="freshCW">
-      <canvas id="freshPosterCanvas" class="fresh-poster-canvas" aria-label="天气日历海报"></canvas>
-      <button class="fresh-copy-btn fresh-poster-copy" id="freshCopyWeather" title="保存到手机">💾 保存图片</button>
+    <div class="fresh-subnav" id="freshSubnav">
+      <button class="fresh-subnav-btn ${freshTab==='activities'?'active':''}" data-ftab="activities">📝 活动列表</button>
+      <button class="fresh-subnav-btn ${freshTab==='other'?'active':''}" data-ftab="other">🍎 其他</button>
     </div>
 
-    <div class="fresh-grid">
-      <div class="fresh-card">
-        <div class="fresh-card-title">
-          微语简报
-          <button class="fresh-copy-btn" id="freshCopyBrief" title="复制微语简报">复制</button>
+    <!-- 二级类目：活动列表（常规笔记） -->
+    <div id="freshTabActivities" ${freshTab==='activities'?'':'style="display:none;"'}>
+      <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
+        <textarea class="fresh-act-input" id="freshActInput" rows="3" placeholder="记录一条活动 / 笔记，Ctrl/⌘ + Enter 保存..."></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn-add" id="freshActAdd">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            添加笔记
+          </button>
         </div>
-        <div class="fresh-brief-date" id="freshBriefDate">${dateStr}</div>
-        <div class="fresh-quote" id="freshQuote">加载中…</div>
-        <ul class="fresh-brief-list" id="freshBriefList"><li class="fresh-brief-item">加载中…</li></ul>
+      </div>
+      <div class="fresh-act-list" id="freshActList"></div>
+    </div>
+
+    <!-- 二级类目：其他（原果然鲜内容：天气日历 / 微语简报 / 历史上的今天） -->
+    <div id="freshTabOther" ${freshTab==='other'?'':'style="display:none;"'}>
+      <div class="fresh-poster-wrap" id="freshCW">
+        <canvas id="freshPosterCanvas" class="fresh-poster-canvas" aria-label="天气日历海报"></canvas>
+        <button class="fresh-copy-btn fresh-poster-copy" id="freshCopyWeather" title="保存到手机">💾 保存图片</button>
       </div>
 
-      <div class="fresh-card">
-        <div class="fresh-card-title">
-          历史上的今天 · ${dateStr.slice(5)}
-          <button class="fresh-copy-btn" id="freshCopyHistory" title="复制历史上的今天">复制</button>
+      <div class="fresh-grid">
+        <div class="fresh-card">
+          <div class="fresh-card-title">
+            微语简报
+            <button class="fresh-copy-btn" id="freshCopyBrief" title="复制微语简报">复制</button>
+          </div>
+          <div class="fresh-brief-date" id="freshBriefDate">${dateStr}</div>
+          <div class="fresh-quote" id="freshQuote">加载中…</div>
+          <ul class="fresh-brief-list" id="freshBriefList"><li class="fresh-brief-item">加载中…</li></ul>
         </div>
-        <div class="fresh-section-label" id="freshHistoryLabel">查询中…</div>
-        <div class="fresh-history-cards" id="freshHistory"></div>
+
+        <div class="fresh-card">
+          <div class="fresh-card-title">
+            历史上的今天 · ${dateStr.slice(5)}
+            <button class="fresh-copy-btn" id="freshCopyHistory" title="复制历史上的今天">复制</button>
+          </div>
+          <div class="fresh-section-label" id="freshHistoryLabel">查询中…</div>
+          <div class="fresh-history-cards" id="freshHistory"></div>
+        </div>
       </div>
     </div>
   `;
+  bindFreshSubnav();
+  bindFreshActivities();
+  renderFreshActivitiesList();
   freshLoadAll(dateStr);
 }
 
