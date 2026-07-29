@@ -1599,8 +1599,8 @@
     .fresh-grid { grid-template-columns: 1fr; }
   }
 
-  /* 果然鲜 · 二级类目导航 */
-  .fresh-subnav {
+  /* ========== 通用二级类目（模块内子分类导航） ========== */
+  .mod-subnav {
     display: flex;
     gap: 4px;
     background: var(--card);
@@ -1609,9 +1609,10 @@
     padding: 4px;
     margin-bottom: 20px;
     width: fit-content;
+    flex-wrap: wrap;
   }
 
-  .fresh-subnav-btn {
+  .mod-subnav-btn {
     padding: 8px 18px;
     border-radius: var(--radius-sm);
     color: var(--text-soft);
@@ -1620,16 +1621,16 @@
     transition: all var(--transition);
   }
 
-  .fresh-subnav-btn:hover { color: var(--text); background: var(--bg-soft); }
+  .mod-subnav-btn:hover { color: var(--text); background: var(--bg-soft); }
 
-  .fresh-subnav-btn.active {
+  .mod-subnav-btn.active {
     background: var(--primary);
     color: #fff;
     box-shadow: var(--shadow-sm);
   }
 
-  /* 果然鲜 · 活动列表（常规笔记） */
-  .fresh-act-input {
+  /* ========== 通用「笔记 / 活动列表」子面板 ========== */
+  .subnote-input {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid var(--border);
@@ -1643,19 +1644,19 @@
     color: var(--text);
   }
 
-  .fresh-act-input:focus {
+  .subnote-input:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
   }
 
-  .fresh-act-list {
+  .subnote-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  .fresh-act-item {
+  .subnote-item {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -1664,29 +1665,29 @@
     transition: all var(--transition);
   }
 
-  .fresh-act-item:hover { box-shadow: var(--shadow-md); border-color: #d1d5db; }
+  .subnote-item:hover { box-shadow: var(--shadow-md); border-color: #d1d5db; }
 
-  .fresh-act-text {
+  .subnote-text {
     white-space: pre-wrap;
     word-break: break-word;
     line-height: 1.7;
     color: var(--text);
   }
 
-  .fresh-act-meta {
+  .subnote-meta {
     margin-top: 10px;
     font-size: 12px;
     color: var(--text-muted);
   }
 
-  .fresh-act-actions {
+  .subnote-actions {
     display: flex;
     gap: 8px;
     margin-top: 12px;
     justify-content: flex-end;
   }
 
-  .fresh-act-btn {
+  .subnote-btn {
     padding: 5px 14px;
     border-radius: var(--radius-sm);
     font-size: 13px;
@@ -1695,17 +1696,17 @@
     transition: all var(--transition);
   }
 
-  .fresh-act-btn:hover { background: var(--bg-soft); color: var(--text); }
+  .subnote-btn:hover { background: var(--bg-soft); color: var(--text); }
 
-  .fresh-act-btn.save {
+  .subnote-btn.save {
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
   }
 
-  .fresh-act-btn.save:hover { background: var(--primary-hover); }
+  .subnote-btn.save:hover { background: var(--primary-hover); }
 
-  .fresh-act-btn.cancel:hover { color: var(--danger); border-color: var(--danger); }
+  .subnote-btn.cancel:hover { color: var(--danger); border-color: var(--danger); }
 
   .fresh-card {
     background: var(--card);
@@ -4199,47 +4200,66 @@ async function fetchFreshHistory(){
   return null;
 }
 
-// 果然鲜 · 二级类目（活动列表 / 其他）
-let freshTab = 'activities';   // activities | other
+// ========================================================
+//   通用二级类目（模块内子分类）能力
+//   用法：模块 render 时声明 tabs，并把各子分类内容分别用
+//     <div data-tabpane="moduleId" data-tabpane-id="tabId"> 包裹，
+//   再调用 subnavHTML() 生成导航条 + bindSubnav() 绑定切换即可。
+//   切换只改显隐、不重建 DOM。当前选中状态按 moduleId 记忆。
+// ========================================================
+const moduleActiveTab = {};   // moduleId -> 当前激活的子分类 id
 
-// 活动列表：常规笔记
-let freshActivities = [];
-let freshActEditingId = null;
-const FRESH_ACT_KEY = 'liumo_fresh_activities';
-
-function loadFreshActivities() {
-  try {
-    const data = localStorage.getItem(FRESH_ACT_KEY);
-    freshActivities = data ? JSON.parse(data) : [];
-  } catch (e) { freshActivities = []; }
+function subnavHTML(moduleId, tabs, activeId) {
+  return `<div class="mod-subnav" id="subnav-${moduleId}">` +
+    tabs.map(t => `<button class="mod-subnav-btn ${t.id === activeId ? 'active' : ''}" data-tab="${escapeHtml(t.id)}">${t.icon ? t.icon + ' ' : ''}${escapeHtml(t.label)}</button>`).join('') +
+    `</div>`;
 }
 
-function saveFreshActivities() {
-  localStorage.setItem(FRESH_ACT_KEY, JSON.stringify(freshActivities));
-}
-
-// 二级类目导航切换（仅切换显示，不重建 DOM）
-function bindFreshSubnav() {
-  const nav = document.getElementById('freshSubnav');
+function bindSubnav(moduleId, onSwitch) {
+  const nav = document.getElementById('subnav-' + moduleId);
+  const root = document.getElementById('content');
   if (!nav) return;
-  nav.querySelectorAll('.fresh-subnav-btn').forEach(btn => {
+  nav.querySelectorAll('.mod-subnav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      freshTab = btn.dataset.ftab;
-      nav.querySelectorAll('.fresh-subnav-btn').forEach(b => b.classList.toggle('active', b === btn));
-      const act = document.getElementById('freshTabActivities');
-      const oth = document.getElementById('freshTabOther');
-      if (act) act.style.display = (freshTab === 'activities') ? '' : 'none';
-      if (oth) oth.style.display = (freshTab === 'other') ? '' : 'none';
+      const id = btn.dataset.tab;
+      moduleActiveTab[moduleId] = id;
+      nav.querySelectorAll('.mod-subnav-btn').forEach(b => b.classList.toggle('active', b === btn));
+      if (root) {
+        root.querySelectorAll('[data-tabpane="' + moduleId + '"]').forEach(p => {
+          p.style.display = (p.dataset.tabpaneId === id) ? '' : 'none';
+        });
+      }
+      if (onSwitch) onSwitch(id);
     });
   });
 }
 
-// 活动列表：渲染笔记列表
-function renderFreshActivitiesList() {
-  const el = document.getElementById('freshActList');
-  if (!el) return;
+// ========================================================
+//   通用「笔记 / 活动列表」子面板（任意模块的二级类目都可复用）
+//   数据按 moduleId 隔离存储（localStorage key: liumo_subnotes_<moduleId>）。
+//   用法：
+//     <textarea class="subnote-input" id="subnote-input-<moduleId>">
+//     <button id="subnote-add-<moduleId>">添加</button>
+//     <div class="subnote-list" id="subnote-list-<moduleId>"></div>
+//     bindSubNotes(moduleId); renderSubNotes(moduleId);
+// ========================================================
+let subNotesEditingId = null;
 
-  if (freshActivities.length === 0) {
+function readSubNotes(moduleId) {
+  try { return JSON.parse(localStorage.getItem('liumo_subnotes_' + moduleId) || '[]'); }
+  catch (e) { return []; }
+}
+
+function writeSubNotes(moduleId, arr) {
+  localStorage.setItem('liumo_subnotes_' + moduleId, JSON.stringify(arr));
+}
+
+function renderSubNotes(moduleId) {
+  const el = document.getElementById('subnote-list-' + moduleId);
+  if (!el) return;
+  const list = readSubNotes(moduleId);
+
+  if (list.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">
@@ -4247,28 +4267,28 @@ function renderFreshActivitiesList() {
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
           </svg>
         </div>
-        <div class="empty-title">还没有活动笔记</div>
-        <div class="empty-desc">在上方写下第一条记录吧 · 切到「其他」可看天气日历 / 微语简报 / 历史上的今天</div>
+        <div class="empty-title">还没有笔记</div>
+        <div class="empty-desc">在上方写下第一条记录吧</div>
       </div>`;
     return;
   }
 
-  el.innerHTML = freshActivities.map(a => {
-    if (freshActEditingId === a.id) {
+  el.innerHTML = list.map(a => {
+    if (subNotesEditingId === a.id) {
       return `
-        <div class="fresh-act-item" data-id="${a.id}">
-          <textarea class="fresh-act-input" id="freshActEdit-${a.id}" rows="3">${escapeHtml(a.text)}</textarea>
-          <div class="fresh-act-actions">
-            <button class="fresh-act-btn save" data-act="save" data-id="${a.id}">保存</button>
-            <button class="fresh-act-btn cancel" data-act="cancel" data-id="${a.id}">取消</button>
+        <div class="subnote-item" data-id="${a.id}">
+          <textarea class="subnote-input" id="subnote-edit-${moduleId}-${a.id}" rows="3">${escapeHtml(a.text)}</textarea>
+          <div class="subnote-actions">
+            <button class="subnote-btn save" data-act="save" data-id="${a.id}">保存</button>
+            <button class="subnote-btn cancel" data-act="cancel" data-id="${a.id}">取消</button>
           </div>
         </div>`;
     }
     return `
-      <div class="fresh-act-item" data-id="${a.id}">
-        <div class="fresh-act-text">${escapeHtml(a.text)}</div>
-        <div class="fresh-act-meta">${formatDate(a.createdAt)}${a.updatedAt && a.updatedAt !== a.createdAt ? ' · 已编辑' : ''}</div>
-        <div class="fresh-act-actions">
+      <div class="subnote-item" data-id="${a.id}">
+        <div class="subnote-text">${escapeHtml(a.text)}</div>
+        <div class="subnote-meta">${formatDate(a.createdAt)}${a.updatedAt && a.updatedAt !== a.createdAt ? ' · 已编辑' : ''}</div>
+        <div class="subnote-actions">
           <button class="action-btn" data-act="edit" data-id="${a.id}" title="编辑">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
@@ -4280,59 +4300,59 @@ function renderFreshActivitiesList() {
   }).join('');
 }
 
-// 活动列表：事件绑定
-function bindFreshActivities() {
-  const addBtn = document.getElementById('freshActAdd');
-  const input = document.getElementById('freshActInput');
+function bindSubNotes(moduleId) {
+  const input = document.getElementById('subnote-input-' + moduleId);
+  const addBtn = document.getElementById('subnote-add-' + moduleId);
 
-  function addAct() {
+  function add() {
     const text = input.value.trim();
     if (!text) { showToast('请输入内容'); input.focus(); return; }
-    freshActivities.unshift({ id: uid(), text, createdAt: Date.now(), updatedAt: Date.now() });
-    saveFreshActivities();
+    const list = readSubNotes(moduleId);
+    list.unshift({ id: uid(), text, createdAt: Date.now(), updatedAt: Date.now() });
+    writeSubNotes(moduleId, list);
     input.value = '';
-    renderFreshActivitiesList();
+    renderSubNotes(moduleId);
     input.focus();
     showToast('已添加');
   }
 
   if (addBtn && input) {
-    addBtn.addEventListener('click', addAct);
+    addBtn.addEventListener('click', add);
     input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); addAct(); }
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add(); }
     });
   }
 
-  const list = document.getElementById('freshActList');
-  if (list) {
-    list.addEventListener('click', e => {
+  const listEl = document.getElementById('subnote-list-' + moduleId);
+  if (listEl) {
+    listEl.addEventListener('click', e => {
       const t = e.target.closest('[data-act]');
       if (!t) return;
       const act = t.dataset.act, id = t.dataset.id;
-      const a = freshActivities.find(x => x.id === id);
+      const list = readSubNotes(moduleId);
+      const a = list.find(x => x.id === id);
       if (!a) return;
 
       if (act === 'edit') {
-        freshActEditingId = id;
-        renderFreshActivitiesList();
-        const ta = document.getElementById('freshActEdit-' + id);
+        subNotesEditingId = id;
+        renderSubNotes(moduleId);
+        const ta = document.getElementById('subnote-edit-' + moduleId + '-' + id);
         if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
       } else if (act === 'delete') {
-        freshActivities = freshActivities.filter(x => x.id !== id);
-        saveFreshActivities();
-        renderFreshActivitiesList();
+        writeSubNotes(moduleId, list.filter(x => x.id !== id));
+        renderSubNotes(moduleId);
         showToast('已删除');
       } else if (act === 'save') {
-        const v = document.getElementById('freshActEdit-' + id).value.trim();
+        const v = document.getElementById('subnote-edit-' + moduleId + '-' + id).value.trim();
         if (!v) { showToast('内容不能为空'); return; }
         a.text = v; a.updatedAt = Date.now();
-        saveFreshActivities();
-        freshActEditingId = null;
-        renderFreshActivitiesList();
+        writeSubNotes(moduleId, list);
+        subNotesEditingId = null;
+        renderSubNotes(moduleId);
         showToast('已保存');
       } else if (act === 'cancel') {
-        freshActEditingId = null;
-        renderFreshActivitiesList();
+        subNotesEditingId = null;
+        renderSubNotes(moduleId);
       }
     });
   }
@@ -4341,35 +4361,36 @@ function bindFreshActivities() {
 function renderFreshModule(content, mod){
   const d = new Date();
   const dateStr = freshDateStr(d);
-  const lunarStr = freshLunarStr(d);
-  loadFreshActivities();
+  const active = moduleActiveTab['fresh'] || 'activities';
+  const tabs = [
+    { id: 'activities', label: '活动列表', icon: '📝' },
+    { id: 'other', label: '其他', icon: '🍎' }
+  ];
+  subNotesEditingId = null;   // 进入模块时清空可能的残留编辑态
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">${mod.name}</div>
       <div class="page-desc">${mod.desc} · 数据更新于 ${dateStr}</div>
     </div>
 
-    <div class="fresh-subnav" id="freshSubnav">
-      <button class="fresh-subnav-btn ${freshTab==='activities'?'active':''}" data-ftab="activities">📝 活动列表</button>
-      <button class="fresh-subnav-btn ${freshTab==='other'?'active':''}" data-ftab="other">🍎 其他</button>
-    </div>
+    ${subnavHTML('fresh', tabs, active)}
 
-    <!-- 二级类目：活动列表（常规笔记） -->
-    <div id="freshTabActivities" ${freshTab==='activities'?'':'style="display:none;"'}>
+    <!-- 二级类目：活动列表（通用笔记子面板） -->
+    <div data-tabpane="fresh" data-tabpane-id="activities" ${active==='activities'?'':'style="display:none;"'}>
       <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
-        <textarea class="fresh-act-input" id="freshActInput" rows="3" placeholder="记录一条活动 / 笔记，Ctrl/⌘ + Enter 保存..."></textarea>
+        <textarea class="subnote-input" id="subnote-input-fresh" rows="3" placeholder="记录一条活动 / 笔记，Ctrl/⌘ + Enter 保存..."></textarea>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
-          <button class="btn-add" id="freshActAdd">
+          <button class="btn-add" id="subnote-add-fresh">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             添加笔记
           </button>
         </div>
       </div>
-      <div class="fresh-act-list" id="freshActList"></div>
+      <div class="subnote-list" id="subnote-list-fresh"></div>
     </div>
 
     <!-- 二级类目：其他（原果然鲜内容：天气日历 / 微语简报 / 历史上的今天） -->
-    <div id="freshTabOther" ${freshTab==='other'?'':'style="display:none;"'}>
+    <div data-tabpane="fresh" data-tabpane-id="other" ${active==='other'?'':'style="display:none;"'}>
       <div class="fresh-poster-wrap" id="freshCW">
         <canvas id="freshPosterCanvas" class="fresh-poster-canvas" aria-label="天气日历海报"></canvas>
         <button class="fresh-copy-btn fresh-poster-copy" id="freshCopyWeather" title="保存到手机">💾 保存图片</button>
@@ -4397,9 +4418,9 @@ function renderFreshModule(content, mod){
       </div>
     </div>
   `;
-  bindFreshSubnav();
-  bindFreshActivities();
-  renderFreshActivitiesList();
+  bindSubnav('fresh');
+  bindSubNotes('fresh');
+  renderSubNotes('fresh');
   freshLoadAll(dateStr);
 }
 
