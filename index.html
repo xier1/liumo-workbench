@@ -677,7 +677,7 @@
     .search-box { max-width: none; margin-left: 0; }
   }
 
-  /* ========== 好词好句模块 ========== */
+  /* ========== 心灵鸡汤模块 ========== */
   .quote-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -702,13 +702,6 @@
     transform: translateY(-2px);
     border-color: #d1d5db;
   }
-
-  .quote-card.category-poetry { border-left-color: #8b5cf6; }
-  .quote-card.category-prose { border-left-color: #06b6d4; }
-  .quote-card.category-classic { border-left-color: #f59e0b; }
-  .quote-card.category-modern { border-left-color: #10b981; }
-  .quote-card.category-life { border-left-color: #ec4899; }
-  .quote-card.category-other { border-left-color: #6b7280; }
 
   .quote-text {
     font-size: 15px;
@@ -749,17 +742,6 @@
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
-  }
-
-  .quote-cat-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--text-soft);
-    background: var(--bg-soft);
-    padding: 3px 10px;
-    border-radius: 12px;
   }
 
   .quote-meta-time {
@@ -867,7 +849,7 @@
 
   .quote-edit-btn.cancel:hover { background: var(--border); }
 
-  /* 好词好句统计 */
+  /* 心灵鸡汤统计 */
   .quotes-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -2243,8 +2225,8 @@ const MODULES = [
   },
   {
     id: 'quotes',
-    name: '好词好句',
-    desc: '收藏值得品味的词句,沉淀语言之美',
+    name: '心灵鸡汤',
+    desc: '收藏温暖治愈的句子,给生活加点光',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>',
     enabled: true
   },
@@ -2445,7 +2427,7 @@ function renderContent() {
     return;
   }
 
-  // 好词好句模块
+  // 心灵鸡汤模块
   if (currentModule === 'quotes') {
     renderQuotesModule(content, mod);
     return;
@@ -2523,23 +2505,14 @@ function renderTodoModule(content, mod) {
 }
 
 /* ========================================================
-   好词好句模块
+   心灵鸡汤模块
    ======================================================== */
 
-// ---------- 好词好句状态 ----------
+// ---------- 心灵鸡汤状态 ----------
 let quotes = [];
-let quoteFilter = 'all';       // all | starred | 分类名
+let quoteFilter = 'all';       // all | starred
 let quoteSearch = '';
 let quoteEditingId = null;
-
-const QUOTE_CATEGORIES = [
-  { id: 'poetry',  name: '诗词',  color: '#8b5cf6' },
-  { id: 'prose',   name: '散文',  color: '#06b6d4' },
-  { id: 'classic', name: '古典',  color: '#f59e0b' },
-  { id: 'modern',  name: '现代',  color: '#10b981' },
-  { id: 'life',    name: '生活',  color: '#ec4899' },
-  { id: 'other',   name: '其他',  color: '#6b7280' }
-];
 
 const QUOTES_STORAGE_KEY = 'liumo_workbench_quotes';
 
@@ -2550,22 +2523,27 @@ function loadQuotes() {
   } catch (e) {
     quotes = [];
   }
+  normalizeQuotes();
+}
+
+// 迁移:旧版带 category 字段的记录去掉该字段
+function normalizeQuotes() {
+  let changed = false;
+  quotes.forEach(q => {
+    if ('category' in q) { delete q.category; changed = true; }
+  });
+  if (changed) saveQuotes();
 }
 
 function saveQuotes() {
   localStorage.setItem(QUOTES_STORAGE_KEY, JSON.stringify(quotes));
 }
 
-function categoryName(id) {
-  const c = QUOTE_CATEGORIES.find(c => c.id === id);
-  return c ? c.name : '其他';
-}
-
 function escapeAttr(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ---------- 渲染:好词好句模块 ----------
+// ---------- 渲染:心灵鸡汤模块 ----------
 function renderQuotesModule(content, mod) {
   content.innerHTML = `
     <div class="page-header">
@@ -2578,12 +2556,9 @@ function renderQuotesModule(content, mod) {
 
     <!-- 添加工具栏 -->
     <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <textarea class="quote-edit-text" id="quoteInput" placeholder="写下你收藏的好词好句..." rows="3" style="border:1px solid var(--border);box-shadow:none;background:var(--bg);"></textarea>
+      <textarea class="quote-edit-text" id="quoteInput" placeholder="写下你收藏的心灵鸡汤..." rows="3" style="border:1px solid var(--border);box-shadow:none;background:var(--bg);"></textarea>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <input type="text" class="quote-edit-input" id="quoteSourceInput" placeholder="来源(作者 / 书名 / 出处,可选)" style="flex:1;min-width:160px;" />
-        <select class="quote-edit-select" id="quoteCategorySelect">
-          ${QUOTE_CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-        </select>
         <button class="btn-add" id="quoteAddBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           收藏
@@ -2596,7 +2571,6 @@ function renderQuotesModule(content, mod) {
       <div class="filter-group" id="quoteFilterGroup">
         <button class="filter-btn ${quoteFilter==='all'?'active':''}" data-qfilter="all">全部</button>
         <button class="filter-btn ${quoteFilter==='starred'?'active':''}" data-qfilter="starred">⭐ 收藏</button>
-        ${QUOTE_CATEGORIES.map(c => `<button class="filter-btn ${quoteFilter===c.id?'active':''}" data-qfilter="${c.id}">${c.name}</button>`).join('')}
       </div>
       <div class="search-box" style="max-width:260px;margin-left:auto;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2604,7 +2578,7 @@ function renderQuotesModule(content, mod) {
       </div>
     </div>
 
-    <!-- 好词好句列表 -->
+    <!-- 心灵鸡汤列表 -->
     <div class="quote-grid" id="quoteGrid"></div>
   `;
 
@@ -2613,13 +2587,12 @@ function renderQuotesModule(content, mod) {
   renderQuoteGrid();
 }
 
-// ---------- 渲染:好词好句统计 ----------
+// ---------- 渲染:心灵鸡汤统计 ----------
 function renderQuotesStats() {
   const statsEl = document.getElementById('quotesStats');
   if (!statsEl) return;
   const total = quotes.length;
   const starred = quotes.filter(q => q.starred).length;
-  const cats = new Set(quotes.map(q => q.category)).size;
   const recent = quotes.filter(q => Date.now() - q.createdAt < 7 * 86400000).length;
 
   document.getElementById('quotesStats').innerHTML = `
@@ -2632,21 +2605,16 @@ function renderQuotesStats() {
       <div class="stat-value warning">${starred}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">分类数</div>
-      <div class="stat-value">${cats}</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-label">近 7 天新增</div>
       <div class="stat-value success">${recent}</div>
     </div>
   `;
 }
 
-// ---------- 渲染:好词好句列表 ----------
+// ---------- 渲染:心灵鸡汤列表 ----------
 function getFilteredQuotes() {
   let list = quotes;
   if (quoteFilter === 'starred') list = list.filter(q => q.starred);
-  else if (quoteFilter !== 'all') list = list.filter(q => q.category === quoteFilter);
   if (quoteSearch.trim()) {
     const s = quoteSearch.trim().toLowerCase();
     list = list.filter(q => (q.text || '').toLowerCase().includes(s) || (q.source || '').toLowerCase().includes(s));
@@ -2671,8 +2639,8 @@ function renderQuoteGrid() {
             <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
           </svg>
         </div>
-        <div class="empty-title">${quoteSearch ? '没有找到匹配的词句' : (quoteFilter === 'starred' ? '还没有星标词句' : (quoteFilter !== 'all' ? '该分类下暂无词句' : '暂无收藏的好词好句'))}</div>
-        <div class="empty-desc">${quoteSearch ? '试试其他关键词' : '在上方输入框记录你的第一条好词好句吧'}</div>
+        <div class="empty-title">${quoteSearch ? '没有找到匹配的句子' : (quoteFilter === 'starred' ? '还没有星标句子' : '暂无收藏的心灵鸡汤')}</div>
+        <div class="empty-desc">${quoteSearch ? '试试其他关键词' : '在上方输入框记录你的第一条心灵鸡汤吧'}</div>
       </div>
     `;
     return;
@@ -2680,18 +2648,14 @@ function renderQuoteGrid() {
 
   el.innerHTML = list.map(q => {
     const isEditing = quoteEditingId === q.id;
-    const catName = categoryName(q.category);
 
     if (isEditing) {
       return `
-        <div class="quote-card category-${q.category || 'other'}" data-id="${q.id}">
+        <div class="quote-card" data-id="${q.id}">
           <div class="quote-edit-area">
             <textarea class="quote-edit-text" id="qedit-text-${q.id}" rows="3">${escapeHtml(q.text)}</textarea>
             <div class="quote-edit-row">
               <input type="text" class="quote-edit-input" id="qedit-source-${q.id}" placeholder="来源(可选)" value="${escapeAttr(q.source || '')}" />
-              <select class="quote-edit-select" id="qedit-category-${q.id}">
-                ${QUOTE_CATEGORIES.map(c => `<option value="${c.id}" ${c.id===q.category?'selected':''}>${c.name}</option>`).join('')}
-              </select>
             </div>
             <div class="quote-edit-actions">
               <button class="quote-edit-btn save" data-qaction="save" data-id="${q.id}">保存</button>
@@ -2703,12 +2667,11 @@ function renderQuoteGrid() {
     }
 
     return `
-      <div class="quote-card category-${q.category || 'other'}" data-id="${q.id}">
+      <div class="quote-card" data-id="${q.id}">
         <div class="quote-text" data-qaction="edit" data-id="${q.id}">${escapeHtml(q.text)}</div>
         ${q.source ? `<div class="quote-source">${escapeHtml(q.source)}</div>` : ''}
         <div class="quote-footer">
           <div style="display:flex;align-items:center;gap:8px;">
-            <span class="quote-cat-tag">${catName}</span>
             <span class="quote-meta-time">${formatDate(q.createdAt)}</span>
           </div>
           <div class="quote-actions">
@@ -2730,11 +2693,10 @@ function renderQuoteGrid() {
   }).join('');
 }
 
-// ---------- 好词好句事件绑定 ----------
+// ---------- 心灵鸡汤事件绑定 ----------
 function bindQuoteEvents() {
   const input = document.getElementById('quoteInput');
   const sourceInput = document.getElementById('quoteSourceInput');
-  const categorySelect = document.getElementById('quoteCategorySelect');
   const addBtn = document.getElementById('quoteAddBtn');
 
   function addQuote() {
@@ -2748,14 +2710,12 @@ function bindQuoteEvents() {
       id: uid(),
       text,
       source: sourceInput.value.trim(),
-      category: categorySelect.value,
       starred: false,
       createdAt: Date.now()
     });
     saveQuotes();
     input.value = '';
     sourceInput.value = '';
-    categorySelect.value = 'poetry';
     renderQuotesStats();
     renderQuoteGrid();
     input.focus();
@@ -2820,7 +2780,6 @@ function bindQuoteEvents() {
       }
       q.text = newText;
       q.source = document.getElementById(`qedit-source-${id}`).value.trim();
-      q.category = document.getElementById(`qedit-category-${id}`).value;
       saveQuotes();
       quoteEditingId = null;
       renderQuotesStats();
@@ -2845,7 +2804,6 @@ function bindQuoteEvents() {
           if (!newText) { showToast('内容不能为空'); return; }
           q.text = newText;
           q.source = document.getElementById(`qedit-source-${id}`).value.trim();
-          q.category = document.getElementById(`qedit-category-${id}`).value;
           saveQuotes();
           quoteEditingId = null;
           renderQuotesStats();
@@ -4851,7 +4809,6 @@ async function init() {
         id: uid(),
         text: '落霞与孤鹜齐飞,秋水共长天一色。',
         source: '王勃《滕王阁序》',
-        category: 'classic',
         starred: true,
         createdAt: Date.now() - 3600000
       },
@@ -4859,7 +4816,6 @@ async function init() {
         id: uid(),
         text: '愿你一生勇敢,不负聪明。要轻得像羽毛,不惹尘埃,不沾忧愁。',
         source: '林清玄',
-        category: 'prose',
         starred: false,
         createdAt: Date.now() - 7200000
       },
@@ -4867,7 +4823,6 @@ async function init() {
         id: uid(),
         text: '人生不是一场赛跑,而是一段每一步都需要细细品味的旅程。',
         source: '',
-        category: 'life',
         starred: false,
         createdAt: Date.now() - 10800000
       },
@@ -4875,7 +4830,6 @@ async function init() {
         id: uid(),
         text: '海内存知己,天涯若比邻。',
         source: '王勃《送杜少府之任蜀州》',
-        category: 'poetry',
         starred: true,
         createdAt: Date.now() - 86400000
       }
