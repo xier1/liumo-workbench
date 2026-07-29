@@ -411,7 +411,7 @@
     background: var(--danger-soft);
   }
 
-  /* ========== 待办列表 ========== */
+  /* ========== 备忘录列表 ========== */
   .todo-list {
     display: flex;
     flex-direction: column;
@@ -557,6 +557,23 @@
     color: var(--danger);
   }
 
+  /* 拖拽排序 */
+  .drag-handle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 2px;
+    color: var(--text-muted);
+    cursor: grab;
+    align-self: stretch;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .drag-handle svg { width: 16px; height: 16px; }
+  .todo-item.dragging { opacity: 0.4; }
+  .todo-item.drag-over { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+  .todo-item[draggable="true"] { cursor: default; }
+  .filter-group.sort-group { margin-left: 0; }
+
   /* 编辑模式 */
   .todo-edit-input {
     flex: 1;
@@ -656,7 +673,7 @@
     .sidebar.open { transform: translateX(0); }
     .main { padding: 64px 16px 32px; }
     .toolbar { flex-direction: column; align-items: stretch; }
-    .input-add, .select-priority, .input-date, .btn-add { width: 100%; }
+    .input-add, .select-priority, .btn-add { width: 100%; }
     .search-box { max-width: none; margin-left: 0; }
   }
 
@@ -2219,8 +2236,8 @@ const MODULES = [
   },
   {
     id: 'todo',
-    name: '待办管理',
-    desc: '管理日常任务,高效推进工作',
+    name: '备忘录',
+    desc: '记录灵感与备忘,随手拖拽排序',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
   },
@@ -2274,6 +2291,7 @@ let todos = [];
 let filter = 'all';        // all | active | done
 let search = '';
 let editingId = null;
+let memoSortMode = localStorage.getItem('liumo_memo_sort') || 'priority';  // priority | custom
 
 // ---------- 工作清单状态 ----------
 const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
@@ -2324,10 +2342,22 @@ function loadTodos() {
   } catch (e) {
     todos = [];
   }
+  normalizeTodos();
 }
 
 function saveTodos() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+}
+
+// 旧数据迁移:补齐 order(拖拽顺序)、剥离 dueDate、补全 priority
+function normalizeTodos() {
+  let changed = false;
+  todos.forEach((t, i) => {
+    if (typeof t.order !== 'number' || isNaN(t.order)) { t.order = i; changed = true; }
+    if ('dueDate' in t) { delete t.dueDate; changed = true; }
+    if (!t.priority) { t.priority = 'medium'; changed = true; }
+  });
+  if (changed) saveTodos();
 }
 
 // ---------- 工具函数 ----------
@@ -2341,15 +2371,6 @@ function formatDate(ts) {
   const m = (d.getMonth() + 1).toString().padStart(2, '0');
   const day = d.getDate().toString().padStart(2, '0');
   return `${d.getFullYear()}-${m}-${day}`;
-}
-
-function isOverdue(dueDate) {
-  if (!dueDate) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-  return due < today;
 }
 
 function priorityLabel(p) {
@@ -2418,7 +2439,7 @@ function renderContent() {
     return;
   }
 
-  // 待办管理模块
+  // 备忘录模块
   if (currentModule === 'todo') {
     renderTodoModule(content, mod);
     return;
@@ -2456,40 +2477,43 @@ function renderContent() {
   `;
 }
 
-// ---------- 渲染:待办模块 ----------
+// ---------- 渲染:备忘录模块 ----------
 function renderTodoModule(content, mod) {
   content.innerHTML = `
 
-    <!-- 添加待办工具栏 -->
+    <!-- 添加备忘录工具栏 -->
     <div class="toolbar">
-      <input type="text" class="input-add" id="todoInput" placeholder="添加一个待办事项... (回车提交)" />
+      <input type="text" class="input-add" id="todoInput" placeholder="添加一条备忘录... (回车提交)" />
       <select class="select-priority" id="prioritySelect">
         <option value="low">优先级: 低</option>
         <option value="medium" selected>优先级: 中</option>
         <option value="high">优先级: 高</option>
       </select>
-      <input type="date" class="input-date" id="dueDateInput" title="截止日期" />
       <button class="btn-add" id="addBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         添加
       </button>
     </div>
 
-    <!-- 筛选与搜索 -->
+    <!-- 筛选、排序与搜索 -->
     <div class="filter-bar">
       <div class="filter-group">
         <button class="filter-btn ${filter==='all'?'active':''}" data-filter="all">全部</button>
         <button class="filter-btn ${filter==='active'?'active':''}" data-filter="active">进行中</button>
         <button class="filter-btn ${filter==='done'?'active':''}" data-filter="done">已完成</button>
       </div>
+      <div class="filter-group sort-group">
+        <button class="filter-btn sort-btn ${memoSortMode==='priority'?'active':''}" data-sort="priority" title="高优先级排在前">按优先级</button>
+        <button class="filter-btn sort-btn ${memoSortMode==='custom'?'active':''}" data-sort="custom" title="可拖动自定义顺序">自定义顺序</button>
+      </div>
       <button class="btn-clear" id="clearDoneBtn">清除已完成</button>
       <div class="search-box">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input" id="searchInput" placeholder="搜索待办..." value="${search}" />
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索备忘..." value="${search}" />
       </div>
     </div>
 
-    <!-- 待办列表 -->
+    <!-- 备忘录列表 -->
     <div class="todo-list" id="todoList"></div>
   `;
 
@@ -4424,7 +4448,7 @@ function copyFreshText(text) {
 // ---------- 渲染:统计 ----------
 function renderStats() {
   const statsEl = document.getElementById('stats');
-  if (!statsEl) return;  // 仅在待办模块存在 stats 元素时渲染
+  if (!statsEl) return;  // 仅在备忘录模块存在 stats 元素时渲染
   const total = todos.length;
   const done = todos.filter(t => t.done).length;
   const active = total - done;
@@ -4432,7 +4456,7 @@ function renderStats() {
 
   document.getElementById('stats').innerHTML = `
     <div class="stat-card">
-      <div class="stat-label">全部待办</div>
+      <div class="stat-label">全部备忘</div>
       <div class="stat-value">${total}</div>
     </div>
     <div class="stat-card">
@@ -4451,25 +4475,29 @@ function renderStats() {
   `;
 }
 
-// ---------- 渲染:待办列表 ----------
+// ---------- 渲染:备忘录列表 ----------
 function getFilteredTodos() {
   let list = todos;
   if (filter === 'active') list = list.filter(t => !t.done);
   else if (filter === 'done') list = list.filter(t => t.done);
   if (search.trim()) {
     const q = search.trim().toLowerCase();
-    list = list.filter(t => t.title.toLowerCase().includes(q));
+    list = list.filter(t => (t.title || '').toLowerCase().includes(q));
   }
-  // 排序:未完成在前,按优先级降序,再按截止日期升序
   const prioOrder = { high: 3, medium: 2, low: 1 };
-  return [...list].sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    if (prioOrder[b.priority] !== prioOrder[a.priority]) return prioOrder[b.priority] - prioOrder[a.priority];
-    if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
-    if (a.dueDate) return -1;
-    if (b.dueDate) return 1;
-    return b.createdAt - a.createdAt;
-  });
+  const sorted = [...list];
+  if (memoSortMode === 'custom') {
+    // 自定义顺序:按手动拖拽的 order 升序
+    sorted.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  } else {
+    // 按优先级:未完成在前,高优先级在前,再按创建时间
+    sorted.sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if (prioOrder[b.priority] !== prioOrder[a.priority]) return prioOrder[b.priority] - prioOrder[a.priority];
+      return (a.createdAt || 0) - (b.createdAt || 0);
+    });
+  }
+  return sorted;
 }
 
 function renderTodoList() {
@@ -4484,15 +4512,17 @@ function renderTodoList() {
             <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
           </svg>
         </div>
-        <div class="empty-title">${search ? '没有找到匹配的待办' : (filter === 'done' ? '还没有已完成的待办' : (filter === 'active' ? '没有进行中的待办' : '暂无待办事项'))}</div>
-        <div class="empty-desc">${search ? '试试其他关键词' : '在上方输入框添加你的第一个待办吧'}</div>
+        <div class="empty-title">${search ? '没有找到匹配的备忘' : (filter === 'done' ? '还没有已完成的备忘' : (filter === 'active' ? '没有进行中的备忘' : '暂无备忘录'))}</div>
+        <div class="empty-desc">${search ? '试试其他关键词' : '在上方输入框添加你的第一条备忘录吧'}</div>
       </div>
     `;
     return;
   }
 
+  const dragEnabled = memoSortMode === 'custom' && filter === 'all' && !search.trim();
+  const gripSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>';
+
   el.innerHTML = list.map(t => {
-    const overdue = !t.done && isOverdue(t.dueDate);
     const isEditing = editingId === t.id;
     const prioClass = `priority-${t.priority || 'medium'}`;
 
@@ -4512,7 +4542,8 @@ function renderTodoList() {
     }
 
     return `
-      <div class="todo-item ${t.done ? 'done' : ''} ${overdue ? 'overdue' : ''}" data-id="${t.id}">
+      <div class="todo-item ${t.done ? 'done' : ''}" data-id="${t.id}" ${dragEnabled ? 'draggable="true"' : ''}>
+        ${dragEnabled ? `<div class="drag-handle" title="拖动排序">${gripSvg}</div>` : ''}
         <div class="checkbox" data-action="toggle" data-id="${t.id}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
@@ -4522,12 +4553,6 @@ function renderTodoList() {
             <span class="meta-tag ${prioClass}">
               <span class="meta-dot"></span>${priorityLabel(t.priority)}
             </span>
-            ${t.dueDate ? `
-              <span class="meta-tag ${overdue ? 'meta-overdue' : ''}">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                ${t.dueDate}${overdue ? ' (已过期)' : ''}
-              </span>
-            ` : ''}
             <span class="meta-tag">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               ${formatDate(t.createdAt)}
@@ -4547,6 +4572,24 @@ function renderTodoList() {
   }).join('');
 }
 
+function setMemoSortMode(mode) {
+  memoSortMode = mode;
+  localStorage.setItem('liumo_memo_sort', mode);
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+  renderTodoList();
+}
+
+function reorderTodos(fromId, toId) {
+  const fromIdx = todos.findIndex(t => t.id === fromId);
+  const toIdx = todos.findIndex(t => t.id === toId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  const [moved] = todos.splice(fromIdx, 1);
+  todos.splice(toIdx, 0, moved);
+  todos.forEach((t, i) => { t.order = i; });
+  saveTodos();
+  renderTodoList();
+}
+
 function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
@@ -4555,30 +4598,29 @@ function escapeHtml(s) {
 
 // ---------- 事件绑定 ----------
 function bindTodoEvents() {
-  // 添加待办
+  // 添加备忘录
   const input = document.getElementById('todoInput');
   const addBtn = document.getElementById('addBtn');
   const prioritySelect = document.getElementById('prioritySelect');
-  const dueDateInput = document.getElementById('dueDateInput');
 
   function addTodo() {
     const title = input.value.trim();
     if (!title) {
-      showToast('请输入待办内容');
+      showToast('请输入备忘内容');
       input.focus();
       return;
     }
+    const maxOrder = todos.reduce((m, t) => Math.max(m, typeof t.order === 'number' ? t.order : 0), -1);
     todos.unshift({
       id: uid(),
       title,
       done: false,
       priority: prioritySelect.value,
-      dueDate: dueDateInput.value || '',
+      order: maxOrder + 1,
       createdAt: Date.now()
     });
     saveTodos();
     input.value = '';
-    dueDateInput.value = '';
     prioritySelect.value = 'medium';
     renderStats();
     renderTodoList();
@@ -4590,13 +4632,18 @@ function bindTodoEvents() {
     if (e.key === 'Enter') addTodo();
   });
 
-  // 筛选
-  document.querySelectorAll('.filter-btn').forEach(btn => {
+  // 筛选(仅带 data-filter 的按钮)
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
     btn.addEventListener('click', () => {
       filter = btn.dataset.filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.toggle('active', b === btn));
       renderTodoList();
     });
+  });
+
+  // 排序模式切换:按优先级 / 自定义顺序(可拖拽)
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMemoSortMode(btn.dataset.sort));
   });
 
   // 搜索
@@ -4610,14 +4657,51 @@ function bindTodoEvents() {
   document.getElementById('clearDoneBtn').addEventListener('click', () => {
     const doneCount = todos.filter(t => t.done).length;
     if (doneCount === 0) {
-      showToast('没有已完成的待办');
+      showToast('没有已完成的备忘');
       return;
     }
     todos = todos.filter(t => !t.done);
     saveTodos();
     renderStats();
     renderTodoList();
-    showToast(`已清除 ${doneCount} 条已完成待办`);
+    showToast(`已清除 ${doneCount} 条已完成备忘`);
+  });
+
+  // 拖拽排序(仅自定义顺序模式)
+  const listEl = document.getElementById('todoList');
+  let dragId = null;
+  listEl.addEventListener('dragstart', e => {
+    const item = e.target.closest('.todo-item');
+    if (!item || !item.hasAttribute('draggable')) return;
+    dragId = item.dataset.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragId);
+    setTimeout(() => item.classList.add('dragging'), 0);
+  });
+  listEl.addEventListener('dragend', e => {
+    const item = e.target.closest('.todo-item');
+    if (item) item.classList.remove('dragging');
+    listEl.querySelectorAll('.todo-item').forEach(el => el.classList.remove('drag-over'));
+    dragId = null;
+  });
+  listEl.addEventListener('dragover', e => {
+    e.preventDefault();
+    const item = e.target.closest('.todo-item');
+    if (!item || !dragId || item.dataset.id === dragId) return;
+    item.classList.add('drag-over');
+  });
+  listEl.addEventListener('dragleave', e => {
+    const item = e.target.closest('.todo-item');
+    if (item) item.classList.remove('drag-over');
+  });
+  listEl.addEventListener('drop', e => {
+    e.preventDefault();
+    const item = e.target.closest('.todo-item');
+    if (!item || !dragId) return;
+    const targetId = item.dataset.id;
+    item.classList.remove('drag-over');
+    if (targetId && targetId !== dragId) reorderTodos(dragId, targetId);
+    dragId = null;
   });
 
   // 列表事件委托
@@ -4726,27 +4810,21 @@ async function init() {
     ];
     saveWorkTasks();
 
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-
     todos = [
       {
         id: uid(),
-        title: '欢迎使用刘莫个人工作台,试试添加你的第一个待办',
+        title: '欢迎使用刘莫个人工作台,试试添加你的第一条备忘录',
         done: false,
         priority: 'high',
-        dueDate: formatDate(tomorrow.getTime()),
+        order: 0,
         createdAt: Date.now() - 60000
       },
       {
         id: uid(),
-        title: '点击左侧复选框可以标记任务为已完成',
+        title: '点击左侧复选框可以标记已完成',
         done: false,
         priority: 'medium',
-        dueDate: '',
+        order: 1,
         createdAt: Date.now() - 120000
       },
       {
@@ -4754,15 +4832,15 @@ async function init() {
         title: '双击标题或点编辑按钮可以修改内容',
         done: false,
         priority: 'low',
-        dueDate: formatDate(nextWeek.getTime()),
+        order: 2,
         createdAt: Date.now() - 180000
       },
       {
         id: uid(),
-        title: '这是一个已完成的示例任务',
+        title: '这是一个已完成的示例备忘',
         done: true,
         priority: 'low',
-        dueDate: '',
+        order: 3,
         createdAt: Date.now() - 86400000
       }
     ];
