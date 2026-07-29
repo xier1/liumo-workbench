@@ -4847,7 +4847,15 @@ const SYNC_TOKEN_KEY = SYNC_PREFIX + 'token';
 const SYNC_GIST_KEY = SYNC_PREFIX + 'gist';
 const SYNC_AUTO_KEY = SYNC_PREFIX + 'auto';
 const SYNC_FILE = 'liumo-workbench-data.json';
-const SYNC_LASTPUSH_KEY = SYNC_PREFIX + 'lastpush';
+const SYNC_LASTPUSH_CONTENT = SYNC_PREFIX + 'lastpush';
+
+// 规范化序列化（排序键），用于比较本地/云端/基线内容是否一致
+function canon(obj){
+  if(!obj || typeof obj !== 'object') return JSON.stringify(obj);
+  const o = {};
+  for(const k of Object.keys(obj).sort()) o[k] = obj[k];
+  return JSON.stringify(o);
+}
 
 // 解析云端快照：兼容新格式 {updatedAt,data} 与旧格式（裸平铺 JSON）
 function safeParseSnapshot(content){
@@ -4868,7 +4876,7 @@ async function applyCloudSnapshot(snap, opts){
   reloadAllData();
   SKIP_SYNC = false;
   renderContent();
-  if(opts.setLastPush && snap && snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_KEY, snap.updatedAt);
+  if(opts.setLastPush && snap) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
 }
 
 // 拦截 setItem, 实现改动后防抖自动同步
@@ -4910,31 +4918,34 @@ async function syncPushNow(silent, opts){
   const tok = localStorage.getItem(SYNC_TOKEN_KEY);
   const gid = localStorage.getItem(SYNC_GIST_KEY);
   if(!tok){ if(!silent) showToast('请先在云端同步面板填入 GitHub Token'); return; }
-  // 冲突感知：云端版本比我们上次推送的更新时，拉取云端而不是覆盖它
+  // 冲突感知（三路）：云端自我们上次同步后若被改过，则拉取云端而不是覆盖它
   if(gid && !opts.force){
-    try {
-      const cres = await fetch('https://api.github.com/gists/' + gid, {
-        headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
-      });
-      if(cres.ok){
-        const cj = await cres.json();
-        const cf = cj.files && cj.files[SYNC_FILE];
-        if(cf){
-          const cs = safeParseSnapshot(cf.content);
-          const cloudAt = cs && cs.updatedAt ? Date.parse(cs.updatedAt) : 0;
-          const localAt = Date.parse(localStorage.getItem(SYNC_LASTPUSH_KEY) || '0');
-          if(cloudAt > localAt){
-            await applyCloudSnapshot(cs, { setLastPush:false });
-            setSyncStatus('已合并云端更新 ' + timeStr());
-            if(!silent) showToast('云端有更新，已合并（未覆盖）');
-            return;
+    const base = localStorage.getItem(SYNC_LASTPUSH_CONTENT);
+    if(base !== null && base !== undefined){
+      try {
+        const cres = await fetch('https://api.github.com/gists/' + gid, {
+          headers: { Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' }
+        });
+        if(cres.ok){
+          const cj = await cres.json();
+          const cf = cj.files && cj.files[SYNC_FILE];
+          if(cf){
+            const cs = safeParseSnapshot(cf.content);
+            const remoteData = cs ? (cs.data || {}) : {};
+            if(canon(remoteData) !== base){
+              await applyCloudSnapshot(cs, { setLastPush:true });
+              setSyncStatus('已合并云端更新 ' + timeStr());
+              if(!silent) showToast('云端有更新，已合并（未覆盖）');
+              return;
+            }
           }
         }
-      }
-    } catch(e){ /* 忽略，继续推送 */ }
+      } catch(e){ /* 忽略，继续推送 */ }
+    }
   }
   const now = new Date().toISOString();
-  const content = JSON.stringify({ updatedAt: now, data: gatherLocal() });
+  const localData = gatherLocal();
+  const content = JSON.stringify({ updatedAt: now, data: localData });
   const payload = JSON.stringify({ public:false, files: { [SYNC_FILE]: { content: content } } });
   try {
     let url = 'https://api.github.com/gists', method = 'POST';
@@ -4951,7 +4962,7 @@ async function syncPushNow(silent, opts){
       localStorage.setItem(SYNC_GIST_KEY, j.id);
       SKIP_SYNC = false;
     }
-    localStorage.setItem(SYNC_LASTPUSH_KEY, now);
+    localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(localData));
     setSyncStatus('已同步 ' + timeStr());
     if(!silent) showToast('已同步到云端');
   } catch(e){
@@ -5032,7 +5043,7 @@ async function tryCloudRestoreFirst(){
     for(const k in data){ if(k.startsWith(SYNC_PREFIX)) continue; localStorage.setItem(k, data[k]); }
     reloadAllData();
     SKIP_SYNC = false;
-    if(snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_KEY, snap.updatedAt);
+    if(snap.updatedAt) localStorage.setItem(SYNC_LASTPUSH_CONTENT, canon(snap.data || {}));
     return Object.keys(data).length > 0;
   } catch(e){ return false; }
 }
@@ -5085,7 +5096,7 @@ function bindSyncUI(){
     localStorage.setItem(SYNC_AUTO_KEY, autoEl.checked ? '1' : '0');
     if(autoEl.checked) syncPushNow(true);
   };
-  document.getElementById('syncNow').onclick = function(){ syncPushNow(false); };
+  document.getElementById('syncNow').onclick = function(){ syncPushNow(false, { force: true }); };
   document.getElementById('syncRestore').onclick = function(){ restoreFromCloud(); };
   document.getElementById('syncDisconnect').onclick = function(){
     localStorage.removeItem(SYNC_TOKEN_KEY);
