@@ -5037,10 +5037,12 @@ async function syncPushNow(silent, opts){
   }
   try {
     let res = await doPush(gid);
+    if(res.status === 401){ showToast('同步失败: Token 无效/无权限（401），请确认填入的是带 gist 权限的 Token'); return; }
     if(res.status === 404 && gid){            // Gist 已不存在（被删除等），清空 GID 重建
       localStorage.removeItem(SYNC_GIST_KEY);
       gid = null;
       res = await doPush(null);
+      if(res.status === 401){ showToast('同步失败: Token 无效/无权限（401），请确认填入的是带 gist 权限的 Token'); return; }
     }
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const j = await res.json();
