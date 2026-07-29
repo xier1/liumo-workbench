@@ -4916,8 +4916,10 @@ function setSyncStatus(t){
 async function syncPushNow(silent, opts){
   opts = opts || {};
   const tok = localStorage.getItem(SYNC_TOKEN_KEY);
-  const gid = localStorage.getItem(SYNC_GIST_KEY);
+  let gid = localStorage.getItem(SYNC_GIST_KEY);
   if(!tok){ if(!silent) showToast('请先在云端同步面板填入 GitHub Token'); return; }
+  // 首次同步且无 GID 时，复用账号下最新的备份 Gist（避免不断新建孤儿 Gist）
+  if(!gid){ const fg = await findSyncGist(tok); if(fg){ gid = fg; localStorage.setItem(SYNC_GIST_KEY, fg); } }
   // 冲突感知（三路）：云端自我们上次同步后若被改过，则拉取云端而不是覆盖它
   if(gid && !opts.force){
     const base = localStorage.getItem(SYNC_LASTPUSH_CONTENT);
@@ -5003,8 +5005,14 @@ async function findSyncGist(tok){
     const r = await fetch('https://api.github.com/users/'+me.login+'/gists?per_page=100', { headers:{ Authorization:'Bearer '+tok, Accept:'application/vnd.github+json' } });
     if(!r.ok) return null;
     const list = await r.json();
-    for(const g of list){ if(g.files && g.files[SYNC_FILE]) return g.id; }
-    return null;
+    // 选 updated_at 最新的那份备份（列表不含文件内容，故以 Gist 更新时间为准）
+    let best = null, bestScore = -1;
+    for(const g of list){
+      if(!(g.files && g.files[SYNC_FILE])) continue;
+      const score = Date.parse(g.updated_at || g.created_at || 0);
+      if(score > bestScore){ bestScore = score; best = g.id; }
+    }
+    return best;
   } catch(e){ return null; }
 }
 
