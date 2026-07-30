@@ -1824,8 +1824,33 @@
   .act-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; word-break: break-word; }
   .act-card-detail { font-size: 14px; color: var(--text-soft); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
   .act-card-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .act-card-img { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .act-card-img { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: zoom-in; }
   .act-card-meta { margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+
+  /* 活动图片放大预览（点击卡片图片弹出，可保存到本地） */
+  .act-lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .act-lightbox.open { display: flex; }
+  .act-lightbox-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.78); }
+  .act-lightbox-panel {
+    position: relative; z-index: 1; max-width: 92vw; max-height: 90vh;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .act-lightbox-img {
+    max-width: 92vw; max-height: 78vh; object-fit: contain; background: #fff;
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
+  }
+  .act-lightbox-bar { display: flex; gap: 10px; }
+  .act-lb-save, .act-lb-close {
+    padding: 9px 20px; border: none; border-radius: var(--radius-sm); cursor: pointer;
+    font-size: 14px; color: #fff; transition: all var(--transition);
+  }
+  .act-lb-save { background: var(--primary); }
+  .act-lb-save:hover { background: var(--primary-hover); }
+  .act-lb-close { background: rgba(255,255,255,.2); }
+  .act-lb-close:hover { background: rgba(255,255,255,.34); }
 
   .fresh-card {
     background: var(--card);
@@ -4698,6 +4723,44 @@ function renderActList() {
     </div>`).join('');
 }
 
+// 活动图片放大预览（点击卡片图片弹出，可保存到本地）
+let actLightbox = null;
+function openActLightbox(src) {
+  if (!actLightbox) {
+    actLightbox = document.createElement('div');
+    actLightbox.className = 'act-lightbox';
+    actLightbox.innerHTML = `
+      <div class="act-lightbox-backdrop" data-close="1"></div>
+      <div class="act-lightbox-panel">
+        <img class="act-lightbox-img" alt="活动图片预览" />
+        <div class="act-lightbox-bar">
+          <button type="button" class="act-lb-save">💾 保存到本地</button>
+          <button type="button" class="act-lb-close" data-close="1">✕ 关闭</button>
+        </div>
+      </div>`;
+    document.body.appendChild(actLightbox);
+    actLightbox.addEventListener('click', e => { if (e.target.dataset.close) closeActLightbox(); });
+    actLightbox.querySelector('.act-lb-save').addEventListener('click', () => {
+      const img = actLightbox.querySelector('.act-lightbox-img');
+      if (!img || !img.src) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = '活动图片_' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && actLightbox.classList.contains('open')) closeActLightbox();
+    });
+  }
+  actLightbox.querySelector('.act-lightbox-img').src = src;
+  actLightbox.classList.add('open');
+}
+function closeActLightbox() {
+  if (actLightbox) actLightbox.classList.remove('open');
+}
+
 function syncSegUI() {
   const seg = document.getElementById('act-seg');
   if (!seg) return;
@@ -4805,6 +4868,8 @@ function bindActivities() {
 
   if (list) {
     list.addEventListener('click', e => {
+      const img = e.target.closest('.act-card-img');
+      if (img) { openActLightbox(img.src); return; }
       const btn = e.target.closest('[data-act]');
       if (!btn) return;
       const id = btn.dataset.id, act = btn.dataset.act;
