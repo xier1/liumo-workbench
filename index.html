@@ -1901,6 +1901,37 @@
   .act-lb-close { background: rgba(255,255,255,.2); }
   .act-lb-close:hover { background: rgba(255,255,255,.34); }
 
+  /* 活动列表：顶栏（页签 + 添加按钮） */
+  .act-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .act-topbar .act-tabs { flex: 1; min-width: 0; flex-wrap: wrap; }
+  #actAddBtn { flex-shrink: 0; }
+
+  /* 活动列表：弹窗表单 */
+  .act-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .act-modal.open { display: flex; }
+  .act-modal-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(2px); }
+  .act-modal-dialog {
+    position: relative; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto;
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lg);
+    animation: actPop .2s ease; outline: none;
+  }
+  @keyframes actPop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+  .act-modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--card); z-index: 1;
+  }
+  .act-modal-title { font-size: 17px; font-weight: 700; }
+  .act-modal-x { width: 32px; height: 32px; border-radius: 8px; color: var(--text-soft); font-size: 16px; cursor: pointer; transition: all .2s; }
+  .act-modal-x:hover { background: var(--bg-soft); color: var(--text); }
+  .act-modal-dialog #act-form-container { padding: 18px 20px 20px; }
+
   .fresh-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -5051,7 +5082,7 @@ function bindSubNotes(moduleId) {
 //   条目模型：{ id, title, category:'daily'|'festival', detail, images:[dataURL], createdAt, updatedAt }
 //   兼容：旧版「文本笔记」(liumo_subnotes_fresh) 首次进入时迁移为「日常活动」。
 // ========================================================
-let actTab = 'daily';          // 当前页签：daily / festival
+let actTab = 'all';            // 当前页签：all / daily / festival / group
 let actSelectedCat = 'daily';  // 表单当前选中的类别
 let actEditingId = null;       // 正在编辑的条目 id（null = 新增）
 let actDraftImages = [];       // 表单草稿图片（压缩后的 dataURL）
@@ -5134,8 +5165,11 @@ function renderActTabs() {
   const c = document.getElementById('act-tabs');
   if (!c) return;
   const k = actCounts();
-  c.innerHTML = ACT_CATEGORIES.map(cat => `
-    <button type="button" class="act-tab ${actTab === cat.id ? 'active' : ''}" data-tab="${cat.id}">${cat.name} <span class="act-count">${k[cat.id]}</span></button>`).join('');
+  const allCount = readActivities().length;
+  const items = [{ id: 'all', name: '全部活动', count: allCount }]
+    .concat(ACT_CATEGORIES.map(cat => ({ id: cat.id, name: cat.name, count: k[cat.id] })));
+  c.innerHTML = items.map(it => `
+    <button type="button" class="act-tab ${actTab === it.id ? 'active' : ''}" data-tab="${it.id}">${it.name} <span class="act-count">${it.count}</span></button>`).join('');
 }
 
 function renderActForm() {
@@ -5174,6 +5208,18 @@ function renderActForm() {
       </div>
     </div>`;
   renderActThumbs();
+  const fe = document.getElementById('act-file');
+  if (fe) {
+    fe.addEventListener('change', async e => {
+      const files = Array.from(e.target.files || []);
+      for (const f of files) {
+        try { const d = await compressImage(f); actDraftImages.push(d); }
+        catch (err) { showToast('图片处理失败'); }
+      }
+      renderActThumbs();
+      e.target.value = '';
+    });
+  }
 }
 
 function renderActThumbs() {
@@ -5190,16 +5236,17 @@ function renderActThumbs() {
 function renderActList() {
   const c = document.getElementById('act-list');
   if (!c) return;
-  const list = readActivities().filter(a => a.category === actTab).sort((x, y) => y.createdAt - x.createdAt);
+  const all = readActivities();
+  const list = (actTab === 'all' ? all : all.filter(a => a.category === actTab)).sort((x, y) => y.createdAt - x.createdAt);
   if (!list.length) {
-    const label = actCat(actTab).name.replace('活动', '');
+    const label = actTab === 'all' ? '活动' : actCat(actTab).name.replace('活动', '');
     c.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
         <div class="empty-title">还没有${label}活动</div>
-        <div class="empty-desc">在上方添加第一条记录吧</div>
+        <div class="empty-desc">点击右上角「添加活动」记录第一条吧</div>
       </div>`;
     return;
   }
@@ -5300,12 +5347,36 @@ function actResetForm() {
   const t = document.getElementById('act-title'), d = document.getElementById('act-detail');
   if (t) t.value = '';
   if (d) d.value = '';
-  actSelectedCat = actTab;
+  actSelectedCat = ACT_CATEGORIES[0].id;
   syncSegUI();
   renderActThumbs();
   const save = document.getElementById('act-save'), cancel = document.getElementById('act-cancel');
   if (save) save.textContent = '添加活动';
   if (cancel) cancel.hidden = true;
+}
+
+function openActModal() {
+  const modal = document.getElementById('actModal');
+  if (!modal) return;
+  renderActForm();
+  const titleEl = document.getElementById('actModalTitle');
+  if (titleEl) titleEl.textContent = actEditingId ? '编辑活动' : '添加活动';
+  modal.classList.add('open');
+  const dlg = modal.querySelector('.act-modal-dialog');
+  if (dlg) dlg.focus();
+}
+
+function closeActForm() {
+  const modal = document.getElementById('actModal');
+  if (modal) modal.classList.remove('open');
+  actResetForm();
+}
+
+function actOpenAdd() {
+  actResetForm();
+  if (actTab !== 'all') actSelectedCat = actTab;
+  syncSegUI();
+  openActModal();
 }
 
 function actSave() {
@@ -5325,43 +5396,53 @@ function actSave() {
   actResetForm();
   renderActTabs();
   renderActList();
+  closeActForm();
   showToast(wasEdit ? '已更新' : '已添加');
 }
 
 function actStartEdit(id) {
   const a = readActivities().find(x => x.id === id);
   if (!a) return;
+  // 先置状态，再渲染（renderActForm 会重建表单，必须在渲染后回填）
   actEditingId = id;
   actDraftImages = (a.images || []).slice();
+  actSelectedCat = a.category;
+  openActModal();
   const t = document.getElementById('act-title'), d = document.getElementById('act-detail');
   if (t) t.value = a.title;
   if (d) d.value = a.detail || '';
-  actSelectedCat = a.category;
   syncSegUI();
   renderActThumbs();
   const save = document.getElementById('act-save'), cancel = document.getElementById('act-cancel');
   if (save) save.textContent = '保存修改';
   if (cancel) cancel.hidden = false;
   if (t) t.focus();
-  const form = document.getElementById('act-form-container');
-  if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function bindActivities() {
   const tabs = document.getElementById('act-tabs');
   const form = document.getElementById('act-form-container');
   const list = document.getElementById('act-list');
+  const addBtn = document.getElementById('actAddBtn');
+  const modal = document.getElementById('actModal');
 
   if (tabs) {
     tabs.addEventListener('click', e => {
       const t = e.target.closest('.act-tab');
       if (!t) return;
       actTab = t.dataset.tab;
-      actSelectedCat = actTab;
+      if (actTab !== 'all') actSelectedCat = actTab;
       renderActTabs();
       syncSegUI();
       renderActList();
     });
+  }
+
+  if (addBtn) addBtn.addEventListener('click', actOpenAdd);
+
+  if (modal) {
+    modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeActForm(); });
+    modal.addEventListener('keydown', e => { if (e.key === 'Escape') closeActForm(); });
   }
 
   if (form) {
@@ -5376,7 +5457,7 @@ function bindActivities() {
         return;
       }
       if (e.target.closest('#act-save')) { actSave(); return; }
-      if (e.target.closest('#act-cancel')) { actResetForm(); return; }
+      if (e.target.closest('#act-cancel')) { closeActForm(); return; }
     });
 
     const fileEl = document.getElementById('act-file');
@@ -5420,23 +5501,34 @@ function bindActivities() {
   }
 }
 
-// 二级类目：活动列表（标题 + 类别 + 详情 + 图片，双页签切换）
+// 二级类目：活动列表（标题 + 类别 + 详情 + 图片；全部/分类页签；弹窗新增）
 function renderFreshActivities(content, mod) {
   migrateActivities();
   actEditingId = null;
   actDraftImages = [];
-  actSelectedCat = actTab;
+  actSelectedCat = ACT_CATEGORIES[0].id;
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">活动列表</div>
-      <div class="page-desc">果然鲜 · 日常与节日活动记录（支持图片）</div>
+      <div class="page-desc">果然鲜 · 全品类活动记录（支持图片）</div>
     </div>
-    <div class="act-tabs" id="act-tabs"></div>
-    <div id="act-form-container"></div>
+    <div class="act-topbar">
+      <div class="act-tabs" id="act-tabs"></div>
+      <button class="btn-add" id="actAddBtn">＋ 添加活动</button>
+    </div>
     <div class="act-list" id="act-list"></div>
+    <div class="act-modal" id="actModal">
+      <div class="act-modal-backdrop" data-close="1"></div>
+      <div class="act-modal-dialog" tabindex="-1">
+        <div class="act-modal-head">
+          <div class="act-modal-title" id="actModalTitle">添加活动</div>
+          <button type="button" class="act-modal-x" data-close="1" aria-label="关闭">✕</button>
+        </div>
+        <div id="act-form-container"></div>
+      </div>
+    </div>
   `;
   renderActTabs();
-  renderActForm();
   renderActList();
   bindActivities();
 }

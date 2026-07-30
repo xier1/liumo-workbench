@@ -10,29 +10,16 @@ const dom = new JSDOM(html, {
   pretendToBeVisual: true,
   url: 'https://example.com/',
   beforeParse(window) {
-    // canvas 2D 上下文 mock
-    window.HTMLCanvasElement.prototype.getContext = function () {
-      return new Proxy({}, { get: () => () => {} });
-    };
-    window.HTMLCanvasElement.prototype.toDataURL = function () {
-      return 'data:image/jpeg;base64,FAKE_COMPRESSED';
-    };
-    // Image mock：onload 同步触发，带尺寸
-    window.Image = class {
-      constructor() { this.onload = null; this.onerror = null; this.width = 2000; this.height = 1000; this._src = ''; }
-      set src(v) { this._src = v; if (this.onload) setTimeout(() => this.onload(), 0); }
-      get src() { return this._src; }
-    };
-    // fetch 存根，避免 init 云端恢复报错
+    window.HTMLCanvasElement.prototype.getContext = function () { return new Proxy({}, { get: () => () => {} }); };
+    window.HTMLCanvasElement.prototype.toDataURL = function () { return 'data:image/jpeg;base64,FAKE_COMPRESSED'; };
+    window.Image = class { constructor() { this.onload = null; this.onerror = null; this.width = 2000; this.height = 1000; this._src = ''; } set src(v) { this._src = v; if (this.onload) setTimeout(() => this.onload(), 0); } get src() { return this._src; } };
     window.fetch = () => Promise.reject(new Error('no-net-in-test'));
-    // confirm 默认同意
     window.confirm = () => true;
   }
 });
 
 const { window } = dom;
 const { document } = window;
-
 function evalIn(code) { return window.eval(code); }
 
 const results = [];
@@ -41,81 +28,98 @@ function check(name, cond) {
   console.log((cond ? 'PASS ' : 'FAIL ') + name);
 }
 
-// 等待脚本/异步 init 稍微 settle
+// 打开弹窗表单（点击添加按钮）
+function openForm() {
+  document.getElementById('actAddBtn').click();
+  return document.getElementById('actModal').classList.contains('open');
+}
+
 setTimeout(() => {
   try {
-    const content = document.getElementById('content');
     const freshMod = evalIn('MODULES.find(m => m.id === "fresh")');
     check('fresh 模块存在且有 children', freshMod && Array.isArray(freshMod.children) && freshMod.children.length === 2);
 
-    // 清空任何既有数据
     window.localStorage.clear();
-
-    // ---- 1. 初始渲染：日常活动 tab 默认，计数 0/0，空态 ----
     evalIn('currentSub = "activities"; renderFreshActivities(document.getElementById("content"), MODULES.find(m=>m.id==="fresh"));');
-    const tabs0 = [...document.querySelectorAll('#act-tabs .act-tab')];
-    check('渲染出三个页签（日常/节日/群活动）', tabs0.length === 3 && tabs0.some(t => t.dataset.tab === 'daily') && tabs0.some(t => t.dataset.tab === 'festival') && tabs0.some(t => t.dataset.tab === 'group'));
-    check('日常活动为默认激活页签', document.querySelector('#act-tabs .act-tab.active') && document.querySelector('#act-tabs .act-tab.active').dataset.tab === 'daily');
-    check('初始计数 0 / 0', document.querySelector('#act-tabs .act-tab[data-tab="daily"] .act-count').textContent === '0' && document.querySelector('#act-tabs .act-tab[data-tab="festival"] .act-count').textContent === '0');
-    check('无数据时显示空态', !!document.querySelector('#act-list .empty-state'));
-    check('表单含标题输入（必填）', !!document.getElementById('act-title'));
-    check('表单含类别分段控件', !!document.getElementById('act-seg') && document.querySelectorAll('#act-seg .act-seg-btn').length === 3);
-    check('表单含详情文本域', !!document.getElementById('act-detail'));
-    check('表单含添加图片按钮与文件输入', !!document.getElementById('act-img-add') && !!document.getElementById('act-file'));
 
-    // ---- 2. 新增一条日常活动 ----
+    // ---- 1. 初始渲染：默认「全部活动」页签，4 个页签，空态，无内联表单 ----
+    const tabs0 = [...document.querySelectorAll('#act-tabs .act-tab')];
+    check('渲染出 4 个页签（全部/日常/节日/群活动）', tabs0.length === 4 && tabs0.some(t => t.dataset.tab === 'all') && tabs0.some(t => t.dataset.tab === 'daily') && tabs0.some(t => t.dataset.tab === 'festival') && tabs0.some(t => t.dataset.tab === 'group'));
+    check('「全部活动」为默认激活页签', document.querySelector('#act-tabs .act-tab.active') && document.querySelector('#act-tabs .act-tab.active').dataset.tab === 'all');
+    check('初始计数 全部=0 日常=0 节日=0', document.querySelector('#act-tabs .act-tab[data-tab="all"] .act-count').textContent === '0' && document.querySelector('#act-tabs .act-tab[data-tab="daily"] .act-count').textContent === '0' && document.querySelector('#act-tabs .act-tab[data-tab="festival"] .act-count').textContent === '0');
+    check('无数据时显示空态', !!document.querySelector('#act-list .empty-state'));
+    check('内联表单不存在（表单在弹窗内）', !document.getElementById('act-title'));
+    check('页面存在「添加活动」按钮', !!document.getElementById('actAddBtn'));
+    check('弹窗初始隐藏', !document.getElementById('actModal').classList.contains('open'));
+
+    // ---- 2. 点击添加按钮弹出表单 ----
+    check('点击添加按钮后弹窗打开', openForm());
+    check('弹窗内含标题输入（必填）', !!document.getElementById('act-title'));
+    check('弹窗内含类别分段控件', !!document.getElementById('act-seg') && document.querySelectorAll('#act-seg .act-seg-btn').length === 3);
+    check('弹窗内含详情文本域', !!document.getElementById('act-detail'));
+    check('弹窗内含添加图片按钮与文件输入', !!document.getElementById('act-img-add') && !!document.getElementById('act-file'));
+    check('默认类别为日常活动', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'daily');
+
+    // ---- 3. 新增一条日常活动 ----
     document.getElementById('act-title').value = '社区试吃会';
     document.getElementById('act-detail').value = '周六上午 9 点，小区门口';
-    // 类别保持默认 daily
     document.getElementById('act-save').click();
     const stored1 = JSON.parse(window.localStorage.getItem('liumo_activities_fresh') || '[]');
     check('新增后写入 localStorage', stored1.length === 1);
     check('新增条目类别为 daily', stored1[0].category === 'daily');
     check('新增条目标题正确', stored1[0].title === '社区试吃会');
-    check('列表已渲染该卡片', [...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-card-title').textContent === '社区试吃会'));
+    check('列表已渲染该卡片（默认全部页签可见）', [...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-card-title').textContent === '社区试吃会'));
+    check('全部计数变为 1', document.querySelector('#act-tabs .act-tab[data-tab="all"] .act-count').textContent === '1');
     check('日常计数变为 1', document.querySelector('#act-tabs .act-tab[data-tab="daily"] .act-count').textContent === '1');
-    check('保存后表单清空', document.getElementById('act-title').value === '');
-    check('保存后按钮文案恢复为「添加活动」', document.getElementById('act-save').textContent === '添加活动');
+    check('保存后弹窗关闭', !document.getElementById('actModal').classList.contains('open'));
 
-    // ---- 3. 标题为空时不允许保存 ----
+    // ---- 4. 标题为空时不允许保存 ----
+    openForm();
     const before = JSON.parse(window.localStorage.getItem('liumo_activities_fresh')).length;
     document.getElementById('act-title').value = '   ';
     document.getElementById('act-save').click();
     const after = JSON.parse(window.localStorage.getItem('liumo_activities_fresh')).length;
     check('标题为空时不写入', before === after);
+    // 关闭弹窗（取消）
+    document.getElementById('act-cancel').click();
+    check('点击取消关闭弹窗', !document.getElementById('actModal').classList.contains('open'));
 
-    // ---- 4. 切到节日活动页签并新增一条 ----
+    // ---- 5. 切到节日活动页签并新增一条 ----
     document.querySelector('#act-tabs .act-tab[data-tab="festival"]').click();
     check('切到节日活动页签后激活态正确', document.querySelector('#act-tabs .act-tab.active').dataset.tab === 'festival');
     check('节日页签下空态', !!document.querySelector('#act-list .empty-state'));
+    openForm();
+    check('弹出表单后默认类别跟随页签(festival)', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'festival');
     document.getElementById('act-title').value = '中秋促销';
-    // 表单类别应跟随页签 = festival
-    check('表单分段默认跟随当前页签(festival)', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'festival');
     document.getElementById('act-save').click();
-    const stored2 = JSON.parse(window.localStorage.getItem('liumo_activities_fresh'));
     check('节日计数变为 1', document.querySelector('#act-tabs .act-tab[data-tab="festival"] .act-count').textContent === '1');
     check('节日页签只显示节日活动', [...document.querySelectorAll('#act-list .act-card')].every(c => c.querySelector('.act-badge.festival')));
     check('节日页签不显示日常活动', ![...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-badge.daily')));
 
-    // ---- 4.5 切到群活动页签并新增一条 ----
+    // ---- 6. 群活动 ----
     document.querySelector('#act-tabs .act-tab[data-tab="group"]').click();
     check('切到群活动页签后激活态正确', document.querySelector('#act-tabs .act-tab.active').dataset.tab === 'group');
     check('群活动页签下空态', !!document.querySelector('#act-list .empty-state'));
-    check('表单分段默认跟随当前页签(group)', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'group');
+    openForm();
+    check('弹出表单后默认类别跟随页签(group)', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'group');
     document.getElementById('act-title').value = '业主群接龙';
     document.getElementById('act-save').click();
     const storedG = JSON.parse(window.localStorage.getItem('liumo_activities_fresh'));
     check('群活动计数变为 1', document.querySelector('#act-tabs .act-tab[data-tab="group"] .act-count').textContent === '1');
     check('群活动条目类别为 group', storedG.some(a => a.title === '业主群接龙' && a.category === 'group'));
-    check('群活动页签只显示群活动', [...document.querySelectorAll('#act-list .act-card')].every(c => c.querySelector('.act-badge.group')));
-    check('群活动卡片徽章文案为「群活动」', [...document.querySelectorAll('#act-list .act-card .act-badge.group')].some(b => b.textContent === '群活动'));
 
-    // ---- 5. 切回日常页签，验证筛选 + 切换回 daily 后表单类别回到 daily ----
+    // ---- 7. 切回「全部活动」聚合显示所有 ----
+    document.querySelector('#act-tabs .act-tab[data-tab="all"]').click();
+    check('全部页签显示全部 3 条', document.querySelectorAll('#act-list .act-card').length === 3);
+    check('全部页签同时含日常/节日/群活动', [...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-badge.daily')) && [...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-badge.festival')) && [...document.querySelectorAll('#act-list .act-card')].some(c => c.querySelector('.act-badge.group')));
+
+    // 回到日常页签验证筛选
     document.querySelector('#act-tabs .act-tab[data-tab="daily"]').click();
     check('日常页签只显示日常活动', [...document.querySelectorAll('#act-list .act-card')].every(c => c.querySelector('.act-badge.daily')));
-    check('切回日常后表单类别回到 daily', document.querySelector('#act-seg .act-seg-btn.active').dataset.cat === 'daily');
 
-    // ---- 6. 图片压缩 + 草稿缩略图 + 持久化进条目 ----
+    // ---- 8. 图片压缩 + 草稿缩略图 + 持久化 ----
+    document.querySelector('#act-tabs .act-tab[data-tab="all"]').click();
+    openForm();
     const file = new window.File([Buffer.from('fake-bytes-1234567890')], 'a.jpg', { type: 'image/jpeg' });
     const fileInput = document.getElementById('act-file');
     Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
@@ -127,11 +131,9 @@ setTimeout(() => {
       check('草稿图片为 dataURL', evalIn('actDraftImages[0]').indexOf('data:image') === 0);
       check('表单出现图片缩略图', document.querySelectorAll('#act-thumbs .act-thumb').length === 1);
 
-      // 草稿缩略图可删除
       document.querySelector('#act-thumbs .act-thumb-remove').click();
       check('可删除草稿缩略图（草稿清空）', evalIn('actDraftImages.length') === 0 && document.querySelectorAll('#act-thumbs .act-thumb').length === 0);
 
-      // 重新加入图片，并再加一张，凑成多图活动以测试预览切换
       fileInput.dispatchEvent(new window.Event('change', { bubbles: true }));
       setTimeout(() => {
         check('重新加入图片后草稿为 1', evalIn('actDraftImages.length') === 1);
@@ -146,7 +148,7 @@ setTimeout(() => {
           const cardWithImg = [...document.querySelectorAll('#act-list .act-card')].find(c => c.querySelector('.act-card-title').textContent === '带图活动');
           check('卡片渲染 2 张缩略图', cardWithImg && cardWithImg.querySelectorAll('.act-card-img').length === 2);
 
-          // ---- 6.5 图片点击放大预览 + 左右切换 + 保存到本地 ----
+          // ---- 8.5 图片点击放大预览 + 切换 + 保存 ----
           const imgEls = cardWithImg.querySelectorAll('.act-card-img');
           imgEls[0].click();
           const lb = document.querySelector('.act-lightbox');
@@ -183,9 +185,10 @@ setTimeout(() => {
 
     function runLaterChecks() {
       try {
-        // ---- 7. 编辑已有活动 ----
+        // ---- 9. 编辑已有活动（弹窗打开并回填） ----
         const editBtn = document.querySelector('#act-list .act-card [data-act="edit"]');
         editBtn.click();
+        check('编辑时弹窗打开', document.getElementById('actModal').classList.contains('open'));
         check('编辑时标题回填到表单', document.getElementById('act-title').value.length > 0);
         check('编辑时保存按钮变为「保存修改」', document.getElementById('act-save').textContent === '保存修改');
         check('编辑时出现「取消编辑」按钮', document.getElementById('act-cancel').hidden === false);
@@ -194,14 +197,15 @@ setTimeout(() => {
         document.getElementById('act-save').click();
         const stored4 = JSON.parse(window.localStorage.getItem('liumo_activities_fresh'));
         check('编辑后标题更新且数量不变', stored4.length === 4 && stored4.some(a => a.title === origTitle + '（改）'));
+        check('编辑保存后弹窗关闭', !document.getElementById('actModal').classList.contains('open'));
 
-        // ---- 8. 删除活动 ----
+        // ---- 10. 删除活动 ----
         const beforeDel = JSON.parse(window.localStorage.getItem('liumo_activities_fresh')).length;
         document.querySelector('#act-list .act-card [data-act="delete"]').click();
         const afterDel = JSON.parse(window.localStorage.getItem('liumo_activities_fresh')).length;
         check('删除后数量减一', afterDel === beforeDel - 1);
 
-        // ---- 9. 旧版文本笔记迁移为日常活动 ----
+        // ---- 11. 旧版文本笔记迁移 ----
         window.localStorage.clear();
         window.localStorage.setItem('liumo_subnotes_fresh', JSON.stringify([
           { id: 'old1', text: '旧笔记标题\n旧笔记正文', createdAt: 1000, updatedAt: 1000 },
