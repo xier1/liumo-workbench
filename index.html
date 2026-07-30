@@ -2581,16 +2581,16 @@
 // ---------- 模块配置 ----------
 const MODULES = [
   {
-    id: 'worklist',
-    name: '工作清单',
-    desc: '循环任务管理 · 四象限调度 · 实时进度',
+    id: 'todo',
+    name: '备忘录',
+    desc: '记录灵感与备忘,随手拖拽排序',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
   },
   {
-    id: 'todo',
-    name: '备忘录',
-    desc: '记录灵感与备忘,随手拖拽排序',
+    id: 'worklist',
+    name: '工作清单',
+    desc: '循环任务管理 · 四象限调度 · 实时进度',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
   },
@@ -2657,7 +2657,7 @@ const MODULES = [
 ];
 
 // ---------- 状态 ----------
-let currentModule = 'worklist';
+let currentModule = 'todo';
 let currentSub = null;        // 当前二级类目 id（仅对带 children 的模块有效）
 const expandedModules = {};   // moduleId -> 侧边栏是否展开其子分类
 let todos = [];
