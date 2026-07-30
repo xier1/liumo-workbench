@@ -1819,6 +1819,7 @@
   .act-badge { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 500; }
   .act-badge.daily { background: rgba(59,130,246,.12); color: #2563eb; }
   .act-badge.festival { background: rgba(249,115,22,.14); color: #ea580c; }
+  .act-badge.group { background: rgba(34,197,94,.13); color: #16a34a; }
   .act-card-actions { display: flex; gap: 6px; }
   .act-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; word-break: break-word; }
   .act-card-detail { font-size: 14px; color: var(--text-soft); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
@@ -4532,6 +4533,14 @@ let actDraftImages = [];       // 表单草稿图片（压缩后的 dataURL）
 
 const ACT_KEY = 'liumo_activities_fresh';
 
+// 活动类别配置（单一数据源）：新增类别只需在此追加一项
+const ACT_CATEGORIES = [
+  { id: 'daily',    name: '日常活动', color: '#2563eb', bg: 'rgba(59,130,246,.12)' },
+  { id: 'festival', name: '节日活动', color: '#ea580c', bg: 'rgba(249,115,22,.14)' },
+  { id: 'group',    name: '群活动',   color: '#16a34a', bg: 'rgba(34,197,94,.13)' }
+];
+function actCat(id) { return ACT_CATEGORIES.find(c => c.id === id) || ACT_CATEGORIES[0]; }
+
 function readActivities() {
   try { return JSON.parse(localStorage.getItem(ACT_KEY) || '[]'); } catch (e) { return []; }
 }
@@ -4590,19 +4599,18 @@ function compressImage(file, maxSide, quality) {
 
 function actCounts() {
   const list = readActivities();
-  return {
-    daily: list.filter(a => a.category === 'daily').length,
-    festival: list.filter(a => a.category === 'festival').length
-  };
+  const out = {};
+  ACT_CATEGORIES.forEach(c => { out[c.id] = 0; });
+  list.forEach(a => { if (out[a.category] !== undefined) out[a.category]++; });
+  return out;
 }
 
 function renderActTabs() {
   const c = document.getElementById('act-tabs');
   if (!c) return;
   const k = actCounts();
-  c.innerHTML = `
-    <button type="button" class="act-tab ${actTab === 'daily' ? 'active' : ''}" data-tab="daily">日常活动 <span class="act-count">${k.daily}</span></button>
-    <button type="button" class="act-tab ${actTab === 'festival' ? 'active' : ''}" data-tab="festival">节日活动 <span class="act-count">${k.festival}</span></button>`;
+  c.innerHTML = ACT_CATEGORIES.map(cat => `
+    <button type="button" class="act-tab ${actTab === cat.id ? 'active' : ''}" data-tab="${cat.id}">${cat.name} <span class="act-count">${k[cat.id]}</span></button>`).join('');
 }
 
 function renderActForm() {
@@ -4617,8 +4625,7 @@ function renderActForm() {
       <div class="act-field">
         <label class="act-label">类别</label>
         <div class="act-seg" id="act-seg">
-          <button type="button" class="act-seg-btn ${actSelectedCat === 'daily' ? 'active' : ''}" data-cat="daily">日常活动</button>
-          <button type="button" class="act-seg-btn ${actSelectedCat === 'festival' ? 'active' : ''}" data-cat="festival">节日活动</button>
+          ${ACT_CATEGORIES.map(cat => `<button type="button" class="act-seg-btn ${actSelectedCat === cat.id ? 'active' : ''}" data-cat="${cat.id}">${cat.name}</button>`).join('')}
         </div>
       </div>
       <div class="act-field">
@@ -4660,7 +4667,7 @@ function renderActList() {
   if (!c) return;
   const list = readActivities().filter(a => a.category === actTab).sort((x, y) => y.createdAt - x.createdAt);
   if (!list.length) {
-    const label = actTab === 'daily' ? '日常' : '节日';
+    const label = actCat(actTab).name.replace('活动', '');
     c.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">
@@ -4674,7 +4681,7 @@ function renderActList() {
   c.innerHTML = list.map(a => `
     <div class="act-card">
       <div class="act-card-head">
-        <span class="act-badge ${a.category}">${a.category === 'daily' ? '日常活动' : '节日活动'}</span>
+        <span class="act-badge ${a.category}">${actCat(a.category).name}</span>
         <div class="act-card-actions">
           <button class="action-btn" data-act="edit" data-id="${a.id}" title="编辑">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
