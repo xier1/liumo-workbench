@@ -1798,6 +1798,22 @@
     gap: 8px;
     justify-content: flex-end;
   }
+  .notes-toolbar { margin-bottom: 14px; }
+  .note-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .note-search:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
   .note-title {
     font-size: 15px;
     font-weight: 700;
@@ -5147,6 +5163,7 @@ function bindSubNotes(moduleId) {
 // ========================================================
 const NOTES_KEY = 'liumo_notes';
 let noteEditingId = null;
+let noteSearch = '';
 
 const DEFAULT_NOTES = [
   {
@@ -5238,6 +5255,9 @@ function renderNotesModule(content, mod) {
       <div class="page-title">${mod.name}</div>
       <div class="page-desc">${mod.desc} · 已发布 ${list.length} 篇</div>
     </div>
+    <div class="notes-toolbar">
+      <input class="note-search" id="note-search" placeholder="搜索笔记标题或内容…" />
+    </div>
     <div class="notes-new">
       <input class="note-title-input" id="note-title-input" placeholder="标题（可选）" />
       <textarea class="subnote-input note-content-input" id="note-content-input" rows="4" placeholder="写点什么…（Ctrl / ⌘ + Enter 发布）"></textarea>
@@ -5255,8 +5275,10 @@ function renderNotesModule(content, mod) {
 function renderNoteList() {
   const el = document.getElementById('note-list');
   if (!el) return;
-  const list = loadNotes();
-  if (list.length === 0) {
+  const all = loadNotes();
+  const kw = (noteSearch || '').trim().toLowerCase();
+  const list = kw ? all.filter(n => ((n.title || '') + ' ' + (n.body || '').replace(/<[^>]+>/g, '')).toLowerCase().includes(kw)) : all;
+  if (all.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">
@@ -5266,6 +5288,19 @@ function renderNoteList() {
         </div>
         <div class="empty-title">还没有笔记</div>
         <div class="empty-desc">在上方写下第一篇记录吧</div>
+      </div>`;
+    return;
+  }
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="empty-title">没有匹配的笔记</div>
+        <div class="empty-desc">换个关键词试试</div>
       </div>`;
     return;
   }
@@ -5322,6 +5357,11 @@ function bindNotes() {
   }
   if (clearBtn && titleInput) {
     clearBtn.addEventListener('click', () => { titleInput.value = ''; bodyInput.value = ''; titleInput.focus(); });
+  }
+
+  const searchInput = document.getElementById('note-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => { noteSearch = e.target.value; renderNoteList(); });
   }
 
   const listEl = document.getElementById('note-list');
