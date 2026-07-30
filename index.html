@@ -5823,6 +5823,16 @@ async function syncPushNow(silent, opts){
   if(!tok){ if(!silent) showToast('请先在云端同步面板填入 GitHub Token'); return; }
   // 首次同步且无 GID 时，复用账号下最新的备份 Gist（避免不断新建孤儿 Gist）
   if(!gid){ const fg = await findSyncGist(tok); if(fg){ gid = fg; localStorage.setItem(SYNC_GIST_KEY, fg); } }
+  const now = new Date().toISOString();
+  const localData = gatherLocal();
+  const content = JSON.stringify({ updatedAt: now, data: localData });
+  // 守卫：GitHub Gist 单文件上限约 1MB。活动图片为 base64 易超限，超限时明确提示而非静默失败
+  if (content.length > 950000) {
+    setSyncStatus('数据过大');
+    if (!silent) showToast('同步失败：本地数据过大（多为活动图片），已超过 GitHub Gist 单文件上限，建议删除部分活动图片后再同步');
+    return;
+  }
+
   // 冲突感知（三路）：云端自我们上次同步后若被改过，则拉取云端而不是覆盖它
   if(gid && !opts.force){
     const base = localStorage.getItem(SYNC_LASTPUSH_CONTENT);
@@ -5848,9 +5858,6 @@ async function syncPushNow(silent, opts){
       } catch(e){ /* 忽略，继续推送 */ }
     }
   }
-  const now = new Date().toISOString();
-  const localData = gatherLocal();
-  const content = JSON.stringify({ updatedAt: now, data: localData });
   const payload = JSON.stringify({ public:false, files: { [SYNC_FILE]: { content: content } } });
   async function doPush(g){
     let url = 'https://api.github.com/gists', method = 'POST';
