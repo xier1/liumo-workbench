@@ -2469,6 +2469,47 @@
     .fun-card { padding: 13px 14px; }
     .fun-src { display: none; }
   }
+
+  /* 学做店长 */
+  .mg-intro { background: var(--primary-soft); border: 1px solid #dbeafe; color: #1d4ed8; border-radius: var(--radius); padding: 12px 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 8px; }
+  .mg-intro b { color: var(--primary-hover); }
+  .mg-section { font-size: 16px; margin: 22px 0 12px; color: var(--text); }
+  .mg-knowledge { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mg-kcard { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: var(--radius); padding: 13px 16px; box-shadow: var(--shadow-sm); }
+  .mg-kcard.mg-first { border-left-color: var(--danger); }
+  .mg-kcard.mg-second { border-left-color: var(--warning); }
+  .mg-kcard.mg-third { border-left-color: var(--success); }
+  .mg-khead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mg-pri { font-size: 12px; color: var(--text-soft); background: var(--bg-soft); border-radius: 10px; padding: 1px 8px; }
+  .mg-ktitle { font-weight: 700; font-size: 15px; }
+  .mg-why { font-size: 12.5px; color: var(--text-soft); margin: 6px 0 9px; line-height: 1.5; }
+  .mg-points { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mg-chip { font-size: 11.5px; color: var(--text-soft); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 2px 9px; }
+  .mg-skills { display: flex; flex-direction: column; gap: 12px; }
+  .mg-skill { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+  .mg-skill-title { font-weight: 700; font-size: 14.5px; color: var(--primary-hover); margin-bottom: 6px; }
+  .mg-skill-body { font-size: 13px; line-height: 1.7; color: var(--text); }
+  .mg-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .mg-progress-bar { flex: 1; height: 8px; background: var(--bg-soft); border-radius: 20px; overflow: hidden; }
+  .mg-progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--success)); border-radius: 20px; transition: width .35s ease; }
+  .mg-progress-label { font-size: 12.5px; color: var(--text-soft); white-space: nowrap; }
+  .mg-tasks { display: flex; flex-direction: column; gap: 10px; }
+  .mg-task { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: all .2s; }
+  .mg-task:hover { border-color: var(--primary); }
+  .mg-task.done { background: #f0fdf4; border-color: #bbf7d0; }
+  .mg-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); background: #fff; color: #16a34a; font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .mg-task.done .mg-check { background: var(--success); border-color: var(--success); color: #fff; }
+  .mg-task-body { flex: 1; min-width: 0; }
+  .mg-task-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+  .mg-task.done .mg-task-text { text-decoration: line-through; color: var(--text-muted); }
+  .mg-task-goal { font-size: 12px; color: var(--text-soft); margin-top: 3px; }
+  .mg-phase { font-size: 11.5px; color: var(--text-muted); background: var(--bg-soft); border-radius: 10px; padding: 2px 10px; flex-shrink: 0; }
+  .mg-tools { display: flex; flex-direction: column; gap: 8px; }
+  .mg-tool { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--text); line-height: 1.5; }
+  @media (max-width: 640px) {
+    .mg-knowledge { grid-template-columns: 1fr; }
+    .mg-phase { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -2583,6 +2624,13 @@ const MODULES = [
     name: '爆笑一下',
     desc: '联网搜罗近期抖音搞笑段子 · 视频 · 热梗,微博式信息流',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'manager',
+    name: '学做店长',
+    desc: '超市店长实用知识地图 · 损耗/报表/陈列 · 30–90 天学习打卡',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>',
     enabled: true
   },
   {
@@ -2857,6 +2905,12 @@ function renderContent() {
     return;
   }
 
+  // 学做店长模块
+  if (currentModule === 'manager') {
+    renderManagerModule(content, mod);
+    return;
+  }
+
   // 其他已启用模块(预留)
   content.innerHTML = `
     <div class="page-header">
@@ -3057,6 +3111,123 @@ function renderFunModule(content, mod) {
   content.querySelectorAll('.fun-like').forEach(btn => {
     btn.addEventListener('click', () => funToggleLike(btn.dataset.id, btn));
   });
+}
+
+// ---------- 学做店长(超市店长实用知识 + 学习打卡) ----------
+const MG_DONE_KEY = 'liumo_manager_done';
+
+// 知识地图：6 大模块
+const MG_KNOWLEDGE = [
+  { pri: 'first', tag: '第一优先', title: '损耗与库存', why: '损耗直接吃掉利润，每降 1% 约等于净利上涨', points: ['先进先出(FIFO)', '安全库存 / ABC 分类', '库存周转率', '生鲜日清、报损率'] },
+  { pri: 'first', tag: '第一优先', title: '看懂经营报表', why: '不看数就是盲管，决策要落在指标上', points: ['销售额 / 毛利 / 毛利率', '客单价 / 来客数', '连带率 / 坪效 / 人效'] },
+  { pri: 'second', tag: '第二优先', title: '陈列与动线', why: '最便宜的“无声促销”，端架堆头拉动 20%+ 销售', points: ['黄金陈列线 1.2–1.6m', '端架 / 堆头 / 关联陈列', '磁石点设计'] },
+  { pri: 'second', tag: '第二优先', title: '定价与促销', why: '促销做错反而亏，要算清让利换流量的账', points: ['毛利定价法', '满减 / 买赠', '引流品 vs 利润品', '促销 ROI'] },
+  { pri: 'third', tag: '第三优先', title: '人效与排班', why: '人工是最大的可控成本', points: ['工时优化', '高峰排班', '师徒带教', '控制离职率'] },
+  { pri: 'third', tag: '第三优先', title: '合规与安全', why: '食安 / 消防 / 工伤出事即停业级风险', points: ['食品安全法', '效期排查', '消防预案', '防抢防损'] }
+];
+
+// 三项硬功夫
+const MG_SKILLS = [
+  { title: '损耗管理（省钱最快）', body: '建立日盘+周盘机制，生鲜做到“日清”，临期商品提前 3 天打折出清。用 ABC 分类：A 类(高频高毛利，如牛奶、水饮)重点盯库存与陈列面；C 类(长尾)压缩库存、减少占资。设定报损红线，超线就复盘是订货错了还是陈列错了。' },
+  { title: '报表诊断（赚钱最快）', body: '每天只看 4 个数起步：来客数、客单价、毛利率、损耗率。来客数掉→查引流品价格/门口堆头/竞品；客单价掉→推关联陈列和连带话术；毛利率掉→查促销力度和供应商进价。' },
+  { title: '陈列与促销（见效最快）', body: '把高毛利高动销放黄金线，关联品放一起(啤酒+花生、火锅料扎堆)。端架/堆头只放“有故事”的品，每周换主题。促销前先算：这件商品让利后，要靠多带来多少客流、带动多少连带才回本。' }
+];
+
+// 30–90 天学习打卡任务
+const MG_TASKS = [
+  { phase: '第 1–30 天', text: '摸清门店：盘库存、跟一天全流程、背熟 20 个核心品进价售价', goal: '产出《本店损品 Top10》清单' },
+  { phase: '第 31–60 天', text: '学看报表、做 1 次小促销、优化 1 个品类陈列', goal: '一次可量化的促销复盘' },
+  { phase: '第 61–90 天', text: '抓人效排班、带教 1 名骨干、建立日盘机制', goal: '损耗率下降 1 个百分点' }
+];
+
+// 顺手可用的工具
+const MG_TOOLS = [
+  '进销存 / ERP：用系统替代脑子记库存，重点看“库存预警”和“效期预警”',
+  '私域社群：把周边 3 公里顾客拉群，到货/打折发预告，提升复购',
+  '线上渠道：美团 / 拼多多到店、抖音同城，把“到店”扩成“到店+到家”'
+];
+
+let mgDone = {};
+function loadMgDone() {
+  try { mgDone = JSON.parse(localStorage.getItem(MG_DONE_KEY) || '{}'); } catch (e) { mgDone = {}; }
+}
+function saveMgDone() { localStorage.setItem(MG_DONE_KEY, JSON.stringify(mgDone)); }
+
+function renderManagerCard(k) {
+  const badge = k.pri === 'first' ? '🔴' : k.pri === 'second' ? '🟠' : '🟡';
+  return `
+    <div class="mg-kcard mg-${k.pri}">
+      <div class="mg-khead"><span class="mg-pri">${badge} ${k.tag}</span><span class="mg-ktitle">${escapeHtml(k.title)}</span></div>
+      <div class="mg-why">${escapeHtml(k.why)}</div>
+      <div class="mg-points">${k.points.map(p => `<span class="mg-chip">${escapeHtml(p)}</span>`).join('')}</div>
+    </div>`;
+}
+
+function renderManagerTask(t) {
+  const done = !!mgDone[t.text];
+  return `
+    <div class="mg-task ${done ? 'done' : ''}" data-task="${escapeHtml(t.text)}">
+      <button class="mg-check" aria-label="标记完成">${done ? '✓' : ''}</button>
+      <div class="mg-task-body">
+        <div class="mg-task-text">${escapeHtml(t.text)}</div>
+        <div class="mg-task-goal">🎯 ${escapeHtml(t.goal)}</div>
+      </div>
+      <span class="mg-phase">${escapeHtml(t.phase)}</span>
+    </div>`;
+}
+
+function mgRefreshProgress() {
+  const total = MG_TASKS.length;
+  const done = MG_TASKS.filter(t => mgDone[t.text]).length;
+  const bar = document.querySelector('#mgProgressFill');
+  const label = document.querySelector('#mgProgressLabel');
+  if (bar) bar.style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+  if (label) label.textContent = `学习打卡进度 ${done}/${total}`;
+}
+
+function mgToggleTask(text, row) {
+  mgDone[text] = !mgDone[text];
+  saveMgDone();
+  if (row) row.classList.toggle('done', !!mgDone[text]);
+  mgRefreshProgress();
+}
+
+function renderManagerModule(content, mod) {
+  loadMgDone();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="mg-intro">
+      🎯 店长核心目标：在控住损耗和成本的前提下，把 <b>客流 · 客单价 · 毛利</b> 三项做上去。下面按“投入产出比”排列，先学能直接赚钱、直接省钱的那几项。
+    </div>
+
+    <h3 class="mg-section">一、知识地图（先学投入产出比最高的）</h3>
+    <div class="mg-knowledge">${MG_KNOWLEDGE.map(renderManagerCard).join('')}</div>
+
+    <h3 class="mg-section">二、三项“学了马上能用”的硬功夫</h3>
+    <div class="mg-skills">${MG_SKILLS.map(s => `
+      <div class="mg-skill">
+        <div class="mg-skill-title">${escapeHtml(s.title)}</div>
+        <div class="mg-skill-body">${escapeHtml(s.body)}</div>
+      </div>`).join('')}</div>
+
+    <h3 class="mg-section">三、30–90 天学习打卡</h3>
+    <div class="mg-progress">
+      <div class="mg-progress-bar"><div class="mg-progress-fill" id="mgProgressFill"></div></div>
+      <div class="mg-progress-label" id="mgProgressLabel"></div>
+    </div>
+    <div class="mg-tasks">${MG_TASKS.map(renderManagerTask).join('')}</div>
+
+    <h3 class="mg-section">四、顺手可用的工具</h3>
+    <div class="mg-tools">${MG_TOOLS.map(t => `<div class="mg-tool">🔧 ${escapeHtml(t)}</div>`).join('')}</div>
+  `;
+  content.querySelectorAll('.mg-task').forEach(row => {
+    row.addEventListener('click', () => mgToggleTask(row.dataset.task, row));
+  });
+  mgRefreshProgress();
 }
 
 // ---------- 渲染:备忘录模块 ----------
