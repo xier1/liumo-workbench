@@ -1765,6 +1765,61 @@
 
   .subnote-btn.cancel:hover { color: var(--danger); border-color: var(--danger); }
 
+  /* ========== 笔记模块 ========== */
+  .notes-new {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .note-title-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .note-title-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  .notes-new-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .note-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .note-body {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.75;
+    color: var(--text);
+  }
+  .note-body--text { white-space: pre-wrap; }
+  .note-body p { margin: 0 0 8px; }
+  .note-body h3 { font-size: 15px; font-weight: 700; margin: 14px 0 6px; color: var(--text); }
+  .note-body ul, .note-body ol { margin: 6px 0 10px; padding-left: 20px; }
+  .note-body li { margin: 3px 0; }
+  .note-body table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 13px; }
+  .note-body th, .note-body td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  .note-body th { background: var(--bg-soft); font-weight: 700; }
+  .note-body strong { color: var(--text); }
+
   /* ========== 果然鲜 · 活动列表（标题 + 类别 + 图片 + 双页签） ========== */
   .act-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
   .act-tab {
@@ -2718,9 +2773,9 @@ const MODULES = [
   {
     id: 'notes',
     name: '笔记',
-    desc: '快速记录灵感与想法',
+    desc: '记录想法、灵感与运营干货',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-    enabled: false
+    enabled: true
   },
   {
     id: 'schedule',
@@ -2990,6 +3045,12 @@ function renderContent() {
   // 学做店长模块
   if (currentModule === 'manager') {
     renderManagerModule(content, mod);
+    return;
+  }
+
+  // 笔记模块
+  if (currentModule === 'notes') {
+    renderNotesModule(content, mod);
     return;
   }
 
@@ -5071,6 +5132,230 @@ function bindSubNotes(moduleId) {
       } else if (act === 'cancel') {
         subNotesEditingId = null;
         renderSubNotes(moduleId);
+      }
+    });
+  }
+}
+
+// ========================================================
+//   笔记模块（Notes）
+//   数据隔离存储：localStorage key = liumo_notes
+//   条目模型：{ id, title, body, html, createdAt, updatedAt }
+//   - html:true 表示 body 为受信任 HTML（用于预置的运营干货笔记，可渲染标题/表格）
+//   - 用户新增笔记 html:false，正文按纯文本展示（防 XSS）
+//   - 首次进入（localStorage 为空）自动写入预置的第 1 条笔记。
+// ========================================================
+const NOTES_KEY = 'liumo_notes';
+let noteEditingId = null;
+
+const DEFAULT_NOTES = [
+  {
+    id: 'note-seed-1',
+    title: '生鲜超市抖音，到底该拍什么？',
+    html: true,
+    body: `
+<h3>核心思路</h3>
+<p>不要拍"我货多好、我多懂生鲜"，要拍"我怎么帮顾客把今天这顿饭搞定"。</p>
+<p>生鲜超市天然有强服务场景和烟火气，按两类内容拍：</p>
+<p><strong>① 拍服务顾客的完整过程</strong>——重点不是展示商品，而是记录你帮顾客解决问题的那个瞬间。</p>
+<p><strong>② 说人话、讲体感</strong>——把专业词库锁死，只讲顾客关心的"好不好吃、好不好做、值不值"。</p>
+
+<h3>一、拍"服务顾客的完整过程"</h3>
+<table>
+<tr><th>不要拍</th><th>要拍</th></tr>
+<tr><td>对着镜头说"今天的西瓜很甜"</td><td>顾客让你帮挑西瓜，你拍瓜、听声、切开，顾客惊呼"真红"</td></tr>
+<tr><td>展示一排整齐的水果</td><td>宝妈说孩子便秘，你帮她挑香蕉、讲怎么催熟、配酸奶</td></tr>
+<tr><td>介绍海鲜种类多新鲜</td><td>上班族不会处理鱿鱼，你帮他清理、切花刀、配好葱姜</td></tr>
+<tr><td>陈列蔬菜说"今日特价"</td><td>老太太想买"嫩一点的芹菜"，你帮她掐尖、去筋、捆好</td></tr>
+</table>
+<p><strong>具体选题：</strong></p>
+<ul>
+<li><strong>盲盒类</strong>：帮顾客挑榴莲/西瓜/菠萝蜜，现场开，记录"翻车"或"报恩"瞬间。</li>
+<li><strong>代加工类</strong>：鱼去鳞切片、虾去虾线、肉绞馅分装、排骨剁小块。</li>
+<li><strong>配餐类</strong>：顾客说"今晚想做个快手菜"，你 1 分钟配齐葱姜蒜肉菜。</li>
+<li><strong>特殊需求类</strong>：给健身顾客挑高蛋白、给宝妈挑辅食、给老人挑软烂好嚼的。</li>
+<li><strong>售后类</strong>：顾客反馈水果坏了，你二话不说退换，还教她怎么保存。</li>
+<li><strong>清晨采购类</strong>：凌晨去批发市场选货，拍你"怎么把最好的挑回来"。</li>
+</ul>
+
+<h3>二、说人话、讲体感（把专业词库锁死）</h3>
+<table>
+<tr><th>专业说法</th><th>人话版本</th></tr>
+<tr><td>这批普罗旺斯番茄糖度 12</td><td>你拿回去炒蛋，不用加水，自己就能出沙</td></tr>
+<tr><td>五花肉肥瘦比 3:7，层次分明</td><td>你红烧炖 40 分钟，入口即化，不腻口</td></tr>
+<tr><td>鲈鱼今日鲜活到店</td><td>你清蒸 8 分钟，筷子一挑肉就整块下来</td></tr>
+<tr><td>土鸡蛋富含胡萝卜素</td><td>白煮蛋蛋黄是橘红色的，吃起来不噎人</td></tr>
+<tr><td>凌晨冷链直达，保证新鲜</td><td>早上 8 点来，菜叶上还挂着泥呢</td></tr>
+</table>
+<p><strong>口播公式：</strong>"什么人 + 什么场景 + 你给了她什么 + 她吃完什么感觉"</p>
+<p>例：刚才一个姑娘说她第一次给男朋友做饭，想做条鱼又怕腥。我给她挑了条鲈鱼，顺手把葱姜紫苏都配好了，告诉她水开蒸 8 分钟。她走的时候说：姐，我终于有信心了。</p>
+
+<h3>一周拍摄排期</h3>
+<table>
+<tr><th>星期</th><th>主题</th><th>内容</th></tr>
+<tr><td>周一</td><td>清晨进货</td><td>拍凌晨选货，突出"新鲜从哪来"</td></tr>
+<tr><td>周二</td><td>帮挑盲盒</td><td>挑西瓜/榴莲，现场切开看结果</td></tr>
+<tr><td>周三</td><td>快手菜搭配</td><td>"下班 5 分钟做一顿饭"食材组合</td></tr>
+<tr><td>周四</td><td>处理食材</td><td>杀鱼、去虾线、切肉，展示服务</td></tr>
+<tr><td>周五</td><td>老客故事</td><td>熟客来了，你记得她喜欢什么</td></tr>
+<tr><td>周六</td><td>周末聚餐</td><td>帮顾客配一桌家宴食材</td></tr>
+<tr><td>周日</td><td>保鲜教学</td><td>教顾客蔬菜/水果怎么放更久</td></tr>
+</table>
+
+<h3>避坑提醒</h3>
+<ul>
+<li>不要拍宏大场面：一镜扫过整个门店，没人会看完。</li>
+<li>不要念参数：产地、品种、营养成分，先别碰。</li>
+<li>不要硬卖价格：低价不是信任，解决问题才是。</li>
+<li>不要追求完美画面：手上有水、菜叶有泥、说话带口音，反而更真实。</li>
+</ul>
+
+<h3>一句话总结</h3>
+<p>生鲜超市拍抖音，就拍一个画面——顾客带着"今天吃啥、这菜怎么挑、这肉怎么做"的困惑来，你三两句话、几个动作，把她送到门口，她拎着袋子笑着说"明白了"。把这个过程重复拍两个月，算法自然把你推给附近不会买菜、不会做饭、想省事的那些人。</p>
+`,
+    createdAt: new Date('2026-07-30T20:00:00').getTime(),
+    updatedAt: new Date('2026-07-30T20:00:00').getTime()
+  }
+];
+
+function loadNotes() {
+  const raw = localStorage.getItem(NOTES_KEY);
+  if (raw === null) {
+    saveNotes(DEFAULT_NOTES);
+    return JSON.parse(JSON.stringify(DEFAULT_NOTES));
+  }
+  try { return JSON.parse(raw); } catch (e) { return []; }
+}
+
+function saveNotes(arr) {
+  localStorage.setItem(NOTES_KEY, JSON.stringify(arr));
+}
+
+function renderNotesModule(content, mod) {
+  const list = loadNotes();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc} · 已发布 ${list.length} 篇</div>
+    </div>
+    <div class="notes-new">
+      <input class="note-title-input" id="note-title-input" placeholder="标题（可选）" />
+      <textarea class="subnote-input note-content-input" id="note-content-input" rows="4" placeholder="写点什么…（Ctrl / ⌘ + Enter 发布）"></textarea>
+      <div class="notes-new-actions">
+        <button class="subnote-btn" id="note-clear">清空</button>
+        <button class="subnote-btn save" id="note-add">发布笔记</button>
+      </div>
+    </div>
+    <div class="subnote-list" id="note-list"></div>
+  `;
+  renderNoteList();
+  bindNotes();
+}
+
+function renderNoteList() {
+  const el = document.getElementById('note-list');
+  if (!el) return;
+  const list = loadNotes();
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="empty-title">还没有笔记</div>
+        <div class="empty-desc">在上方写下第一篇记录吧</div>
+      </div>`;
+    return;
+  }
+  const editSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  const delSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+  el.innerHTML = list.map(n => {
+    if (noteEditingId === n.id) {
+      return `
+        <div class="subnote-item" data-id="${n.id}">
+          <input class="note-title-input" id="note-edit-title-${n.id}" value="${escapeHtml(n.title || '')}" placeholder="标题（可选）" />
+          <textarea class="subnote-input" id="note-edit-body-${n.id}" rows="4">${escapeHtml(n.body)}</textarea>
+          <div class="subnote-actions">
+            <button class="subnote-btn save" data-act="save" data-id="${n.id}">保存</button>
+            <button class="subnote-btn cancel" data-act="cancel" data-id="${n.id}">取消</button>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="subnote-item" data-id="${n.id}">
+        ${n.title ? `<div class="note-title">${escapeHtml(n.title)}</div>` : ''}
+        <div class="note-body${n.html ? '' : ' note-body--text'}">${n.html ? n.body : escapeHtml(n.body)}</div>
+        <div class="subnote-meta">${formatDate(n.createdAt)}${n.updatedAt && n.updatedAt !== n.createdAt ? ' · 已编辑' : ''}</div>
+        <div class="subnote-actions">
+          ${n.html ? '' : `<button class="action-btn" data-act="edit" data-id="${n.id}" title="编辑">${editSvg}</button>`}
+          <button class="action-btn delete" data-act="delete" data-id="${n.id}" title="删除">${delSvg}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function bindNotes() {
+  const addBtn = document.getElementById('note-add');
+  const clearBtn = document.getElementById('note-clear');
+  const titleInput = document.getElementById('note-title-input');
+  const bodyInput = document.getElementById('note-content-input');
+
+  function add() {
+    const body = bodyInput.value.trim();
+    if (!body) { showToast('请输入内容'); bodyInput.focus(); return; }
+    const list = loadNotes();
+    list.unshift({ id: uid(), title: titleInput.value.trim(), body, html: false, createdAt: Date.now(), updatedAt: Date.now() });
+    saveNotes(list);
+    titleInput.value = '';
+    bodyInput.value = '';
+    renderNoteList();
+    showToast('已发布');
+  }
+
+  if (addBtn && bodyInput) {
+    addBtn.addEventListener('click', add);
+    bodyInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add(); }
+    });
+  }
+  if (clearBtn && titleInput) {
+    clearBtn.addEventListener('click', () => { titleInput.value = ''; bodyInput.value = ''; titleInput.focus(); });
+  }
+
+  const listEl = document.getElementById('note-list');
+  if (listEl) {
+    listEl.addEventListener('click', e => {
+      const t = e.target.closest('[data-act]');
+      if (!t) return;
+      const act = t.dataset.act, id = t.dataset.id;
+      const list = loadNotes();
+      const n = list.find(x => x.id === id);
+      if (!n) return;
+
+      if (act === 'edit') {
+        noteEditingId = id;
+        renderNoteList();
+        const ta = document.getElementById('note-edit-body-' + id);
+        if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+      } else if (act === 'delete') {
+        saveNotes(list.filter(x => x.id !== id));
+        noteEditingId = null;
+        renderNoteList();
+        showToast('已删除');
+      } else if (act === 'save') {
+        const v = document.getElementById('note-edit-body-' + id).value.trim();
+        if (!v) { showToast('内容不能为空'); return; }
+        n.title = document.getElementById('note-edit-title-' + id).value.trim();
+        n.body = v; n.updatedAt = Date.now(); n.html = false;
+        saveNotes(list);
+        noteEditingId = null;
+        renderNoteList();
+        showToast('已保存');
+      } else if (act === 'cancel') {
+        noteEditingId = null;
+        renderNoteList();
       }
     });
   }
