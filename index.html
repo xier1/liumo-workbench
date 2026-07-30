@@ -5807,6 +5807,22 @@ function gatherLocal(){
   return o;
 }
 
+// 同步超限降级：去掉活动图片（仅保留标题/类别/详情等文字），让其余数据仍可备份
+function stripActivityImages(data){
+  const out = {};
+  for(const k in data){
+    if(k === 'liumo_activities_fresh'){
+      try {
+        const arr = JSON.parse(data[k] || '[]');
+        out[k] = JSON.stringify(arr.map(a => { const c = Object.assign({}, a); delete c.images; return c; }));
+      } catch(e){ out[k] = data[k]; }
+    } else {
+      out[k] = data[k];
+    }
+  }
+  return out;
+}
+
 function timeStr(){
   const d = new Date();
   return ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
@@ -5825,12 +5841,21 @@ async function syncPushNow(silent, opts){
   if(!gid){ const fg = await findSyncGist(tok); if(fg){ gid = fg; localStorage.setItem(SYNC_GIST_KEY, fg); } }
   const now = new Date().toISOString();
   const localData = gatherLocal();
-  const content = JSON.stringify({ updatedAt: now, data: localData });
-  // 守卫：GitHub Gist 单文件上限约 1MB。活动图片为 base64 易超限，超限时明确提示而非静默失败
+  let content = JSON.stringify({ updatedAt: now, data: localData });
+  // 守卫 + 降级：GitHub Gist 单文件上限约 1MB。活动图片为 base64 易超限，
+  // 超限时先尝试「仅同步文字、跳过活动图片」让其余数据仍可备份，仍超限才中止。
   if (content.length > 950000) {
-    setSyncStatus('数据过大');
-    if (!silent) showToast('同步失败：本地数据过大（多为活动图片），已超过 GitHub Gist 单文件上限，建议删除部分活动图片后再同步');
-    return;
+    const reduced = stripActivityImages(localData);
+    const reducedContent = JSON.stringify({ updatedAt: now, data: reduced });
+    if (reducedContent.length <= 950000) {
+      setSyncStatus('已同步(跳过图片)');
+      if (!silent) showToast('活动图片过大已跳过，已同步其余数据（标题/类别/详情）');
+      content = reducedContent;
+    } else {
+      setSyncStatus('数据过大');
+      if (!silent) showToast('同步失败：本地数据过大，已超过 GitHub Gist 单文件上限，建议精简数据后再同步');
+      return;
+    }
   }
 
   // 冲突感知（三路）：云端自我们上次同步后若被改过，则拉取云端而不是覆盖它
