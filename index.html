@@ -2663,6 +2663,29 @@
     padding: 56px 20px;
   }
   .placeholder-icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* ========== 果然鲜 · 每日检查 ========== */
+  .dc-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .dc-progress { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 10px; }
+  .dc-progress-bar { flex: 1; height: 8px; background: var(--bg-soft); border-radius: 999px; overflow: hidden; }
+  .dc-progress-fill { height: 100%; width: 0; background: var(--brand-grad); border-radius: 999px; transition: var(--transition); }
+  .dc-progress-text { font-size: 13px; color: var(--text-soft); white-space: nowrap; }
+  .dc-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .dc-add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .dc-add-row[hidden] { display: none; }
+  .dc-add-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; transition: var(--transition); }
+  .dc-add-input:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
+  .dc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
+  .dc-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition); }
+  .dc-item:hover { box-shadow: var(--shadow); }
+  .dc-item.done { opacity: 0.62; }
+  .dc-check { flex-shrink: 0; width: 30px; height: 30px; border: none; background: transparent; font-size: 20px; line-height: 1; cursor: pointer; border-radius: 8px; transition: var(--transition); }
+  .dc-check:hover { background: var(--bg-soft); }
+  .dc-text { flex: 1; font-size: 14.5px; color: var(--text); }
+  .dc-item.done .dc-text { text-decoration: line-through; color: var(--text-soft); }
+  .dc-del { flex-shrink: 0; width: 28px; height: 28px; border: none; background: transparent; color: var(--text-soft); font-size: 15px; cursor: pointer; border-radius: 8px; transition: var(--transition); }
+  .dc-del:hover { background: #fee2e2; color: #dc2626; }
+  .dc-empty { list-style: none; padding: 28px; text-align: center; color: var(--text-muted); background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius); }
 </style>
 </head>
 <body>
@@ -2769,7 +2792,7 @@ const MODULES = [
     enabled: true,
     children: [
       { id: 'activities', name: '活动列表', icon: '📝' },
-      { id: 'other', name: '其他', icon: '🍎' }
+      { id: 'dailycheck', name: '每日检查', icon: '✅' }
     ]
   },
   {
@@ -4856,170 +4879,6 @@ function bindStudyEvents() {
    ======================================================== */
 
 // 今日数据(静态注入,打开即显示)
-// ====== 果然鲜模块（实时数据）======
-// 配置：默认坐标 合肥 包河区，可按需修改
-const FRESH_CITY = '合肥 包河区';
-const FRESH_LAT = 31.82;
-const FRESH_LNG = 117.23;
-
-// WMO 天气代码 -> 中文描述
-const FRESH_WMO = {
-  0:'晴',1:'大致晴朗',2:'局部多云',3:'阴',
-  45:'有雾',48:'雾凇',
-  51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',
-  56:'冻毛毛雨',57:'强冻毛毛雨',
-  61:'小雨',63:'中雨',65:'大雨',
-  66:'冻雨',67:'强冻雨',
-  71:'小雪',73:'中雪',75:'大雪',77:'雪粒',
-  80:'阵雨',81:'强阵雨',82:'暴雨',
-  85:'阵雪',86:'强阵雪',
-  95:'雷阵雨',96:'雷阵雨伴小冰雹',99:'雷阵雨伴大冰雹'
-};
-
-// 当日起本地缓存，避免重复请求接口
-function freshTodayKey(){
-  const n = new Date();
-  return n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();
-}
-function freshCacheGet(k){
-  try { return JSON.parse(localStorage.getItem('liumo_fresh_'+k)); } catch(e){ return null; }
-}
-function freshCacheSet(k,v){
-  try { localStorage.setItem('liumo_fresh_'+k, JSON.stringify(v)); } catch(e){}
-}
-
-function freshDateStr(d){
-  const wd = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()];
-  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+wd;
-}
-function freshLunarStr(d){
-  try {
-    if (typeof Lunar === 'undefined') return '';
-    const l = Lunar.fromDate(d);
-    return '农历'+l.getYearInGanZhi()+'年 '+l.getMonthInChinese()+'月'+l.getDayInChinese();
-  } catch(e){ return ''; }
-}
-
-// 风向（度数→方位，气象学为风的来向）
-function freshWindDir(deg){
-  const arr=['北风','东北风','东风','东南风','南风','西南风','西风','西北风'];
-  return arr[Math.round(((deg%360)/45))%8];
-}
-// 风速 km/h → 蒲福风力级别
-function freshBeaufort(kmh){
-  const t=[1,6,12,20,29,39,50,62,75,89,103,118];
-  let lvl=0; for(let i=0;i<t.length;i++){ if(kmh>=t[i]) lvl=i+1; }
-  return lvl;
-}
-// 空气质量等级（依据 PM2.5）
-function freshAqiLevel(pm25){
-  if(pm25==null) return '—';
-  if(pm25<=35) return '优';
-  if(pm25<=75) return '良';
-  if(pm25<=115) return '轻度污染';
-  if(pm25<=150) return '中度污染';
-  if(pm25<=250) return '重度污染';
-  return '严重污染';
-}
-// 紫外线等级
-function freshUvLevel(uv){
-  if(uv==null) return '—';
-  if(uv<3) return '弱';
-  if(uv<6) return '中等';
-  if(uv<8) return '强';
-  if(uv<11) return '很强';
-  return '极强';
-}
-// 体感定性
-function freshFeelsText(app){
-  if(app==null) return '';
-  if(app>=33) return '炎热';
-  if(app>=28) return '闷热';
-  if(app>=20) return '舒适';
-  if(app>=10) return '微凉';
-  return '寒冷';
-}
-// 是否含降水代码
-function freshHasRain(codes){
-  if(!codes) return false;
-  return codes.some(function(c){ return (c>=51&&c<=67)||(c>=80&&c<=82)||(c>=85&&c<=86)||(c>=95&&c<=99); });
-}
-
-// 天气：open-meteo forecast + air-quality（免费、支持 CORS）
-async function fetchFreshWeather(){
-  const base = 'https://api.open-meteo.com/v1/forecast?latitude='+FRESH_LAT+
-    '&longitude='+FRESH_LNG+
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m'+
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FShanghai&forecast_days=1';
-  const air = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+FRESH_LAT+
-    '&longitude='+FRESH_LNG+
-    '&current=uv_index,pm2_5&timezone=Asia%2FShanghai';
-  const [r1, r2] = await Promise.all([fetch(base), fetch(air)]);
-  if(!r1.ok) throw new Error('weather');
-  const j = await r1.json();
-  const c = j.current, dl = j.daily;
-  let uv=null, pm25=null;
-  if(r2.ok){ const a = await r2.json(); if(a.current){ uv = a.current.uv_index; pm25 = a.current.pm2_5; } }
-  const wdir = freshWindDir(c.wind_direction_10m);
-  const wlvl = freshBeaufort(c.wind_speed_10m);
-  const rainy = freshHasRain(dl.weather_code);
-  const overall = (FRESH_WMO[c.weather_code]||'未知') + (rainy ? '，有降雨可能' : '，全天无雨');
-  return {
-    city: FRESH_CITY,
-    desc: FRESH_WMO[c.weather_code] || '未知',
-    overall: overall,
-    temp: Math.round(c.temperature_2m),
-    tempHigh: Math.round(dl.temperature_2m_max[0]),
-    tempLow: Math.round(dl.temperature_2m_min[0]),
-    wind: wdir + ' ' + wlvl + '级（' + Math.round(c.wind_speed_10m) + 'km/h）',
-    humidity: Math.round(c.relative_humidity_2m) + '%',
-    apparent: Math.round(c.apparent_temperature) + '°C（' + freshFeelsText(c.apparent_temperature) + '）',
-    aqi: freshAqiLevel(pm25),
-    uv: freshUvLevel(uv),
-    weatherCode: c.weather_code
-  };
-}
-
-
-// 微语简报：60s-api + 一言
-async function fetchFreshBrief(){
-  let items = [], date = '';
-  try {
-    const r = await fetch('https://60s-api.viki.moe/v2/60s');
-    if(r.ok){
-      const j = await r.json();
-      const d = j.data || {};
-      items = (d.news || []).map(x => (typeof x === 'string' ? x : x.title)).filter(Boolean);
-      date = d.date || '';
-    }
-  } catch(e){}
-  let quote = '';
-  try {
-    const r = await fetch('https://v1.hitokoto.cn/?encode=text');
-    if(r.ok) quote = (await r.text()).trim();
-  } catch(e){}
-  return { items, date, quote };
-}
-
-
-// 历史上的今天（失败则优雅降级）
-async function fetchFreshHistory(){
-  try {
-    const r = await fetch('https://v2.xxapi.cn/api/history');
-    if(r.ok){
-      const j = await r.json();
-      const list = (j && j.data) || [];
-      if(Array.isArray(list) && list.length){
-        return list.slice(0,8).map(s => {
-          const m = String(s).match(/^(\d{4})年\d{1,2}月\d{1,2}日\s*(.*)$/);
-          if(m){ return { year: m[1], event: m[2] }; }
-          return { year: '', event: String(s) };
-        });
-      }
-    }
-  } catch(e){}
-  return null;
-}
 
 // ========================================================
 //   通用二级类目能力（侧边栏树形展开）
@@ -5861,319 +5720,117 @@ function renderFreshActivities(content, mod) {
 function renderFreshModule(content, mod) {
   const sub = currentSub || (mod.children && mod.children[0] && mod.children[0].id) || 'activities';
   if (sub === 'activities') renderFreshActivities(content, mod);
-  else renderFreshOther(content, mod);
+  else renderFreshDailyCheck(content, mod);
 }
 
-// 二级类目：其他（原果然鲜内容：天气日历 / 微语简报 / 历史上的今天）
-function renderFreshOther(content, mod) {
-  const d = new Date();
-  const dateStr = freshDateStr(d);
+// 二级类目：每日检查（店长每日开店 / 营业 / 闭店自检清单，可增删、勾选、持久化）
+const DAILYCHECK_KEY = 'liumo_dailycheck';
+let dailyCheckList = [];
+const DAILYCHECK_DEFAULTS = [
+  '开门前：生鲜货架补货与陈列到位',
+  '开门前：价签与促销信息准确无错',
+  '开门前：电子秤 / 收银设备自检正常',
+  '营业中：冷链冷柜温度巡检并记录',
+  '营业中：核对临期商品并下架处理',
+  '营业中：高峰期补货与动线畅通',
+  '闭店前：清点收银与现金对账',
+  '闭店前：检查水电、门窗、安防'
+];
+function loadDailyCheck() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DAILYCHECK_KEY));
+    if (Array.isArray(raw) && raw.length) { dailyCheckList = raw; return; }
+  } catch (e) {}
+  dailyCheckList = DAILYCHECK_DEFAULTS.map(t => ({ id: uid(), text: t, done: false }));
+  saveDailyCheck();
+}
+function saveDailyCheck() {
+  try { localStorage.setItem(DAILYCHECK_KEY, JSON.stringify(dailyCheckList)); } catch (e) {}
+}
+function renderFreshDailyCheck(content, mod) {
+  loadDailyCheck();
   content.innerHTML = `
     <div class="page-header">
-      <div class="page-title">其他 · 果然鲜</div>
-      <div class="page-desc">${mod.desc} · 数据更新于 ${dateStr}</div>
+      <div class="page-title">每日检查</div>
+      <div class="page-desc">果然鲜 · 店长每日开店 / 营业 / 闭店自检清单</div>
     </div>
-    <div class="fresh-poster-wrap" id="freshCW">
-      <canvas id="freshPosterCanvas" class="fresh-poster-canvas" aria-label="天气日历海报"></canvas>
-      <button class="fresh-copy-btn fresh-poster-copy" id="freshCopyWeather" title="保存到手机">💾 保存图片</button>
-    </div>
-
-    <div class="fresh-grid">
-      <div class="fresh-card">
-        <div class="fresh-card-title">
-          微语简报
-          <button class="fresh-copy-btn" id="freshCopyBrief" title="复制微语简报">复制</button>
-        </div>
-        <div class="fresh-brief-date" id="freshBriefDate">${dateStr}</div>
-        <div class="fresh-quote" id="freshQuote">加载中…</div>
-        <ul class="fresh-brief-list" id="freshBriefList"><li class="fresh-brief-item">加载中…</li></ul>
+    <div class="dc-toolbar">
+      <div class="dc-progress">
+        <div class="dc-progress-bar"><div class="dc-progress-fill" id="dcFill"></div></div>
+        <span class="dc-progress-text" id="dcProgressText"></span>
       </div>
-
-      <div class="fresh-card">
-        <div class="fresh-card-title">
-          历史上的今天 · ${dateStr.slice(5)}
-          <button class="fresh-copy-btn" id="freshCopyHistory" title="复制历史上的今天">复制</button>
-        </div>
-        <div class="fresh-section-label" id="freshHistoryLabel">查询中…</div>
-        <div class="fresh-history-cards" id="freshHistory"></div>
+      <div class="dc-actions">
+        <button class="btn-ghost" id="dcReset">重置今日</button>
+        <button class="btn-add" id="dcAdd">＋ 添加检查项</button>
       </div>
     </div>
+    <div class="dc-add-row" id="dcAddRow" hidden>
+      <input class="dc-add-input" id="dcInput" type="text" placeholder="输入检查项，如：检查灭火器压力" />
+      <button class="btn-add" id="dcAddConfirm">添加</button>
+    </div>
+    <ul class="dc-list" id="dcList"></ul>
   `;
-  freshLoadAll(dateStr);
+  renderDailyCheckList();
+  bindDailyCheck();
 }
-
-async function freshLoadAll(dateStr){
-  const key = freshTodayKey();
-  const cache = freshCacheGet(key) || {};
-
-  // 初始化海报（加载态）
-  freshPosterInit();
-  freshPosterTryLunar();
-  setTimeout(freshPosterTryLunar, 1500);
-
-
-  // 天气
-  let w = cache.weather, weatherText = '';
-  if(!w){
-    try { w = await fetchFreshWeather(); freshCacheSet(key, Object.assign(cache, {weather:w})); }
-    catch(e){ w = null; }
-  }
-  var wmoIcon = {0:'🌤️',1:'☀️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
-    51:'🌧️',53:'🌧️',55:'🌧️',56:'🌧️',57:'🌧️',
-    61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
-    71:'🌨️',73:'❄️',75:'❄️',77:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',
-    85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'};
-  if(w){
-    var d0 = new Date();
-    freshWeatherText =
-      '一、今日日历\n' +
-      '公历：' + freshDateStr(d0) + '\n' +
-      '农历：' + (freshLunarStr(d0)||'—').replace(/^农历/, '') + '\n\n' +
-      '二、' + w.city.replace(/\s/g,'') + '今日天气\n' +
-      '整体：' + w.overall + '\n' +
-      '气温：' + w.tempLow + '°C ~ ' + w.tempHigh + '°C\n' +
-      '当前体感：' + w.apparent + '\n' +
-      '风向风力：' + w.wind + '\n' +
-      '空气湿度：' + w.humidity + '\n' +
-      '空气质量：' + w.aqi + '\n' +
-      '紫外线强度：' + w.uv;
-    if(freshPosterState){
-      Object.assign(freshPosterState, {
-        icon: wmoIcon[w.weatherCode] || '🌤️',
-        temp: w.temp+'°',
-        desc: w.desc+' · '+w.city,
-        overall: w.overall,
-        tempLow: w.tempLow, tempHigh: w.tempHigh,
-        feels: w.apparent,
-        wind: w.wind,
-        humidity: w.humidity,
-        aqi: w.aqi,
-        uv: w.uv
-      });
-      freshPosterRedraw();
-    }
+function renderDailyCheckList() {
+  const list = document.getElementById('dcList');
+  if (!list) return;
+  if (!dailyCheckList.length) {
+    list.innerHTML = '<li class="dc-empty">还没有检查项，点「＋ 添加检查项」开始记录</li>';
   } else {
-    if(freshPosterState){
-      freshPosterState.overall = '获取失败，请检查网络';
-      freshPosterRedraw();
-    }
+    list.innerHTML = dailyCheckList.map(it => `
+      <li class="dc-item ${it.done ? 'done' : ''}" data-id="${it.id}">
+        <button class="dc-check" data-act="toggle" title="标记完成">${it.done ? '✅' : '⬜'}</button>
+        <span class="dc-text">${escapeHtml(it.text)}</span>
+        <button class="dc-del" data-act="del" title="删除">✕</button>
+      </li>`).join('');
   }
-
-  const cwBtn = document.getElementById('freshCopyWeather');
-  if(cwBtn) cwBtn.onclick = copyFreshImage;
-
-  // 微语简报
-  let b = cache.brief;
-  if(!b){
-    b = await fetchFreshBrief();
-    freshCacheSet(key, Object.assign(cache, {brief:b}));
-  }
-  let briefText = dateStr+'\\n'+(b.quote||'')+'\\n\\n';
-  const qEl = document.getElementById('freshQuote');
-  if(qEl) qEl.textContent = b.quote || '（暂无金句）';
-  const listEl = document.getElementById('freshBriefList');
-  if(listEl){
-    if(b.items && b.items.length){
-      listEl.innerHTML = b.items.map((it,i)=>'<li class="fresh-brief-item"><span class="fresh-brief-num">'+(i+1)+'</span><span>'+it+'</span></li>').join('');
-      briefText += b.items.map((it,i)=>(i+1)+'. '+it).join('\\n');
-    } else {
-      listEl.innerHTML = '<li class="fresh-brief-item">暂无简报</li>';
-    }
-  }
-  if(b.date){ const bd=document.getElementById('freshBriefDate'); if(bd) bd.textContent=b.date; }
-
-  const cbBtn = document.getElementById('freshCopyBrief');
-  if(cbBtn) cbBtn.onclick = () => copyFreshText(briefText);
-
-  // 历史上的今天
-  let hist = cache.history;
-  if(hist === undefined){
-    hist = await fetchFreshHistory();
-    freshCacheSet(key, Object.assign(cache, {history: (hist===null ? '__null__' : hist)}));
-  }
-  if(hist === '__null__') hist = null;
-  const hLabel = document.getElementById('freshHistoryLabel');
-  const hEl = document.getElementById('freshHistory');
-  let historyText = '历史上的今天 '+dateStr.slice(5)+'\\n\\n';
-  if(hist && hist.length){
-    if(hLabel) hLabel.textContent = '盘点'+dateStr.slice(5)+'发生的重要事件';
-    if(hEl){
-      hEl.innerHTML = hist.map(h=>{
-        const img = 'https://picsum.photos/seed/hist'+encodeURIComponent(h.year)+'/400/200';
-        return '<div class="fresh-history-card"><div class="fresh-history-card-img" style="background-image:url(\''+img+'\');"><span class="fresh-history-card-year">'+h.year+'</span></div><div class="fresh-history-card-body"><div class="fresh-history-card-year-tag">'+h.year+'年</div><div class="fresh-history-card-event">'+h.event+'</div></div></div>';
-      }).join('');
-    }
-    historyText += hist.map(h=>h.year+'年: '+h.event).join('\\n\\n');
-  } else {
-    if(hLabel) hLabel.textContent = '历史上的今天数据暂不可用';
-    if(hEl) hEl.innerHTML = '<div class="fresh-history-empty" style="padding:12px;color:var(--text-muted);">暂无数据，可稍后重试</div>';
-  }
-  const chBtn = document.getElementById('freshCopyHistory');
-  if(chBtn) chBtn.onclick = () => copyFreshText(historyText);
-
-
+  const total = dailyCheckList.length;
+  const done = dailyCheckList.filter(i => i.done).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const fill = document.getElementById('dcFill');
+  if (fill) fill.style.width = pct + '%';
+  const pt = document.getElementById('dcProgressText');
+  if (pt) pt.textContent = '已完成 ' + done + '/' + total;
+}
+function bindDailyCheck() {
+  const list = document.getElementById('dcList');
+  const addBtn = document.getElementById('dcAdd');
+  const addRow = document.getElementById('dcAddRow');
+  const input = document.getElementById('dcInput');
+  const addConfirm = document.getElementById('dcAddConfirm');
+  const resetBtn = document.getElementById('dcReset');
+  if (addBtn) addBtn.addEventListener('click', () => { if (addRow) addRow.hidden = !addRow.hidden; if (input) input.focus(); });
+  if (addConfirm) addConfirm.addEventListener('click', () => {
+    const v = (input && input.value || '').trim();
+    if (!v) { if (input) input.focus(); return; }
+    dailyCheckList.push({ id: uid(), text: v, done: false });
+    saveDailyCheck(); renderDailyCheckList();
+    if (input) input.value = '';
+    if (addRow) addRow.hidden = true;
+  });
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') addConfirm.click(); });
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    dailyCheckList.forEach(i => i.done = false); saveDailyCheck(); renderDailyCheckList(); showToast('已重置为未完成');
+  });
+  if (list) list.addEventListener('click', e => {
+    const li = e.target.closest('.dc-item'); if (!li) return;
+    const id = li.dataset.id;
+    const actEl = e.target.closest('[data-act]');
+    const act = actEl && actEl.dataset.act;
+    const it = dailyCheckList.find(x => x.id === id); if (!it) return;
+    if (act === 'toggle') { it.done = !it.done; saveDailyCheck(); renderDailyCheckList(); }
+    else if (act === 'del') { dailyCheckList = dailyCheckList.filter(x => x.id !== id); saveDailyCheck(); renderDailyCheckList(); }
+  });
 }
 
 
 
-// ---------- 果然鲜海报：canvas 绘制 + 复制图片 ----------
-var freshPosterState = null;
-var freshPosterBg = null;
-var freshWeatherText = '';
 
-function roundRectFill(ctx, x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
-
-function freshPosterRedraw(){
-  var cv = document.getElementById('freshPosterCanvas');
-  if(!cv || !freshPosterState) return;
-  var s = freshPosterState;
-  var ctx = cv.getContext('2d');
-  var W = 640, H = 900;
-  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  if(cv.width !== W*dpr){ cv.width = W*dpr; cv.height = H*dpr; }
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,W,H);
-
-  // 背景图片（生成的果然鲜主题图，同域加载避免 canvas 污染）
-  if(freshPosterBg && freshPosterBg.complete && freshPosterBg.naturalWidth){
-    ctx.drawImage(freshPosterBg, 0, 0, W, H);
-  } else {
-    var g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,'#FDF3D8'); g.addColorStop(1,'#E2F3E0');
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-  }
-
-  var F = 'system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
-
-  // 顶部品牌色带
-  ctx.fillStyle = '#1F9D55';
-  roundRectFill(ctx, 24, 24, W-48, 62, 16); ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.font = '800 26px ' + F;
-  ctx.fillText('🛒 果然鲜 · 今日天气日历', W/2, 63);
-
-  // 内容卡片
-  var cardX = 24, cardY = 102, cardW = W-48, cardH = H-102-78;
-  ctx.fillStyle = 'rgba(255,255,255,0.88)';
-  roundRectFill(ctx, cardX, cardY, cardW, cardH, 20); ctx.fill();
-  ctx.strokeStyle = 'rgba(31,157,85,0.30)';
-  ctx.lineWidth = 2;
-  roundRectFill(ctx, cardX, cardY, cardW, cardH, 20); ctx.stroke();
-
-  var tx = cardX + 30;
-  var y = cardY + 50;
-  ctx.textAlign = 'left';
-
-  // 一、今日日历
-  ctx.fillStyle = '#1F9D55';
-  ctx.font = '800 22px ' + F;
-  ctx.fillText('一、今日日历', tx, y);
-  y += 16;
-  ctx.fillStyle = '#374151';
-  ctx.font = '400 17px ' + F;
-  ctx.fillText('公历：' + s.gregorian, tx, y+24); y += 32;
-  ctx.fillText('农历：' + (s.lunar || '—').replace(/^农历/, ''), tx, y+24); y += 46;
-
-  // 二、城市今日天气
-  ctx.fillStyle = '#1F9D55';
-  ctx.font = '800 22px ' + F;
-  ctx.fillText('二、' + (s.city||'本地').replace(/\s/g,'') + '今日天气', tx, y);
-  y += 30;
-  ctx.font = '400 17px ' + F;
-  var rows = [
-    ['整体', s.overall || (s.desc||'—')],
-    ['气温', s.tempLow + '°C ~ ' + s.tempHigh + '°C'],
-    ['当前体感', s.feels || '—'],
-    ['风向风力', s.wind || '—'],
-    ['空气湿度', s.humidity || '—'],
-    ['空气质量', s.aqi || '—'],
-    ['紫外线强度', s.uv || '—']
-  ];
-  for(var i=0;i<rows.length;i++){
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '600 17px ' + F;
-    ctx.fillText(rows[i][0] + '：', tx, y+22);
-    ctx.fillStyle = '#111827';
-    ctx.font = '600 17px ' + F;
-    ctx.fillText(rows[i][1], tx + 100, y+22);
-    y += 36;
-  }
-
-  // 底部备注：果然鲜生活超市
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 19px ' + F;
-  ctx.fillText('果然鲜生活超市', W/2, H-30);
-  ctx.textAlign = 'left';
-}
-
-
-function freshPosterInit(){
-  var d = new Date();
-  freshPosterState = {
-    gregorian: freshDateStr(d),
-    lunar: '农历加载中…',
-    city: FRESH_CITY,
-    overall: '天气加载中…',
-    tempLow: '--', tempHigh: '--',
-    feels: '—', wind: '—', humidity: '—', aqi: '—', uv: '—',
-    desc: '天气加载中…'
-  };
-  if(!freshPosterBg){
-    freshPosterBg = new Image();
-    freshPosterBg.onload = function(){ if(freshPosterState) freshPosterRedraw(); };
-    freshPosterBg.src = 'assets/fresh-poster-bg.png';
-  }
-  freshPosterRedraw();
-}
-
-
-function freshPosterTryLunar(){
-  if(typeof Lunar === 'undefined' || !freshPosterState) return;
-  var ls = freshLunarStr(new Date());
-  if(ls && ls !== freshPosterState.lunar){ freshPosterState.lunar = ls; freshPosterRedraw(); }
-}
-
-function copyFreshImage(){
-  var cv = document.getElementById('freshPosterCanvas');
-  function fallback(){ if(freshWeatherText) copyFreshText(freshWeatherText); else showToast('复制失败'); }
-  if(!cv){ fallback(); return; }
-  try {
-    cv.toBlob(function(blob){
-      if(blob && navigator.clipboard && navigator.clipboard.write){
-        navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(function(){
-          showToast('图片已复制，可粘贴到微信/备忘录');
-        }).catch(function(){ fallback(); });
-      } else { fallback(); }
-    }, 'image/png');
-  } catch(e){ fallback(); }
-}
 
 
 // 一键复制果然鲜文字
-function copyFreshText(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('已复制到剪贴板');
-  }).catch(() => {
-    // 降级方案
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); showToast('已复制到剪贴板'); }
-    catch(e) { showToast('复制失败,请手动选择文字复制'); }
-    document.body.removeChild(ta);
-  });
-}
 
 // ---------- 渲染:统计 ----------
 function renderStats() {
