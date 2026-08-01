@@ -2686,6 +2686,92 @@
   .dc-del { flex-shrink: 0; width: 28px; height: 28px; border: none; background: transparent; color: var(--text-soft); font-size: 15px; cursor: pointer; border-radius: 8px; transition: var(--transition); }
   .dc-del:hover { background: #fee2e2; color: #dc2626; }
   .dc-empty { list-style: none; padding: 28px; text-align: center; color: var(--text-muted); background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius); }
+
+  /* ========== 店员巡检 ========== */
+  .insp-rolebar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .insp-role-switch { display: inline-flex; background: var(--bg-soft); border-radius: 999px; padding: 4px; }
+  .insp-role-btn { border: none; background: transparent; color: var(--text-soft); font-size: 14px; padding: 7px 18px; border-radius: 999px; cursor: pointer; transition: var(--transition); }
+  .insp-role-btn.active { background: var(--brand-grad); color: #fff; box-shadow: var(--shadow-sm); }
+  .insp-emp-pick { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; color: var(--text-soft); }
+  .insp-select { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; transition: var(--transition); }
+  .insp-select:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
+  .insp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .insp-stats { display: flex; gap: 14px; font-size: 13px; color: var(--text-soft); }
+  .insp-stats b { color: var(--text); font-size: 15px; }
+  .insp-filters { display: flex; gap: 8px; flex: 1; min-width: 0; flex-wrap: wrap; }
+  .insp-list { display: flex; flex-direction: column; gap: 12px; }
+  .insp-card { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 14px 16px; transition: var(--transition); }
+  .insp-card:hover { box-shadow: var(--shadow); }
+  .insp-card.status-pending { border-left-color: #f59e0b; }
+  .insp-card.status-rectified { border-left-color: #3b82f6; }
+  .insp-card.status-confirmed { border-left-color: #16a34a; }
+  .insp-card.status-rejected { border-left-color: #dc2626; }
+  .insp-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .insp-badge { background: var(--bg-soft); color: var(--text-soft); font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+  .insp-area { font-size: 12px; color: var(--text-muted); }
+  .insp-status { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; }
+  .insp-status.status-pending { background: #fff7ed; color: #c2410c; }
+  .insp-status.status-rectified { background: #eff6ff; color: #1d4ed8; }
+  .insp-status.status-confirmed { background: #f0fdf4; color: #15803d; }
+  .insp-status.status-rejected { background: #fef2f2; color: #b91c1c; }
+  .insp-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .insp-card-desc { font-size: 13.5px; color: var(--text-soft); margin-bottom: 8px; white-space: pre-wrap; }
+  .insp-card-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .insp-card-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
+  .insp-card-foot { display: flex; align-items: center; gap: 10px; }
+  .insp-last { flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .insp-open-btn { flex-shrink: 0; border: 1px solid var(--border); background: var(--card); color: var(--primary-2); font-size: 13px; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); }
+  .insp-open-btn:hover { background: var(--bg-soft); }
+  .insp-field { margin-bottom: 14px; }
+  .insp-label { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 6px; font-weight: 600; }
+  .insp-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; transition: var(--transition); }
+  .insp-input:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
+  textarea.insp-input { resize: vertical; }
+  .insp-imgs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .insp-img-add { border: 1px dashed var(--border); background: var(--bg-soft); color: var(--text-soft); font-size: 13px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); }
+  .insp-img-add:hover { color: var(--primary-2); border-color: var(--primary-2); }
+  .insp-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .insp-thumb { position: relative; width: 60px; height: 60px; }
+  .insp-thumb img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+  .insp-thumb-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: #fff; font-size: 12px; line-height: 1; cursor: pointer; }
+  .insp-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+  .insp-detail-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .insp-detail-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .insp-detail-desc { font-size: 14px; color: var(--text-soft); margin-bottom: 10px; white-space: pre-wrap; }
+  .insp-detail-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .insp-detail-img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
+  .insp-thread-title { font-size: 13px; font-weight: 700; color: var(--text-soft); margin: 6px 0 8px; }
+  .insp-thread { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 12px; }
+  .insp-thread-empty { font-size: 13px; color: var(--text-muted); padding: 8px 0; }
+  .insp-reply { background: var(--bg-soft); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .insp-reply.from-manager { border-left: 3px solid var(--primary-2); }
+  .insp-reply.from-employee { border-left: 3px solid #16a34a; }
+  .insp-reply-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .insp-reply-from { font-weight: 600; color: var(--text-soft); }
+  .insp-reply-text { font-size: 14px; color: var(--text); white-space: pre-wrap; }
+  .insp-reply-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .insp-reply-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
+  .insp-reply-tag { display: inline-block; margin-top: 6px; font-size: 11px; color: #1d4ed8; background: #eff6ff; padding: 2px 8px; border-radius: 999px; }
+  .insp-reply-box { border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 12px; }
+  .insp-reply-box .insp-input { margin-bottom: 8px; }
+  .insp-actions { display: flex; gap: 8px; }
+  .insp-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .insp-modal.open { display: flex; }
+  .insp-modal-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(2px); }
+  .insp-modal-dialog { position: relative; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lg); outline: none; animation: inspPop .2s ease; }
+  .insp-modal-sm { max-width: 380px; }
+  @keyframes inspPop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+  .insp-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); z-index: 1; }
+  .insp-modal-title { font-size: 17px; font-weight: 700; }
+  .insp-modal-x { width: 32px; height: 32px; border-radius: 8px; color: var(--text-soft); font-size: 16px; cursor: pointer; border: none; background: transparent; transition: var(--transition); }
+  .insp-modal-x:hover { background: var(--bg-soft); color: var(--text); }
+  #inspNewForm, #inspDetailBody, #inspEmpBody { padding: 18px 20px 20px; }
+  .insp-emp-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .insp-emp-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-soft); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); }
+  .insp-emp-del { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-soft); cursor: pointer; transition: var(--transition); }
+  .insp-emp-del:hover { background: #fee2e2; color: #dc2626; }
+  .insp-emp-add { display: flex; gap: 8px; }
+  .insp-emp-add .insp-input { flex: 1; }
 </style>
 </head>
 <body>
@@ -2807,6 +2893,13 @@ const MODULES = [
     name: '学做店长',
     desc: '超市店长实用知识地图 · 损耗/报表/陈列 · 30–90 天学习打卡',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'inspect',
+    name: '店员巡检',
+    desc: '每日门店检查 · 问题图文记录 · 店员整改闭环',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
   },
   {
@@ -3090,6 +3183,12 @@ function renderContent() {
   // 笔记模块
   if (currentModule === 'notes') {
     renderNotesModule(content, mod);
+    return;
+  }
+
+  // 店员巡检模块
+  if (currentModule === 'inspect') {
+    renderInspectModule(content, mod);
     return;
   }
 
@@ -5975,6 +6074,406 @@ function reorderTodos(fromId, toId) {
   todos.forEach((t, i) => { t.order = i; });
   saveTodos();
   renderTodoList();
+}
+
+// ==================== 店员巡检（每日门店检查 · 店员整改闭环） ====================
+// 同设备方案：店长视角建单/确认，店员视角切换身份后查看/回复/提交整改。无后端，数据存本地。
+const INSP_EMP_KEY = 'liumo_inspect_employees';
+const INSP_TICKET_KEY = 'liumo_inspect_tickets';
+let inspEmployees = [];
+let inspTickets = [];
+let inspRole = 'manager';        // 'manager' | 'employee'
+let inspCurEmp = '';             // 店员视角当前选中的店员
+let inspFilterEmp = 'all';
+let inspFilterStatus = 'all';
+let inspDraftPhotos = [];
+let inspReplyPhotos = [];
+let inspOpenId = null;
+
+const INSP_STATUS = {
+  pending:   { label: '待整改', cls: 'pending' },
+  rectified: { label: '已整改待确认', cls: 'rectified' },
+  confirmed: { label: '已完成', cls: 'confirmed' },
+  rejected:  { label: '已驳回', cls: 'rejected' }
+};
+
+function loadInspect() {
+  try { const e = JSON.parse(localStorage.getItem(INSP_EMP_KEY)); if (Array.isArray(e)) inspEmployees = e; } catch (e) {}
+  try { const t = JSON.parse(localStorage.getItem(INSP_TICKET_KEY)); if (Array.isArray(t)) inspTickets = t; } catch (e) {}
+  if (!inspEmployees.length) { inspEmployees = ['张三', '李四', '王五']; saveInspectEmp(); }
+  if (!inspCurEmp && inspEmployees.length) inspCurEmp = inspEmployees[0];
+}
+function saveInspectEmp() { try { localStorage.setItem(INSP_EMP_KEY, JSON.stringify(inspEmployees)); } catch (e) {} }
+function saveInspectTickets() { try { localStorage.setItem(INSP_TICKET_KEY, JSON.stringify(inspTickets)); } catch (e) {} }
+
+function renderInspectModule(content, mod) {
+  loadInspect();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">店员巡检</div>
+      <div class="page-desc">每日门店检查 · 问题图文记录 · 店员整改闭环</div>
+    </div>
+    <div class="insp-rolebar">
+      <div class="insp-role-switch">
+        <button class="insp-role-btn ${inspRole==='manager'?'active':''}" data-role="manager">店长视角</button>
+        <button class="insp-role-btn ${inspRole==='employee'?'active':''}" data-role="employee">店员视角</button>
+      </div>
+      <button class="btn-ghost" id="inspEmpManage">店员名册</button>
+    </div>
+    <div id="inspBody"></div>
+
+    <div class="insp-modal" id="inspNewModal">
+      <div class="insp-modal-backdrop" data-close="1"></div>
+      <div class="insp-modal-dialog" tabindex="-1">
+        <div class="insp-modal-head"><div class="insp-modal-title">新建整改单</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
+        <div id="inspNewForm"></div>
+      </div>
+    </div>
+    <div class="insp-modal" id="inspDetailModal">
+      <div class="insp-modal-backdrop" data-close="1"></div>
+      <div class="insp-modal-dialog" tabindex="-1">
+        <div class="insp-modal-head"><div class="insp-modal-title">整改单详情</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
+        <div id="inspDetailBody"></div>
+      </div>
+    </div>
+    <div class="insp-modal" id="inspEmpModal">
+      <div class="insp-modal-backdrop" data-close="1"></div>
+      <div class="insp-modal-dialog insp-modal-sm" tabindex="-1">
+        <div class="insp-modal-head"><div class="insp-modal-title">店员名册</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
+        <div id="inspEmpBody"></div>
+      </div>
+    </div>
+  `;
+  renderInspectBody();
+  bindInspect();
+}
+
+function renderInspectBody() {
+  const body = document.getElementById('inspBody');
+  if (!body) return;
+  if (inspRole === 'employee') {
+    body.innerHTML = `
+      <div class="insp-emp-pick">
+        <span>当前身份</span>
+        <select id="inspEmpPick" class="insp-select">
+          ${inspEmployees.map(e => `<option value="${escapeHtml(e)}" ${e===inspCurEmp?'selected':''}>${escapeHtml(e)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="insp-list" id="inspList"></div>`;
+  } else {
+    const pending = inspTickets.filter(t => t.status==='pending').length;
+    const rectified = inspTickets.filter(t => t.status==='rectified').length;
+    const confirmed = inspTickets.filter(t => t.status==='confirmed').length;
+    body.innerHTML = `
+      <div class="insp-toolbar">
+        <div class="insp-stats">
+          <span>待整改 <b>${pending}</b></span>
+          <span>已整改 <b>${rectified}</b></span>
+          <span>已完成 <b>${confirmed}</b></span>
+        </div>
+        <div class="insp-filters">
+          <select id="inspFilterEmp" class="insp-select">
+            <option value="all">全部店员</option>
+            ${inspEmployees.map(e => `<option value="${escapeHtml(e)}" ${e===inspFilterEmp?'selected':''}>${escapeHtml(e)}</option>`).join('')}
+          </select>
+          <select id="inspFilterStatus" class="insp-select">
+            <option value="all">全部状态</option>
+            ${Object.keys(INSP_STATUS).map(k => `<option value="${k}" ${k===inspFilterStatus?'selected':''}>${INSP_STATUS[k].label}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn-add" id="inspNewBtn">＋ 新建整改单</button>
+      </div>
+      <div class="insp-list" id="inspList"></div>`;
+  }
+  renderInspList();
+}
+
+function renderInspList() {
+  const list = document.getElementById('inspList');
+  if (!list) return;
+  let arr = inspTickets.slice();
+  if (inspRole === 'employee') {
+    arr = arr.filter(t => t.employee === inspCurEmp && t.status !== 'confirmed');
+  } else {
+    if (inspFilterEmp !== 'all') arr = arr.filter(t => t.employee === inspFilterEmp);
+    if (inspFilterStatus !== 'all') arr = arr.filter(t => t.status === inspFilterStatus);
+  }
+  arr.sort((a, b) => (b.updatedAt||0) - (a.updatedAt||0));
+  if (!arr.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-title">${inspRole==='employee'?'暂无可处理的整改单':'还没有整改单'}</div><div class="empty-desc">${inspRole==='employee'?'你负责的整改项都处理完啦':'点击右上角「新建整改单」记录第一条'}</div></div>`;
+    return;
+  }
+  list.innerHTML = arr.map(t => {
+    const st = INSP_STATUS[t.status] || INSP_STATUS.pending;
+    const last = (t.replies && t.replies.length) ? t.replies[t.replies.length-1] : null;
+    const lastText = last ? ((last.from==='manager'?'店长: ':'店员: ') + (last.text||'')) : (t.desc||'');
+    const canOpen = (inspRole==='manager') || (inspRole==='employee' && t.employee===inspCurEmp);
+    return `
+      <div class="insp-card status-${st.cls}" data-id="${t.id}">
+        <div class="insp-card-head">
+          <span class="insp-badge">${escapeHtml(t.employee)}</span>
+          ${t.area ? `<span class="insp-area">${escapeHtml(t.area)}</span>` : ''}
+          <span class="insp-status status-${st.cls}">${st.label}</span>
+        </div>
+        <div class="insp-card-title">${escapeHtml(t.title)}</div>
+        ${t.desc ? `<div class="insp-card-desc">${escapeHtml(t.desc)}</div>` : ''}
+        ${t.photos && t.photos.length ? `<div class="insp-card-imgs">${t.photos.slice(0,4).map((s,i)=>`<img class="insp-card-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
+        <div class="insp-card-foot">
+          <span class="insp-last">${escapeHtml((lastText||'').slice(0,42))}</span>
+          ${canOpen ? `<button class="insp-open-btn" data-act="open" data-id="${t.id}">查看 / 处理</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openInspNew() {
+  inspDraftPhotos = [];
+  const modal = document.getElementById('inspNewModal');
+  renderInspNewForm();
+  modal.classList.add('open');
+  const dlg = modal.querySelector('.insp-modal-dialog'); if (dlg) dlg.focus();
+}
+function renderInspNewForm() {
+  const c = document.getElementById('inspNewForm');
+  if (!c) return;
+  c.innerHTML = `
+    <div class="insp-field">
+      <label class="insp-label">店员 <span class="req">*</span></label>
+      <select class="insp-select" id="inspNewEmp">
+        ${inspEmployees.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="insp-field">
+      <label class="insp-label">区域 / 岗位</label>
+      <input class="insp-input" id="inspNewArea" type="text" placeholder="如：生鲜区 / 收银台" />
+    </div>
+    <div class="insp-field">
+      <label class="insp-label">问题 <span class="req">*</span></label>
+      <input class="insp-input" id="inspNewTitle" type="text" placeholder="如：货架陈列不整齐" />
+    </div>
+    <div class="insp-field">
+      <label class="insp-label">说明</label>
+      <textarea class="insp-input" id="inspNewDesc" rows="3" placeholder="具体问题描述…"></textarea>
+    </div>
+    <div class="insp-field">
+      <label class="insp-label">问题图片</label>
+      <div class="insp-imgs">
+        <button type="button" class="insp-img-add" id="inspNewImgAdd">＋ 添加图片</button>
+        <input type="file" id="inspNewFile" accept="image/*" multiple hidden />
+        <div class="insp-thumbs" id="inspNewThumbs"></div>
+      </div>
+    </div>
+    <div class="insp-form-actions">
+      <button class="btn-add" id="inspNewSave">创建整改单</button>
+      <button class="btn-ghost" data-close="1">取消</button>
+    </div>`;
+  renderInspThumbs('inspNewThumbs', inspDraftPhotos);
+  const fe = document.getElementById('inspNewFile');
+  if (fe) fe.addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    for (const f of files) { try { const d = await compressImage(f); inspDraftPhotos.push(d); } catch (err) { showToast('图片处理失败'); } }
+    renderInspThumbs('inspNewThumbs', inspDraftPhotos); e.target.value = '';
+  });
+}
+function renderInspThumbs(elId, arr) {
+  const c = document.getElementById(elId);
+  if (!c) return;
+  if (!arr.length) { c.innerHTML = ''; return; }
+  c.innerHTML = arr.map((src, i) => `<div class="insp-thumb"><img src="${src}" alt="预览" /><button type="button" class="insp-thumb-remove" data-thumb="${elId}" data-idx="${i}" title="删除">×</button></div>`).join('');
+}
+function inspNewSave() {
+  const emp = document.getElementById('inspNewEmp');
+  const title = document.getElementById('inspNewTitle');
+  const t = (title && title.value || '').trim();
+  if (!t) { showToast('请填写问题'); if (title) title.focus(); return; }
+  const area = document.getElementById('inspNewArea');
+  const desc = document.getElementById('inspNewDesc');
+  const now = Date.now();
+  inspTickets.unshift({
+    id: uid(), employee: emp.value, area: (area&&area.value||'').trim(),
+    title: t, desc: (desc&&desc.value||'').trim(), photos: inspDraftPhotos.slice(),
+    status: 'pending', replies: [], createdAt: now, updatedAt: now
+  });
+  saveInspectTickets();
+  closeInspModal('inspNewModal');
+  renderInspectBody();
+  showToast('已创建整改单');
+}
+
+function openInspDetail(id) {
+  inspOpenId = id;
+  inspReplyPhotos = [];
+  const modal = document.getElementById('inspDetailModal');
+  renderInspDetail();
+  modal.classList.add('open');
+  const dlg = modal.querySelector('.insp-modal-dialog'); if (dlg) dlg.focus();
+}
+function renderInspDetail() {
+  const c = document.getElementById('inspDetailBody');
+  if (!c) return;
+  const t = inspTickets.find(x => x.id === inspOpenId);
+  if (!t) { closeInspModal('inspDetailModal'); return; }
+  const st = INSP_STATUS[t.status] || INSP_STATUS.pending;
+  const thread = (t.replies||[]).map(r => `
+    <div class="insp-reply from-${r.from}">
+      <div class="insp-reply-head"><span class="insp-reply-from">${r.from==='manager'?'店长':'店员'} · ${escapeHtml(t.employee)}</span><span class="insp-reply-at">${formatDate(r.at)}</span></div>
+      <div class="insp-reply-text">${escapeHtml(r.text||'')}</div>
+      ${r.photos && r.photos.length ? `<div class="insp-reply-imgs">${r.photos.map((s,i)=>`<img class="insp-reply-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
+      ${r.type==='rectify' ? `<div class="insp-reply-tag">整改提交</div>` : ''}
+    </div>`).join('');
+  let actions = '';
+  if (inspRole === 'manager') {
+    actions = `<div class="insp-actions"><button class="btn-add" data-act="confirm">确认完成</button><button class="btn-ghost" data-act="reject">驳回重改</button></div>`;
+  } else if (inspRole === 'employee' && (t.status==='pending' || t.status==='rejected')) {
+    actions = `<div class="insp-actions"><button class="btn-add" data-act="rectify">提交整改结果</button></div>`;
+  }
+  c.innerHTML = `
+    <div class="insp-detail">
+      <div class="insp-detail-head">
+        <span class="insp-badge">${escapeHtml(t.employee)}</span>
+        ${t.area ? `<span class="insp-area">${escapeHtml(t.area)}</span>` : ''}
+        <span class="insp-status status-${st.cls}">${st.label}</span>
+      </div>
+      <div class="insp-detail-title">${escapeHtml(t.title)}</div>
+      ${t.desc ? `<div class="insp-detail-desc">${escapeHtml(t.desc)}</div>` : ''}
+      ${t.photos && t.photos.length ? `<div class="insp-detail-imgs">${t.photos.map((s,i)=>`<img class="insp-detail-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
+      <div class="insp-thread-title">往来记录</div>
+      <div class="insp-thread">${thread || '<div class="insp-thread-empty">暂无回复</div>'}</div>
+      <div class="insp-reply-box">
+        <textarea class="insp-input" id="inspReplyText" rows="2" placeholder="输入回复内容…"></textarea>
+        <div class="insp-imgs">
+          <button type="button" class="insp-img-add" id="inspReplyImgAdd">＋ 图片</button>
+          <input type="file" id="inspReplyFile" accept="image/*" multiple hidden />
+          <div class="insp-thumbs" id="inspReplyThumbs"></div>
+        </div>
+        <button class="btn-ghost" id="inspReplySend">发送回复</button>
+      </div>
+      ${actions}
+    </div>`;
+  renderInspThumbs('inspReplyThumbs', inspReplyPhotos);
+  const fe = document.getElementById('inspReplyFile');
+  if (fe) fe.addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    for (const f of files) { try { const d = await compressImage(f); inspReplyPhotos.push(d); } catch (err) { showToast('图片处理失败'); } }
+    renderInspThumbs('inspReplyThumbs', inspReplyPhotos); e.target.value = '';
+  });
+}
+function inspAddReply(from, type, text, photos) {
+  const t = inspTickets.find(x => x.id === inspOpenId);
+  if (!t) return;
+  t.replies = t.replies || [];
+  t.replies.push({ from, type: type||'reply', text: text||'', photos: (photos||[]).slice(), at: Date.now() });
+  t.updatedAt = Date.now();
+}
+function inspConfirm() {
+  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
+  const txt = (document.getElementById('inspReplyText').value||'').trim();
+  t.status = 'confirmed';
+  inspAddReply('manager', 'reply', txt || '已确认完成', []);
+  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已确认完成');
+}
+function inspReject() {
+  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
+  const txt = (document.getElementById('inspReplyText').value||'').trim();
+  t.status = 'rejected';
+  inspAddReply('manager', 'reply', txt || '已驳回，请重新整改', []);
+  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已驳回');
+}
+function inspRectify() {
+  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
+  const txt = (document.getElementById('inspReplyText').value||'').trim();
+  if (!txt && !inspReplyPhotos.length) { showToast('请填写整改说明或上传图片'); return; }
+  t.status = 'rectified';
+  inspAddReply('employee', 'rectify', txt, inspReplyPhotos);
+  inspReplyPhotos = [];
+  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已提交整改结果');
+}
+function inspReplySend() {
+  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
+  const txt = (document.getElementById('inspReplyText').value||'').trim();
+  if (!txt && !inspReplyPhotos.length) { showToast('请填写回复内容或上传图片'); return; }
+  inspAddReply(inspRole, 'reply', txt, inspReplyPhotos);
+  inspReplyPhotos = [];
+  saveInspectTickets(); renderInspDetail(); renderInspList();
+  const ta = document.getElementById('inspReplyText'); if (ta) ta.value = '';
+  showToast('已回复');
+}
+
+function openInspEmp() {
+  const modal = document.getElementById('inspEmpModal');
+  renderInspEmp();
+  modal.classList.add('open');
+}
+function renderInspEmp() {
+  const c = document.getElementById('inspEmpBody');
+  if (!c) return;
+  c.innerHTML = `
+    <div class="insp-emp-list">
+      ${inspEmployees.map(e => `<div class="insp-emp-row"><span>${escapeHtml(e)}</span><button class="insp-emp-del" data-emp="${escapeHtml(e)}" title="删除">✕</button></div>`).join('')}
+    </div>
+    <div class="insp-emp-add">
+      <input class="insp-input" id="inspEmpInput" type="text" placeholder="新增店员姓名" />
+      <button class="btn-add" id="inspEmpAdd">添加</button>
+    </div>`;
+}
+function inspAddEmp() {
+  const inp = document.getElementById('inspEmpInput');
+  const v = (inp && inp.value || '').trim();
+  if (!v) return;
+  if (inspEmployees.includes(v)) { showToast('已存在该店员'); return; }
+  inspEmployees.push(v); saveInspectEmp();
+  if (!inspCurEmp) inspCurEmp = v;
+  renderInspEmp(); renderInspectBody();
+}
+function inspDelEmp(name) {
+  inspEmployees = inspEmployees.filter(x => x !== name);
+  saveInspectEmp();
+  if (inspCurEmp === name) inspCurEmp = inspEmployees[0] || '';
+  renderInspEmp(); renderInspectBody();
+}
+function closeInspModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('open');
+}
+
+function bindInspect() {
+  const content = document.getElementById('content');
+  if (!content) return;
+  if (content._inspBound) { content.removeEventListener('click', content._inspClick); content.removeEventListener('change', content._inspChange); }
+  content._inspClick = function(e) {
+    const t = e.target;
+    if (t.closest('[data-close]')) { const m = t.closest('.insp-modal'); if (m) m.classList.remove('open'); return; }
+    const roleBtn = t.closest('.insp-role-btn'); if (roleBtn) { inspRole = roleBtn.dataset.role; document.querySelectorAll('.insp-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === inspRole)); renderInspectBody(); return; }
+    if (t.closest('#inspEmpManage')) { openInspEmp(); return; }
+    if (t.closest('#inspNewBtn')) { openInspNew(); return; }
+    if (t.closest('#inspNewImgAdd')) { const f = document.getElementById('inspNewFile'); if (f) f.click(); return; }
+    if (t.closest('#inspNewSave')) { inspNewSave(); return; }
+    const tr = t.closest('.insp-thumb-remove');
+    if (tr) { const elId = tr.dataset.thumb, i = +tr.dataset.idx; if (elId==='inspNewThumbs') { inspDraftPhotos.splice(i,1); renderInspThumbs('inspNewThumbs', inspDraftPhotos); } else if (elId==='inspReplyThumbs') { inspReplyPhotos.splice(i,1); renderInspThumbs('inspReplyThumbs', inspReplyPhotos); } return; }
+    const openBtn = t.closest('[data-act="open"]'); if (openBtn) { openInspDetail(openBtn.dataset.id); return; }
+    const img = t.closest('.insp-card-img, .insp-detail-img, .insp-reply-img');
+    if (img) { const tk = inspTickets.find(x => x.id === img.dataset.id); if (tk) openActLightbox(tk.photos, +img.dataset.idx); return; }
+    if (t.closest('[data-act="confirm"]')) { inspConfirm(); return; }
+    if (t.closest('[data-act="reject"]')) { inspReject(); return; }
+    if (t.closest('[data-act="rectify"]')) { inspRectify(); return; }
+    if (t.closest('#inspReplySend')) { inspReplySend(); return; }
+    if (t.closest('#inspReplyImgAdd')) { const f = document.getElementById('inspReplyFile'); if (f) f.click(); return; }
+    if (t.closest('#inspEmpAdd')) { inspAddEmp(); return; }
+    const ed = t.closest('.insp-emp-del'); if (ed) { inspDelEmp(ed.dataset.emp); return; }
+  };
+  content._inspChange = function(e) {
+    const t = e.target;
+    if (t.id === 'inspFilterEmp') { inspFilterEmp = t.value; renderInspList(); }
+    else if (t.id === 'inspFilterStatus') { inspFilterStatus = t.value; renderInspList(); }
+    else if (t.id === 'inspEmpPick') { inspCurEmp = t.value; renderInspList(); }
+  };
+  content.addEventListener('click', content._inspClick);
+  content.addEventListener('change', content._inspChange);
+  if (!content._inspKey) {
+    content._inspKey = function(e) { if (e.key === 'Escape') { const m = document.querySelector('.insp-modal.open'); if (m) m.classList.remove('open'); } };
+    document.addEventListener('keydown', content._inspKey);
+  }
+  content._inspBound = true;
 }
 
 function escapeHtml(s) {
