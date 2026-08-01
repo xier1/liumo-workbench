@@ -367,6 +367,23 @@
 
   .btn-add:active { transform: translateY(0); }
 
+  /* ========== 待办添加弹窗表单 ========== */
+  #todo-form-container { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+  #todo-form-container .input-add { width: 100%; flex: none; }
+  #todo-form-container .select-priority { width: 100%; }
+  .todo-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 2px; }
+  .btn-cancel {
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
+
   /* ========== 筛选条 ========== */
   .filter-bar {
     display: flex;
@@ -447,7 +464,7 @@
     background: var(--danger-soft);
   }
 
-  /* ========== 备忘录列表 ========== */
+  /* ========== 待办列表 ========== */
   .todo-list {
     display: flex;
     flex-direction: column;
@@ -2781,8 +2798,8 @@
 const MODULES = [
   {
     id: 'todo',
-    name: '备忘录',
-    desc: '记录灵感与备忘,随手拖拽排序',
+    name: '待办清单',
+    desc: '记录待办事项,随手拖拽排序',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
   },
@@ -2864,6 +2881,7 @@ let filter = 'all';        // all | active | done
 let search = '';
 let editingId = null;
 let memoSortMode = localStorage.getItem('liumo_memo_sort') || 'priority';  // priority | custom
+let _todoEscapeBound = false;  // 待办添加弹窗的 Esc 监听是否已全局绑定(避免重复)
 
 // ---------- 工作清单状态 ----------
 const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
@@ -3074,7 +3092,7 @@ function renderContent() {
     return;
   }
 
-  // 备忘录模块
+  // 待办清单模块
   if (currentModule === 'todo') {
     renderTodoModule(content, mod);
     return;
@@ -3249,21 +3267,14 @@ function renderManagerModule(content, mod) {
   mgRefreshProgress();
 }
 
-// ---------- 渲染:备忘录模块 ----------
+// ---------- 渲染:待办清单模块 ----------
 function renderTodoModule(content, mod) {
   content.innerHTML = `
 
-    <!-- 添加备忘录工具栏 -->
-    <div class="toolbar">
-      <input type="text" class="input-add" id="todoInput" placeholder="添加一条备忘录... (回车提交)" />
-      <select class="select-priority" id="prioritySelect">
-        <option value="low">优先级: 低</option>
-        <option value="medium" selected>优先级: 中</option>
-        <option value="high">优先级: 高</option>
-      </select>
-      <button class="btn-add" id="addBtn">
+    <div class="toolbar todo-add-bar">
+      <button class="btn-add" id="todoAddBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        添加
+        添加待办
       </button>
     </div>
 
@@ -3281,12 +3292,35 @@ function renderTodoModule(content, mod) {
       <button class="btn-clear" id="clearDoneBtn">清除已完成</button>
       <div class="search-box">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input" id="searchInput" placeholder="搜索备忘..." value="${search}" />
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索待办..." value="${search}" />
       </div>
     </div>
 
-    <!-- 备忘录列表 -->
+    <!-- 待办列表 -->
     <div class="todo-list" id="todoList"></div>
+
+    <!-- 添加待办表单(点击「添加待办」后弹出) -->
+    <div class="act-modal" id="todoModal">
+      <div class="act-modal-backdrop" data-close="1"></div>
+      <div class="act-modal-dialog" tabindex="-1">
+        <div class="act-modal-head">
+          <div class="act-modal-title">添加待办</div>
+          <button type="button" class="act-modal-x" data-close="1" aria-label="关闭">✕</button>
+        </div>
+        <div id="todo-form-container">
+          <input type="text" class="input-add" id="todoInput" placeholder="添加一条待办... (回车提交)" />
+          <select class="select-priority" id="prioritySelect">
+            <option value="low">优先级: 低</option>
+            <option value="medium" selected>优先级: 中</option>
+            <option value="high">优先级: 高</option>
+          </select>
+          <div class="todo-modal-actions">
+            <button class="btn-cancel" id="todoCancelBtn">取消</button>
+            <button class="btn-add" id="todoSaveBtn">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   bindTodoEvents();
@@ -5672,7 +5706,7 @@ function bindDailyCheck() {
 // ---------- 渲染:统计 ----------
 function renderStats() {
   const statsEl = document.getElementById('stats');
-  if (!statsEl) return;  // 仅在备忘录模块存在 stats 元素时渲染
+  if (!statsEl) return;  // 仅在待办模块存在 stats 元素时渲染
   const total = todos.length;
   const done = todos.filter(t => t.done).length;
   const active = total - done;
@@ -5680,7 +5714,7 @@ function renderStats() {
 
   document.getElementById('stats').innerHTML = `
     <div class="stat-card">
-      <div class="stat-label">全部备忘</div>
+      <div class="stat-label">全部待办</div>
       <div class="stat-value">${total}</div>
     </div>
     <div class="stat-card">
@@ -5699,7 +5733,7 @@ function renderStats() {
   `;
 }
 
-// ---------- 渲染:备忘录列表 ----------
+// ---------- 渲染:待办列表 ----------
 function getFilteredTodos() {
   let list = todos;
   if (filter === 'active') list = list.filter(t => !t.done);
@@ -5736,8 +5770,8 @@ function renderTodoList() {
             <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
           </svg>
         </div>
-        <div class="empty-title">${search ? '没有找到匹配的备忘' : (filter === 'done' ? '还没有已完成的备忘' : (filter === 'active' ? '没有进行中的备忘' : '暂无备忘录'))}</div>
-        <div class="empty-desc">${search ? '试试其他关键词' : '在上方输入框添加你的第一条备忘录吧'}</div>
+        <div class="empty-title">${search ? '没有找到匹配的待办' : (filter === 'done' ? '还没有已完成的待办' : (filter === 'active' ? '没有进行中的待办' : '暂无待办'))}</div>
+        <div class="empty-desc">${search ? '试试其他关键词' : '点击「添加」创建你的第一条待办吧'}</div>
       </div>
     `;
     return;
@@ -6222,15 +6256,28 @@ function escapeHtml(s) {
 
 // ---------- 事件绑定 ----------
 function bindTodoEvents() {
-  // 添加备忘录
+  // 添加待办(点击「添加待办」按钮弹出表单)
   const input = document.getElementById('todoInput');
-  const addBtn = document.getElementById('addBtn');
+  const addBtn = document.getElementById('todoAddBtn');
+  const saveBtn = document.getElementById('todoSaveBtn');
+  const cancelBtn = document.getElementById('todoCancelBtn');
   const prioritySelect = document.getElementById('prioritySelect');
+  const modal = document.getElementById('todoModal');
+
+  function openTodoModal() {
+    modal.classList.add('open');
+    input.value = '';
+    prioritySelect.value = 'medium';
+    setTimeout(() => input.focus(), 50);
+  }
+  function closeTodoModal() {
+    modal.classList.remove('open');
+  }
 
   function addTodo() {
     const title = input.value.trim();
     if (!title) {
-      showToast('请输入备忘内容');
+      showToast('请输入待办内容');
       input.focus();
       return;
     }
@@ -6244,17 +6291,28 @@ function bindTodoEvents() {
       createdAt: Date.now()
     });
     saveTodos();
-    input.value = '';
-    prioritySelect.value = 'medium';
+    closeTodoModal();
     renderStats();
     renderTodoList();
-    input.focus();
   }
 
-  addBtn.addEventListener('click', addTodo);
+  addBtn.addEventListener('click', openTodoModal);
+  saveBtn.addEventListener('click', addTodo);
+  cancelBtn.addEventListener('click', closeTodoModal);
+  modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeTodoModal(); });
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') addTodo();
+    if (e.key === 'Escape') closeTodoModal();
   });
+  if (!_todoEscapeBound) {
+    _todoEscapeBound = true;
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        const m = document.getElementById('todoModal');
+        if (m && m.classList.contains('open')) m.classList.remove('open');
+      }
+    });
+  }
 
   // 筛选(仅带 data-filter 的按钮)
   document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
@@ -6281,14 +6339,14 @@ function bindTodoEvents() {
   document.getElementById('clearDoneBtn').addEventListener('click', () => {
     const doneCount = todos.filter(t => t.done).length;
     if (doneCount === 0) {
-      showToast('没有已完成的备忘');
+      showToast('没有已完成的待办');
       return;
     }
     todos = todos.filter(t => !t.done);
     saveTodos();
     renderStats();
     renderTodoList();
-    showToast(`已清除 ${doneCount} 条已完成备忘`);
+    showToast(`已清除 ${doneCount} 条已完成待办`);
   });
 
   // 拖拽排序(仅自定义顺序模式)
@@ -6437,7 +6495,7 @@ async function init() {
     todos = [
       {
         id: uid(),
-        title: '欢迎使用刘莫个人工作台,试试添加你的第一条备忘录',
+        title: '欢迎使用刘莫个人工作台,试试添加你的第一条待办',
         done: false,
         priority: 'high',
         order: 0,
@@ -6461,7 +6519,7 @@ async function init() {
       },
       {
         id: uid(),
-        title: '这是一个已完成的示例备忘',
+        title: '这是一个已完成的示例待办',
         done: true,
         priority: 'low',
         order: 3,
