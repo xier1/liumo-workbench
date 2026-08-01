@@ -568,12 +568,14 @@
     display: inline-block;
   }
 
-  .priority-high { color: var(--danger); }
-  .priority-high .meta-dot { background: var(--danger); }
-  .priority-medium { color: var(--warning); }
-  .priority-medium .meta-dot { background: var(--warning); }
-  .priority-low { color: var(--text-muted); }
-  .priority-low .meta-dot { background: var(--text-muted); }
+  .priority-iq  { color: #ef4444; }
+  .priority-iq  .meta-dot { background: #ef4444; }
+  .priority-inq { color: #3b82f6; }
+  .priority-inq .meta-dot { background: #3b82f6; }
+  .priority-uq  { color: #f59e0b; }
+  .priority-uq  .meta-dot { background: #f59e0b; }
+  .priority-nuq { color: #10b981; }
+  .priority-nuq .meta-dot { background: #10b981; }
 
   .meta-overdue {
     color: var(--danger);
@@ -638,6 +640,8 @@
   }
 
   .todo-edit-input:focus { outline: none; }
+
+  .todo-edit-priority { max-width: 160px; flex: none; }
 
   /* ========== 空状态 ========== */
   .empty-state {
@@ -2883,6 +2887,14 @@ let editingId = null;
 let memoSortMode = localStorage.getItem('liumo_memo_sort') || 'priority';  // priority | custom
 let _todoEscapeBound = false;  // 待办添加弹窗的 Esc 监听是否已全局绑定(避免重复)
 
+// 待办优先级 = 时间管理四象限
+const TODO_PRIORITIES = [
+  { value: 'iq',  label: '重要且紧急', desc: '立即做' },
+  { value: 'inq', label: '重要不紧急', desc: '计划做' },
+  { value: 'uq',  label: '紧急不重要', desc: '委托做' },
+  { value: 'nuq', label: '不重要不紧急', desc: '减少做' }
+];
+
 // ---------- 工作清单状态 ----------
 const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
 const QUADRANT_INFO = {
@@ -2939,13 +2951,17 @@ function saveTodos() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
-// 旧数据迁移:补齐 order(拖拽顺序)、剥离 dueDate、补全 priority
+// 旧数据迁移:补齐 order(拖拽顺序)、剥离 dueDate、补全/校正 priority 到四象限
 function normalizeTodos() {
+  const OLD_PRIORITY_MAP = { high: 'iq', medium: 'inq', low: 'nuq' };
   let changed = false;
   todos.forEach((t, i) => {
     if (typeof t.order !== 'number' || isNaN(t.order)) { t.order = i; changed = true; }
     if ('dueDate' in t) { delete t.dueDate; changed = true; }
-    if (!t.priority) { t.priority = 'medium'; changed = true; }
+    if (!t.priority || !TODO_PRIORITIES.some(p => p.value === t.priority)) {
+      t.priority = OLD_PRIORITY_MAP[t.priority] || 'inq';
+      changed = true;
+    }
   });
   if (changed) saveTodos();
 }
@@ -2964,7 +2980,8 @@ function formatDate(ts) {
 }
 
 function priorityLabel(p) {
-  return { high: '高', medium: '中', low: '低' }[p] || '中';
+  const m = { iq: '重要且紧急', inq: '重要不紧急', uq: '紧急不重要', nuq: '不重要不紧急' };
+  return m[p] || '重要不紧急';
 }
 
 function showToast(msg) {
@@ -3310,9 +3327,7 @@ function renderTodoModule(content, mod) {
         <div id="todo-form-container">
           <input type="text" class="input-add" id="todoInput" placeholder="添加一条待办... (回车提交)" />
           <select class="select-priority" id="prioritySelect">
-            <option value="low">优先级: 低</option>
-            <option value="medium" selected>优先级: 中</option>
-            <option value="high">优先级: 高</option>
+            ${TODO_PRIORITIES.map(p => `<option value="${p.value}"${p.value === 'inq' ? ' selected' : ''}>${p.label}（${p.desc}）</option>`).join('')}
           </select>
           <div class="todo-modal-actions">
             <button class="btn-cancel" id="todoCancelBtn">取消</button>
@@ -5782,13 +5797,16 @@ function renderTodoList() {
 
   el.innerHTML = list.map(t => {
     const isEditing = editingId === t.id;
-    const prioClass = `priority-${t.priority || 'medium'}`;
+    const prioClass = `priority-${t.priority || 'inq'}`;
 
     if (isEditing) {
       return `
         <div class="todo-item" data-id="${t.id}">
           <div class="checkbox ${t.done ? '' : ''}"></div>
           <input type="text" class="todo-edit-input" id="editInput-${t.id}" value="${escapeHtml(t.title)}" />
+          <select class="select-priority todo-edit-priority" id="editPriority-${t.id}">
+            ${TODO_PRIORITIES.map(p => `<option value="${p.value}"${p.value === (t.priority || 'inq') ? ' selected' : ''}>${p.label}</option>`).join('')}
+          </select>
           <button class="action-btn" data-action="save-edit" data-id="${t.id}" title="保存">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
@@ -6267,7 +6285,7 @@ function bindTodoEvents() {
   function openTodoModal() {
     modal.classList.add('open');
     input.value = '';
-    prioritySelect.value = 'medium';
+    prioritySelect.value = 'inq';
     setTimeout(() => input.focus(), 50);
   }
   function closeTodoModal() {
@@ -6416,9 +6434,11 @@ function bindTodoEvents() {
       showToast('已删除');
     } else if (action === 'save-edit') {
       const editInput = document.getElementById(`editInput-${id}`);
+      const prioSel = document.getElementById(`editPriority-${id}`);
       const newTitle = editInput.value.trim();
       if (newTitle) {
         todo.title = newTitle;
+        if (prioSel) todo.priority = prioSel.value;
         saveTodos();
       }
       editingId = null;
@@ -6436,8 +6456,10 @@ function bindTodoEvents() {
       if (e.key === 'Enter') {
         const todo = todos.find(t => t.id === id);
         const newTitle = e.target.value.trim();
+        const prioSel = document.getElementById(`editPriority-${id}`);
         if (newTitle && todo) {
           todo.title = newTitle;
+          if (prioSel) todo.priority = prioSel.value;
           saveTodos();
         }
         editingId = null;
@@ -6497,7 +6519,7 @@ async function init() {
         id: uid(),
         title: '欢迎使用刘莫个人工作台,试试添加你的第一条待办',
         done: false,
-        priority: 'high',
+        priority: 'iq',
         order: 0,
         createdAt: Date.now() - 60000
       },
@@ -6505,7 +6527,7 @@ async function init() {
         id: uid(),
         title: '点击左侧复选框可以标记已完成',
         done: false,
-        priority: 'medium',
+        priority: 'inq',
         order: 1,
         createdAt: Date.now() - 120000
       },
@@ -6513,7 +6535,7 @@ async function init() {
         id: uid(),
         title: '双击标题或点编辑按钮可以修改内容',
         done: false,
-        priority: 'low',
+        priority: 'nuq',
         order: 2,
         createdAt: Date.now() - 180000
       },
@@ -6521,7 +6543,7 @@ async function init() {
         id: uid(),
         title: '这是一个已完成的示例待办',
         done: true,
-        priority: 'low',
+        priority: 'nuq',
         order: 3,
         createdAt: Date.now() - 86400000
       }
