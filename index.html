@@ -2739,7 +2739,7 @@
   .wt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .wt-note { margin: 0 0 14px; padding: 10px 14px; background: var(--bg-soft); border: 1px solid var(--border); border-left: 3px solid var(--primary-2); border-radius: var(--radius-sm); color: var(--text-soft); font-size: 12.5px; line-height: 1.65; }
   .wt-note b { color: var(--text); font-weight: 600; }
-  .wt-add-bar { align-items: flex-end; }
+  .wt-add-bar { align-items: flex-end; justify-content: flex-start; }
   .wt-field { display: flex; flex-direction: column; gap: 4px; }
   .wt-field label { font-size: 12px; color: var(--text-muted); }
   .wt-field input { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
@@ -2747,6 +2747,9 @@
   .wt-settings { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; background: var(--bg-soft); padding: 12px 14px; border-radius: var(--radius); }
   .wt-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
   .wt-chart-title { font-weight: 600; margin-bottom: 8px; }
+  .wt-charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .wt-chart-sub { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--bg); }
+  .wt-chart-subtitle { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
   .wt-empty { color: var(--text-muted); text-align: center; padding: 24px 12px; font-size: 13px; }
   .wt-list { display: flex; flex-direction: column; gap: 8px; }
   .wt-item { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; transition: box-shadow var(--transition); }
@@ -6666,8 +6669,8 @@ function renderSalaryModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">近一年趋势 · 总工资 & 营业额 & 人数 & 人效</div>
-      <div id="saChart"></div>
+      <div class="wt-chart-title">近一年半趋势 · 各指标单独曲线</div>
+      <div class="wt-charts-grid" id="saChart"></div>
     </div>
 
     <div class="wt-list" id="saList"></div>
@@ -6703,92 +6706,79 @@ function renderSalaryStats() {
   const avgSalLast12 = last12.map(avgSalOf).filter(v => v != null);
   const avgSalary12 = avgSalLast12.length ? Math.round(avgSalLast12.reduce((s, v) => s + v, 0) / avgSalLast12.length) : null;
   const cards = [];
-  cards.push(statCard('最近月份总工资', last ? last.total + ' 元' : '—', 'primary'));
-  cards.push(statCard('近一年总工资', sum12 > 0 ? sum12.toLocaleString() + ' 元' : '—', ''));
+  cards.push(statCard('上月人数', last ? last.head + ' 人' : '—', ''));
   cards.push(statCard('平均月人数', avgHead != null ? avgHead.toFixed(1) + ' 人' : '—', ''));
-  cards.push(statCard('最近月人效', perCap != null ? Math.round(perCap) + ' 元/人' : '—', avgHead != null && avgHead > 0 ? 'success' : ''));
+  cards.push(statCard('上月人效', perCap != null ? Math.round(perCap) + ' 元/人' : '—', 'success'));
   cards.push(statCard('近一年平均人效', avgEff != null ? avgEff + ' 元/人' : '—', ''));
-  cards.push(statCard('最近月平均工资', avgSal != null ? Math.round(avgSal) + ' 元/人' : '—', ''));
+  cards.push(statCard('上月平均工资', avgSal != null ? Math.round(avgSal) + ' 元/人' : '—', ''));
   cards.push(statCard('近一年平均工资', avgSalary12 != null ? avgSalary12 + ' 元/人' : '—', ''));
-  cards.push(statCard('记录月份', asc.length + ' 个月', ''));
   el.innerHTML = cards.join('');
 }
 
-function buildSalaryChartSVG(logs) {
-  const W = 640, H = 270, padL = 52, padR = 80, padT = 18, padB = 34;
-  const totals = logs.map(l => l.total || 0);
-  const revenues = logs.map(l => l.revenue || 0);
-  const heads = logs.map(l => l.head || 0);
-  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
-  const effs = logs.map(l => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null; });
-  // 左轴(金额)同时覆盖总工资与营业额
-  const moneys = totals.concat(revenues);
-  let tMin = Math.min.apply(null, moneys), tMax = Math.max.apply(null, moneys);
-  let hMin = Math.min.apply(null, heads), hMax = Math.max.apply(null, heads);
-  if (tMin === tMax) { tMin -= 1000; tMax += 1000; }
-  if (hMin === hMax) { hMin = Math.max(0, hMin - 1); hMax += 1; }
-  const eVals = effs.filter(v => v != null);
-  let eMin = eVals.length ? Math.min.apply(null, eVals) : 0;
-  let eMax = eVals.length ? Math.max.apply(null, eVals) : 1;
-  if (eMin === eMax) { eMin = Math.max(0, eMin - 100); eMax += 100; }
-  const tRange = tMax - tMin, hRange = hMax - hMin, eRange = eMax - eMin;
+function buildSalaryLineSVG(logs, getVal, color, unit) {
+  const W = 640, H = 210, padL = 54, padR = 14, padT = 12, padB = 28;
+  const all = logs.map(getVal).filter(v => v != null && isFinite(v));
+  if (all.length === 0) return `<div class="wt-empty" style="padding:18px 0;">暂无数据</div>`;
+  let vMin = Math.min.apply(null, all), vMax = Math.max.apply(null, all);
+  if (vMin === vMax) { const pad = Math.max(1, Math.abs(vMax) * 0.1 || 1); vMin -= pad; vMax += pad; }
+  const vRange = vMax - vMin;
   const n = logs.length;
   const xOf = i => padL + (n === 1 ? (W - padL - padR) / 2 : i * (W - padL - padR) / (n - 1));
-  const yT = v => H - padB - ((v - tMin) / tRange) * (H - padT - padB);
-  const yH = v => H - padB - ((v - hMin) / hRange) * (H - padT - padB);
-  const yE = v => H - padB - ((v - eMin) / eRange) * (H - padT - padB);
+  const yOf = v => H - padB - ((v - vMin) / vRange) * (H - padT - padB);
   let grid = '';
   for (let k = 0; k <= 3; k++) {
     const gy = padT + k * (H - padT - padB) / 3;
-    const val = tMax - (k / 3) * tRange;
+    const val = vMax - (k / 3) * vRange;
     grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="#eef0f3"/><text x="${padL - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#9ca3af">${Math.round(val)}</text>`;
   }
-  let rAxis = '';
-  for (let k = 0; k <= 3; k++) {
-    const gy = padT + k * (H - padT - padB) / 3;
-    const val = hMax - (k / 3) * hRange;
-    rAxis += `<text x="${W - padR + 8}" y="${(gy + 4).toFixed(1)}" text-anchor="start" font-size="10" fill="#f59e0b">${Math.round(val)}</text>`;
-  }
-  let eAxis = '';
-  for (let k = 0; k <= 3; k++) {
-    const gy = padT + k * (H - padT - padB) / 3;
-    const val = eMax - (k / 3) * eRange;
-    eAxis += `<text x="${W - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#10b981">${Math.round(val)}</text>`;
-  }
-  const ptsT = logs.map((l, i) => ({ x: xOf(i), y: yT(l.total || 0), l }));
-  const lineT = ptsT.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsT = ptsT.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#6366f1" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 总工资 ${p.l.total || 0}元</title></circle>`).join('');
-  const ptsR = logs.map((l, i) => ({ x: xOf(i), y: yT(l.revenue || 0), l }));
-  const lineR = ptsR.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsR = ptsR.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#14b8a6" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 营业额 ${p.l.revenue || 0}元</title></circle>`).join('');
-  const ptsH = logs.map((l, i) => ({ x: xOf(i), y: yH(l.head || 0), l }));
-  const lineH = ptsH.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsH = ptsH.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#f59e0b" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人数 ${p.l.head || 0}人</title></circle>`).join('');
-  const ptsE = logs.map((l, i) => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return { x: xOf(i), l, v: (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null }; });
-  const lineE = ptsE.filter(p => p.v != null).map(p => `${p.x.toFixed(1)},${yE(p.v).toFixed(1)}`).join(' ');
-  const dotsE = ptsE.filter(p => p.v != null).map(p => `<circle cx="${p.x.toFixed(1)}" cy="${yE(p.v).toFixed(1)}" r="3.5" fill="#10b981" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人效 ${Math.round(p.v)}元/人</title></circle>`).join('');
+  let line = '', dots = '', prev = false;
+  logs.forEach((l, i) => {
+    const v = getVal(l);
+    if (v == null || !isFinite(v)) { prev = false; return; }
+    const x = xOf(i), y = yOf(v);
+    line += (prev ? ' ' : '') + x.toFixed(1) + ',' + y.toFixed(1);
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHtml(l.date)} ${Math.round(v)}${unit}</title></circle>`;
+    prev = true;
+  });
   let xlab = '';
   const step = Math.max(1, Math.ceil(n / 6));
   logs.forEach((l, i) => {
     if (i % step === 0 || i === n - 1) {
       const x = xOf(i);
-      xlab += `<text x="${x.toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#9ca3af">${escapeHtml(l.date.slice(5))}</text>`;
+      xlab += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#9ca3af">${escapeHtml(l.date.slice(5))}</text>`;
     }
   });
-  const legend = `<g font-size="11"><rect x="${padL}" y="0" width="10" height="10" rx="2" fill="#6366f1"/><text x="${padL + 14}" y="9" fill="#6b7280">总工资(元)</text><rect x="${padL + 118}" y="0" width="10" height="10" rx="2" fill="#14b8a6"/><text x="${padL + 132}" y="9" fill="#6b7280">营业额(元)</text><rect x="${padL + 236}" y="0" width="10" height="10" rx="2" fill="#f59e0b"/><text x="${padL + 250}" y="9" fill="#6b7280">人数(人)</text><rect x="${padL + 358}" y="0" width="10" height="10" rx="2" fill="#10b981"/><text x="${padL + 372}" y="9" fill="#6b7280">人效(元/人)</text></g>`;
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${rAxis}${eAxis}${legend}<polyline points="${lineT}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round"/>${dotsT}<polyline points="${lineR}" fill="none" stroke="#14b8a6" stroke-width="2.5" stroke-linejoin="round"/>${dotsR}<polyline points="${lineH}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>${dotsH}<polyline points="${lineE}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>${dotsE}${xlab}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}</svg>`;
 }
 
 function renderSalaryChart() {
   const el = document.getElementById('saChart');
   if (!el) return;
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const start = new Date(now.getFullYear(), now.getMonth() - 17, 1); // 近1年半 = 18个月
   const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
   const logs = salaryAsc().filter(l => l.date >= cutoffStr);
-  el.innerHTML = logs.length === 0
-    ? `<div class="wt-empty">还没有工资记录,先在上方记录月份工资吧</div>`
-    : buildSalaryChartSVG(logs);
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有工资记录,先在上方记录月份工资吧</div>`;
+    return;
+  }
+  const daysOf = l => { const p = (l.date || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; };
+  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
+  const effOf = l => { const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
+  // 平均工资 = 总工资 ÷（人数 − 2）（不含管理人员）
+  const avgSalOf = l => (l.head > 2 ? l.total / (l.head - 2) : null);
+  const charts = [
+    { title: '营业额 (元)', color: '#14b8a6', unit: '元', get: l => l.revenue || 0 },
+    { title: '总工资 (元)', color: '#6366f1', unit: '元', get: l => l.total || 0 },
+    { title: '人数 (人)', color: '#f59e0b', unit: '人', get: l => l.head || 0 },
+    { title: '人效 (元/人·天)', color: '#10b981', unit: '元/人', get: effOf },
+    { title: '平均工资 (元/人)', color: '#ec4899', unit: '元/人', get: avgSalOf },
+  ];
+  el.innerHTML = charts.map(c => `
+    <div class="wt-chart-sub">
+      <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
+      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit)}
+    </div>`).join('');
 }
 
 function renderSalaryList() {
@@ -6807,8 +6797,7 @@ function renderSalaryList() {
     return `
       <div class="wt-item" data-id="${l.id}">
         <div class="wt-item-date">${escapeHtml(l.date)}</div>
-        <div class="wt-item-weight">${l.total}<span class="wt-unit">元</span></div>
-        <div class="wt-item-delta">营业额 ${(l.revenue || 0)}元 · 人数 ${l.head}人${eff != null ? ' · 人效' + eff + '元/人' : ''}${avgSal != null ? ' · 平均工资' + avgSal + '元/人' : ''}</div>
+        <div class="wt-item-delta">营业额 ${(l.revenue || 0)}元 · 总工资 ${l.total}元 · 人数 ${l.head}人${eff != null ? ' · 人效' + eff + '元/人' : ''}${avgSal != null ? ' · 平均工资' + avgSal + '元/人' : ''}</div>
         <button class="action-btn edit" data-action="sa-edit" data-id="${l.id}" title="修改">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </button>
