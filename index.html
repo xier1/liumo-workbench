@@ -6669,7 +6669,7 @@ function renderSalaryModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">近一年半趋势 · 各指标单独曲线</div>
+      <div class="wt-chart-title">近两年趋势 · 各指标单独曲线</div>
       <div class="wt-charts-grid" id="saChart"></div>
     </div>
 
@@ -6755,7 +6755,7 @@ function renderSalaryChart() {
   const el = document.getElementById('saChart');
   if (!el) return;
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 17, 1); // 近1年半 = 18个月
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24个月
   const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
   const logs = salaryAsc().filter(l => l.date >= cutoffStr);
   if (logs.length === 0) {
