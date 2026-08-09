@@ -6636,7 +6636,7 @@ function renderSalaryModule(content, mod) {
 
     <div class="wt-note">
       说明：<b>人数</b>为当月全部在岗人数（<b>包含管理人员</b>）；
-      <b>人效</b> = 营业额 ÷ 人数（含管理人员）；
+      <b>人效</b> = 营业额 ÷ 当月天数 ÷（人数 − 2），即扣除 2 名管理人员后，按当月自然天数折算的人均营业额；
       <b>平均工资</b> = 总工资 ÷（人数 − 2），即扣除 2 名管理人员后的普通员工人均工资。
     </div>
 
@@ -6656,7 +6656,7 @@ function renderSalaryModule(content, mod) {
         <input type="number" step="0.01" min="0" class="sa-revenue" id="salaryRevenue" placeholder="如 120000" />
       </div>
       <div class="wt-field">
-        <label>人数 (人)</label>
+        <label>人数（含管理） (人)</label>
         <input type="number" step="1" min="0" class="sa-head" id="salaryHead" placeholder="如 8" />
       </div>
       <button class="btn-add" id="salaryAddBtn">
@@ -6691,8 +6691,9 @@ function renderSalaryStats() {
   const last12 = asc.filter(l => l.date >= cutoffStr);
   const sum12 = last12.reduce((s, l) => s + (l.total || 0), 0);
   const avgHead = last12.length ? (last12.reduce((s, l) => s + (l.head || 0), 0) / last12.length) : null;
-  // 人效 = 营业额 ÷ 人数（含管理人员）
-  const effOf = l => (l.head > 0 ? (l.revenue || 0) / l.head : null);
+  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
+  const daysOf = l => { const p = (l.date || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; };
+  const effOf = l => { const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
   // 平均工资 = 总工资 ÷（人数 − 2）（不含管理人员）
   const avgSalOf = l => (l.head > 2 ? l.total / (l.head - 2) : null);
   const perCap = effOf(last);
@@ -6718,8 +6719,8 @@ function buildSalaryChartSVG(logs) {
   const totals = logs.map(l => l.total || 0);
   const revenues = logs.map(l => l.revenue || 0);
   const heads = logs.map(l => l.head || 0);
-  // 人效 = 营业额 ÷ 人数（含管理人员）
-  const effs = logs.map(l => (l.head > 0 ? (l.revenue || 0) / l.head : null));
+  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
+  const effs = logs.map(l => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null; });
   // 左轴(金额)同时覆盖总工资与营业额
   const moneys = totals.concat(revenues);
   let tMin = Math.min.apply(null, moneys), tMax = Math.max.apply(null, moneys);
@@ -6763,7 +6764,7 @@ function buildSalaryChartSVG(logs) {
   const ptsH = logs.map((l, i) => ({ x: xOf(i), y: yH(l.head || 0), l }));
   const lineH = ptsH.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const dotsH = ptsH.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#f59e0b" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人数 ${p.l.head || 0}人</title></circle>`).join('');
-  const ptsE = logs.map((l, i) => ({ x: xOf(i), l, v: (l.head > 0 ? (l.revenue || 0) / l.head : null) }));
+  const ptsE = logs.map((l, i) => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return { x: xOf(i), l, v: (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null }; });
   const lineE = ptsE.filter(p => p.v != null).map(p => `${p.x.toFixed(1)},${yE(p.v).toFixed(1)}`).join(' ');
   const dotsE = ptsE.filter(p => p.v != null).map(p => `<circle cx="${p.x.toFixed(1)}" cy="${yE(p.v).toFixed(1)}" r="3.5" fill="#10b981" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人效 ${Math.round(p.v)}元/人</title></circle>`).join('');
   let xlab = '';
@@ -6799,7 +6800,9 @@ function renderSalaryList() {
     return;
   }
   el.innerHTML = logs.map(l => {
-    const eff = l.head > 0 ? Math.round((l.revenue || 0) / l.head) : null;
+    const d = (l.date || '').split('-').map(Number);
+    const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null;
+    const eff = (days && l.head > 2) ? Math.round((l.revenue || 0) / days / (l.head - 2)) : null;
     const avgSal = l.head > 2 ? Math.round(l.total / (l.head - 2)) : null;
     return `
       <div class="wt-item" data-id="${l.id}">
