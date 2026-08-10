@@ -2764,6 +2764,8 @@
   .wt-settle.on { background: #10b981; border-color: #10b981; color: #fff; }
   .wt-settle:disabled { opacity: .4; cursor: not-allowed; }
   .wt-settle + .wt-settle { margin-left: 6px; }
+  .sc-amt.settled { color: #10b981; font-weight: 600; }
+  .sc-amt.unsettled { color: #ef4444; font-weight: 600; }
   .wt-cat .sc-sub td { background: var(--bg-soft); color: var(--text-muted); font-size: 12px; }
   .wt-cat .sc-sub td:first-child { padding-left: 24px; }
   .sc-split { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
@@ -7373,26 +7375,22 @@ function renderScrapMonth() {
     const p = scrapMonthSettledParts(m);
     const settleOn = !p.isSettled;   // 未结算→"结算"可点
     const unsettleOn = p.isSettled;  // 已结算→"取消结算"可点
-    const row1 = `<tr>
+    const settledTxt = p.settledTotal > 0 ? money(p.settledTotal) : (p.isSettled ? '0' : '—');
+    const unsettledTxt = p.unsettledTotal > 0 ? money(p.unsettledTotal) : '—';
+    return `<tr>
       <td>${m}</td>
       <td>${p.settledCount + p.unsettledCount}</td>
-      <td>${money(p.settledTotal + p.unsettledTotal)}</td>
+      <td class="sc-amt settled">${settledTxt}</td>
+      <td class="sc-amt unsettled">${unsettledTxt}</td>
       <td class="sc-actions">
         <button class="wt-settle ${settleOn ? 'on' : ''}" data-action="sc-settle" data-month="${m}" ${settleOn ? '' : 'disabled'}>结算</button>
         <button class="wt-settle ${unsettleOn ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${unsettleOn ? '' : 'disabled'}>取消结算</button>
       </td>
     </tr>`;
-    const row2 = (p.isSettled && p.unsettledCount > 0) ? `<tr class="sc-sub">
-      <td>↳ 未结算</td>
-      <td>${p.unsettledCount}</td>
-      <td>${money(p.unsettledTotal)}</td>
-      <td></td>
-    </tr>` : '';
-    return row1 + row2;
   }).join('');
   el.innerHTML = `
     <table class="wt-cat">
-      <thead><tr><th>月份</th><th>笔数</th><th>金额</th><th>结算</th></tr></thead>
+      <thead><tr><th>月份</th><th>笔数</th><th>已结算</th><th>未结算</th><th>操作</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
