@@ -2766,6 +2766,8 @@
   .wt-settle + .wt-settle { margin-left: 6px; }
   .sc-amt.settled { color: #10b981; font-weight: 600; }
   .sc-amt.unsettled { color: #ef4444; font-weight: 600; }
+  .sc-settle-date { font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-right: 6px; }
+  .sc-settle-date-col { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
   .wt-cat .sc-sub td { background: var(--bg-soft); color: var(--text-muted); font-size: 12px; }
   .wt-cat .sc-sub td:first-child { padding-left: 24px; }
   .sc-split { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
@@ -2986,7 +2988,8 @@ let costLogs = [];     // { id, date:'YYYY-MM', category:String, cost:Number, sa
 
 // ---------- 废品记录状态 ----------
 let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
-let scrapSettled = {};         // { 'YYYY-MM': { total, count } 结算时当月总额与笔数快照 } 有该 key 即表示已结算
+let scrapSettled = {};         // { 'YYYY-MM': { date:'YYYY-MM-DD' 结算截止日 } 有该 key 即表示已结算(截止日及之前的当月记录算已结算)
+let scrapSettleMonth = null;   // 当前正在选择结算截止日的月份(null 表示无)
 let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
 
 // 待办优先级 = 时间管理四象限
@@ -7229,6 +7232,11 @@ function loadScrap() {
     scrapSettled = d ? JSON.parse(d) : {};
     if (typeof scrapSettled !== 'object' || !scrapSettled) scrapSettled = {};
   } catch (e) { scrapSettled = {}; }
+  // 兼容旧版“整月快照”格式: 没有 date 字段的视为结算到月末(保持已结算状态)
+  Object.keys(scrapSettled).forEach(m => {
+    const raw = scrapSettled[m];
+    if (raw && typeof raw === 'object' && !raw.date) raw.date = scrapMonthEndStr(m);
+  });
   scrapLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 }
 function saveScrapLogs() { localStorage.setItem(SCRAP_LOGS_KEY, JSON.stringify(scrapLogs)); }
@@ -7301,28 +7309,33 @@ function scrapMonthMap() {
   });
   return map;
 }
-// 某月在结算口径下的拆分: 以结算时快照(总额/笔数)为准, 之后新增的计入未结算
+// 月份最后一天, 如 '2026-02' -> '2026-02-28'
+function scrapMonthEndStr(m) {
+  const [y, mo] = m.split('-').map(Number);
+  const last = new Date(y, mo, 0).getDate();
+  return m + '-' + ('0' + last).slice(-2);
+}
+// 结算截止日默认: 当月=今天; 过去月=月末(整月结清); 未来月=月初
+function scrapSettleDefaultDate(m) {
+  const now = new Date();
+  const cur = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+  if (m === cur) return todayStr();
+  if (m < cur) return scrapMonthEndStr(m);
+  return m + '-01';
+}
+// 某月在结算口径下的拆分: 以结算截止日(date)为准, 截止日及之前的记录算已结算, 之后的留未结算
 function scrapMonthSettledParts(m) {
   const recs = scrapLogs.filter(l => monthOf(l.date) === m);
   let total = 0, count = 0;
   recs.forEach(l => { total += (l.amount || 0); count++; });
   const raw = scrapSettled[m];
-  if (raw == null) {
-    return { isSettled: false, settledTotal: 0, settledCount: 0, unsettledTotal: total, unsettledCount: count };
+  if (!raw || !raw.date) {
+    return { isSettled: false, settleDate: '', settledTotal: 0, settledCount: 0, unsettledTotal: total, unsettledCount: count };
   }
-  // 快照: 新格式为 { total, count }; 旧格式(number/true/日期字符串)视为全额已结算
-  let snapTotal, snapCount;
-  if (raw && typeof raw === 'object') { snapTotal = raw.total || 0; snapCount = raw.count || 0; }
-  else { snapTotal = total; snapCount = count; }
-  const settledTotal = Math.min(total, snapTotal);
-  const settledCount = Math.min(count, snapCount);
-  return {
-    isSettled: true,
-    settledTotal,
-    settledCount,
-    unsettledTotal: total - settledTotal,
-    unsettledCount: count - settledCount
-  };
+  const cutoff = raw.date;
+  let st = 0, sc = 0;
+  recs.forEach(l => { if (l.date <= cutoff) { st += (l.amount || 0); sc++; } });
+  return { isSettled: true, settleDate: cutoff, settledTotal: st, settledCount: sc, unsettledTotal: total - st, unsettledCount: count - sc };
 }
 
 function renderScrapStats() {
@@ -7373,24 +7386,40 @@ function renderScrapMonth() {
   const money = v => Math.round(v).toLocaleString();
   const rows = months.map(m => {
     const p = scrapMonthSettledParts(m);
-    const settleOn = !p.isSettled;   // 未结算→"结算"可点
-    const unsettleOn = p.isSettled;  // 已结算→"取消结算"可点
     const settledTxt = p.settledTotal > 0 ? money(p.settledTotal) : (p.isSettled ? '0' : '—');
     const unsettledTxt = p.unsettledTotal > 0 ? money(p.unsettledTotal) : '—';
+    const editing = scrapSettleMonth === m;
+    if (editing) {
+      const def = scrapSettleDefaultDate(m);
+      const min = m + '-01', max = scrapMonthEndStr(m);
+      return `<tr>
+        <td>${m}</td>
+        <td>${p.settledCount + p.unsettledCount}</td>
+        <td class="sc-amt settled">${settledTxt}</td>
+        <td class="sc-amt unsettled">${unsettledTxt}</td>
+        <td class="sc-actions" colspan="2">
+          <input type="date" class="sc-settle-date" data-month="${m}" value="${def}" min="${min}" max="${max}">
+          <button class="wt-settle on" data-action="sc-settle-confirm" data-month="${m}">确认</button>
+          <button class="wt-settle" data-action="sc-settle-cancel" data-month="${m}">取消</button>
+        </td>
+      </tr>`;
+    }
+    const settleDateTxt = p.isSettled ? p.settleDate : '—';
     return `<tr>
       <td>${m}</td>
       <td>${p.settledCount + p.unsettledCount}</td>
       <td class="sc-amt settled">${settledTxt}</td>
       <td class="sc-amt unsettled">${unsettledTxt}</td>
+      <td class="sc-settle-date-col">${settleDateTxt}</td>
       <td class="sc-actions">
-        <button class="wt-settle ${settleOn ? 'on' : ''}" data-action="sc-settle" data-month="${m}" ${settleOn ? '' : 'disabled'}>结算</button>
-        <button class="wt-settle ${unsettleOn ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${unsettleOn ? '' : 'disabled'}>取消结算</button>
+        <button class="wt-settle ${p.isSettled ? '' : 'on'}" data-action="sc-settle" data-month="${m}">结算</button>
+        <button class="wt-settle ${p.isSettled ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${p.isSettled ? '' : 'disabled'}>取消结算</button>
       </td>
     </tr>`;
   }).join('');
   el.innerHTML = `
     <table class="wt-cat">
-      <thead><tr><th>月份</th><th>笔数</th><th>已结算</th><th>未结算</th><th>操作</th></tr></thead>
+      <thead><tr><th>月份</th><th>笔数</th><th>已结算</th><th>未结算</th><th>结算日</th><th>操作</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -7496,22 +7525,40 @@ function bindScrapEvents() {
 
   if (monthEl) {
     monthEl.addEventListener('click', e => {
-      // 结算: 把当月全部结算掉(结算时快照总额与笔数)
+      // 开始结算: 进入该月截止日选择(结算始终可点, 用于设置/修改截止日)
       const settleBtn = e.target.closest('[data-action="sc-settle"]');
       if (settleBtn && !settleBtn.disabled) {
-        const m = settleBtn.dataset.month;
-        const mm = scrapMonthMap();
-        scrapSettled[m] = { total: mm[m] ? mm[m].total : 0, count: mm[m] ? mm[m].count : 0 };
-        saveScrapSettled();
-        refreshAll();
-        showToast('已结算 ' + m + ' 全部');
+        scrapSettleMonth = settleBtn.dataset.month;
+        renderScrapMonth();
         return;
       }
-      // 取消结算: 取消当月结算
+      // 取消选择截止日
+      const cancelBtn = e.target.closest('[data-action="sc-settle-cancel"]');
+      if (cancelBtn) {
+        scrapSettleMonth = null;
+        renderScrapMonth();
+        return;
+      }
+      // 确认结算: 以所选截止日结算(截止日及之前的当月记录算已结算)
+      const confirmBtn = e.target.closest('[data-action="sc-settle-confirm"]');
+      if (confirmBtn && !confirmBtn.disabled) {
+        const m = confirmBtn.dataset.month;
+        const input = monthEl.querySelector('.sc-settle-date[data-month="' + m + '"]');
+        const d = input ? input.value : '';
+        if (!d || !d.startsWith(m)) { showToast('结算日期需在 ' + m + ' 当月内'); return; }
+        scrapSettled[m] = { date: d };
+        scrapSettleMonth = null;
+        saveScrapSettled();
+        refreshAll();
+        showToast('已结算 ' + m + ' 截止 ' + d);
+        return;
+      }
+      // 取消结算: 清除该月结算状态
       const unsettleBtn = e.target.closest('[data-action="sc-unsettle"]');
       if (unsettleBtn && !unsettleBtn.disabled) {
         const m = unsettleBtn.dataset.month;
         delete scrapSettled[m];
+        scrapSettleMonth = null;
         saveScrapSettled();
         refreshAll();
         showToast('已取消结算 ' + m);
