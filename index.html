@@ -2762,6 +2762,8 @@
   .wt-settle { border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 999px; padding: 3px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
   .wt-settle:hover { border-color: var(--text-muted); }
   .wt-settle.on { background: #10b981; border-color: #10b981; color: #fff; }
+  .sc-split { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
+  .sc-split .u { color: #ef4444; }
   .wt-list { display: flex; flex-direction: column; gap: 8px; }
   .wt-item { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; transition: box-shadow var(--transition); }
   .wt-item:hover { box-shadow: var(--shadow-sm); }
@@ -2977,8 +2979,9 @@ let salaryLogs = [];   // { id, date:'YYYY-MM', total:Number, head:Number, creat
 let costLogs = [];     // { id, date:'YYYY-MM', category:String, cost:Number, sale:Number, loss:Number, createdAt, updatedAt }
 
 // ---------- 废品记录状态 ----------
-let scrapLogs = [];    // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
-let scrapSettled = {}; // { 'YYYY-MM': true } 标记某月是否已结算
+let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
+let scrapSettled = {};         // { 'YYYY-MM': <结算时当月总额快照Number> } 标记某月是否已结算
+let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
 
 // 待办优先级 = 时间管理四象限
 const TODO_PRIORITIES = [
@@ -7242,7 +7245,7 @@ function renderScrapModule(content, mod) {
 
     <div class="wt-note">
       说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。每条记录可<b>修改 / 删除</b>；
-      在下方「按月统计」中可<b>标记某月是否已结算</b>。
+      在下方「按月统计」中可<b>标记某月是否已结算</b>。结算后若当月再产生新记录，新记录将自动计入「未结算」。
     </div>
 
     <div class="wt-stats" id="scStats"></div>
@@ -7262,22 +7265,42 @@ function renderScrapModule(content, mod) {
       </div>
       <button class="btn-add" id="scrapAddBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        记录废品
+        <span class="sc-add-label">记录废品</span>
       </button>
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">按月统计（点击「结算」标记当月是否已结算）</div>
+      <div class="wt-chart-title">按月统计（点击「结算」仅标记<b>当月</b>是否已结算；结算后当月新增记录计入未结算）</div>
       <div id="scMonth"></div>
     </div>
 
     <div class="wt-list" id="scList"></div>
   `;
 
+  scrapEditingId = null;
   bindScrapEvents();
   renderScrapStats();
   renderScrapMonth();
   renderScrapList();
+}
+
+// 各月汇总: { 'YYYY-MM': { count, total } }
+function scrapMonthMap() {
+  const map = {};
+  scrapAsc().forEach(l => {
+    const m = monthOf(l.date);
+    if (!map[m]) map[m] = { count: 0, total: 0 };
+    map[m].count++;
+    map[m].total += (l.amount || 0);
+  });
+  return map;
+}
+// 某月结算快照值（结算时写入当月总额；旧数据 true 视为全额结算）
+function scrapSettledSnap(m, map) {
+  const v = scrapSettled[m];
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  return map[m] ? map[m].total : 0;
 }
 
 function renderScrapStats() {
@@ -7292,37 +7315,36 @@ function renderScrapStats() {
   const curRecs = all.filter(l => monthOf(l.date) === curMonth);
   const curSum = curRecs.reduce((s, l) => s + (l.amount || 0), 0);
   const sum12 = last12.reduce((s, l) => s + (l.amount || 0), 0);
-  // 未结算月份（近一年内有记录但未标记结算）
-  const monthTotals = {};
-  last12.forEach(l => {
-    const m = monthOf(l.date);
-    monthTotals[m] = (monthTotals[m] || 0) + (l.amount || 0);
+
+  // 已结算 / 未结算分离（结算后新增记录算未结算）
+  const map = scrapMonthMap();
+  let settledSum = 0, unsettledSum = 0, unsettledMonths = 0;
+  Object.keys(map).forEach(m => {
+    const total = map[m].total;
+    const snap = scrapSettledSnap(m, map);
+    const settledPart = Math.min(total, snap);
+    const unsettledPart = total - settledPart;
+    settledSum += settledPart;
+    unsettledSum += unsettledPart;
+    if (unsettledPart > 0) unsettledMonths++;
   });
-  let unsettledMonths = 0, unsettledSum = 0;
-  Object.keys(monthTotals).forEach(m => {
-    if (!scrapSettled[m]) { unsettledMonths++; unsettledSum += monthTotals[m]; }
-  });
+
   const money = v => Math.round(v).toLocaleString() + ' 元';
   const cards = [];
   cards.push(statCard('本月金额', money(curSum), 'success'));
   cards.push(statCard('本月笔数', curRecs.length + ' 笔', ''));
   cards.push(statCard('近一年总金额', money(sum12), 'success'));
   cards.push(statCard('近一年笔数', last12.length + ' 笔', ''));
+  cards.push(statCard('已结算金额', money(settledSum), 'success'));
+  cards.push(statCard('未结算金额', money(unsettledSum), unsettledSum > 0 ? 'warning' : 'success'));
   cards.push(statCard('未结算月份', unsettledMonths + ' 个月', unsettledMonths > 0 ? 'warning' : 'success'));
-  cards.push(statCard('未结算金额', money(unsettledSum), unsettledMonths > 0 ? 'warning' : 'success'));
   el.innerHTML = cards.join('');
 }
 
 function renderScrapMonth() {
   const el = document.getElementById('scMonth');
   if (!el) return;
-  const map = {};
-  scrapAsc().forEach(l => {
-    const m = monthOf(l.date);
-    if (!map[m]) map[m] = { count: 0, total: 0 };
-    map[m].count++;
-    map[m].total += (l.amount || 0);
-  });
+  const map = scrapMonthMap();
   const months = Object.keys(map).sort((a, b) => b.localeCompare(a));
   if (months.length === 0) {
     el.innerHTML = `<div class="wt-empty">还没有废品记录,先在上方登记一笔吧</div>`;
@@ -7334,11 +7356,18 @@ function renderScrapMonth() {
       <thead><tr><th>月份</th><th>笔数</th><th>金额</th><th>结算</th></tr></thead>
       <tbody>
         ${months.map(m => {
-          const settled = !!scrapSettled[m];
+          const total = map[m].total;
+          const snap = scrapSettledSnap(m, map);
+          const settledPart = Math.min(total, snap);
+          const unsettledPart = total - settledPart;
+          const settled = snap > 0;
+          const splitTxt = (unsettledPart > 0)
+            ? `<div class="sc-split">已结算 ${money(settledPart)} · <span class="u">未结算 ${money(unsettledPart)}</span></div>`
+            : '';
           return `<tr>
             <td>${m}</td>
             <td>${map[m].count}</td>
-            <td>${money(map[m].total)}</td>
+            <td>${money(total)}${splitTxt}</td>
             <td><button class="wt-settle ${settled ? 'on' : ''}" data-action="sc-settle" data-month="${m}">${settled ? '已结算' : '未结算'}</button></td>
           </tr>`;
         }).join('')}
@@ -7378,24 +7407,41 @@ function bindScrapEvents() {
   const list = document.getElementById('scList');
   const monthEl = document.getElementById('scMonth');
 
+  const ADD_LABEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="sc-add-label">记录废品</span>';
+  const EDIT_LABEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="sc-add-label">更新记录</span>';
+
+  function refreshAll() {
+    renderScrapStats();
+    renderScrapMonth();
+    renderScrapList();
+  }
+
   function addLog() {
     const date = dateEl.value || todayStr();
     const amount = parseFloat(amountEl.value);
     const note = (noteEl.value || '').trim();
     if (isNaN(amount) || amount < 0) { showToast('请输入有效金额'); amountEl.focus(); return; }
-    const exist = scrapLogs.find(l => l.date === date && (l.amount === amount) && ((l.note || '') === note));
-    if (exist) {
-      showToast('该日期已存在相同记录');
-      return;
+    // 去重时排除正在编辑的记录本身
+    const dup = scrapLogs.find(l => l.id !== scrapEditingId && l.date === date && l.amount === amount && ((l.note || '') === note));
+    if (dup) { showToast('该日期已存在相同记录'); return; }
+
+    if (scrapEditingId) {
+      const rec = scrapLogs.find(l => l.id === scrapEditingId);
+      if (rec) {
+        rec.date = date; rec.amount = amount; rec.note = note; rec.updatedAt = Date.now();
+        saveScrapLogs();
+        showToast('已更新该记录');
+      }
+      scrapEditingId = null;
+      addBtn.innerHTML = ADD_LABEL;
+    } else {
+      scrapLogs.push({ id: uid(), date, amount, note, createdAt: Date.now(), updatedAt: Date.now() });
+      saveScrapLogs();
+      showToast('已记录废品');
     }
-    scrapLogs.push({ id: uid(), date, amount, note, createdAt: Date.now(), updatedAt: Date.now() });
     scrapLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    saveScrapLogs();
     amountEl.value = ''; noteEl.value = '';
-    renderScrapStats();
-    renderScrapMonth();
-    renderScrapList();
-    showToast('已记录废品');
+    refreshAll();
   }
 
   addBtn.addEventListener('click', addLog);
@@ -7409,21 +7455,20 @@ function bindScrapEvents() {
         const id = delBtn.dataset.id;
         scrapLogs = scrapLogs.filter(l => l.id !== id);
         saveScrapLogs();
-        renderScrapStats();
-        renderScrapMonth();
-        renderScrapList();
+        refreshAll();
         showToast('已删除该记录');
         return;
       }
       if (editBtn) {
         const rec = scrapLogs.find(l => l.id === editBtn.dataset.id);
         if (rec) {
+          scrapEditingId = rec.id;
           dateEl.value = rec.date;
           amountEl.value = rec.amount;
           noteEl.value = rec.note || '';
+          addBtn.innerHTML = EDIT_LABEL;
           amountEl.focus();
-          renderScrapList();
-          showToast('已载入该记录,修改后点「记录废品」即可更新');
+          showToast('已载入该记录,修改后点「更新记录」即可');
         }
       }
     });
@@ -7434,11 +7479,14 @@ function bindScrapEvents() {
       const btn = e.target.closest('[data-action="sc-settle"]');
       if (!btn) return;
       const m = btn.dataset.month;
-      if (scrapSettled[m]) delete scrapSettled[m];
-      else scrapSettled[m] = true;
+      if (scrapSettled[m] != null) {
+        delete scrapSettled[m];                       // 取消结算:仅影响此月
+      } else {
+        const map = scrapMonthMap();                  // 结算:快照当月总额,仅标记此月
+        scrapSettled[m] = map[m] ? map[m].total : 0;
+      }
       saveScrapSettled();
-      renderScrapStats();
-      renderScrapMonth();
+      refreshAll();
     });
   }
 }
