@@ -2762,6 +2762,10 @@
   .wt-settle { border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 999px; padding: 3px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
   .wt-settle:hover { border-color: var(--text-muted); }
   .wt-settle.on { background: #10b981; border-color: #10b981; color: #fff; }
+  .wt-settle:disabled { opacity: .4; cursor: not-allowed; }
+  .wt-settle + .wt-settle { margin-left: 6px; }
+  .wt-cat .sc-sub td { background: var(--bg-soft); color: var(--text-muted); font-size: 12px; }
+  .wt-cat .sc-sub td:first-child { padding-left: 24px; }
   .sc-split { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
   .sc-split .u { color: #ef4444; }
   .wt-list { display: flex; flex-direction: column; gap: 8px; }
@@ -2980,7 +2984,7 @@ let costLogs = [];     // { id, date:'YYYY-MM', category:String, cost:Number, sa
 
 // ---------- 废品记录状态 ----------
 let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
-let scrapSettled = {};         // { 'YYYY-MM': <结算时当月总额快照Number> } 标记某月是否已结算
+let scrapSettled = {};         // { 'YYYY-MM': { total, count } 结算时当月总额与笔数快照 } 有该 key 即表示已结算
 let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
 
 // 待办优先级 = 时间管理四象限
@@ -7245,7 +7249,7 @@ function renderScrapModule(content, mod) {
 
     <div class="wt-note">
       说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。每条记录可<b>修改 / 删除</b>；
-      在下方「按月统计」中可<b>标记某月是否已结算</b>。结算后若当月再产生新记录，新记录将自动计入「未结算」。
+      在下方「按月统计」中，点「结算」把<b>当月全部</b>结算掉，点「取消结算」取消当月结算。结算后当月再新增的记录会自动计入「未结算」并单独显示。
     </div>
 
     <div class="wt-stats" id="scStats"></div>
@@ -7270,7 +7274,7 @@ function renderScrapModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">按月统计（点击「结算」仅标记<b>当月</b>是否已结算；结算后当月新增记录计入未结算）</div>
+      <div class="wt-chart-title">按月统计（每行可「结算」当月全部 / 「取消结算」；结算后新增记录显示为「未结算」）</div>
       <div id="scMonth"></div>
     </div>
 
@@ -7295,12 +7299,28 @@ function scrapMonthMap() {
   });
   return map;
 }
-// 某月结算快照值（结算时写入当月总额；旧数据 true 视为全额结算）
-function scrapSettledSnap(m, map) {
-  const v = scrapSettled[m];
-  if (v == null) return 0;
-  if (typeof v === 'number') return v;
-  return map[m] ? map[m].total : 0;
+// 某月在结算口径下的拆分: 以结算时快照(总额/笔数)为准, 之后新增的计入未结算
+function scrapMonthSettledParts(m) {
+  const recs = scrapLogs.filter(l => monthOf(l.date) === m);
+  let total = 0, count = 0;
+  recs.forEach(l => { total += (l.amount || 0); count++; });
+  const raw = scrapSettled[m];
+  if (raw == null) {
+    return { isSettled: false, settledTotal: 0, settledCount: 0, unsettledTotal: total, unsettledCount: count };
+  }
+  // 快照: 新格式为 { total, count }; 旧格式(number/true/日期字符串)视为全额已结算
+  let snapTotal, snapCount;
+  if (raw && typeof raw === 'object') { snapTotal = raw.total || 0; snapCount = raw.count || 0; }
+  else { snapTotal = total; snapCount = count; }
+  const settledTotal = Math.min(total, snapTotal);
+  const settledCount = Math.min(count, snapCount);
+  return {
+    isSettled: true,
+    settledTotal,
+    settledCount,
+    unsettledTotal: total - settledTotal,
+    unsettledCount: count - settledCount
+  };
 }
 
 function renderScrapStats() {
@@ -7316,17 +7336,15 @@ function renderScrapStats() {
   const curSum = curRecs.reduce((s, l) => s + (l.amount || 0), 0);
   const sum12 = last12.reduce((s, l) => s + (l.amount || 0), 0);
 
-  // 已结算 / 未结算分离（结算后新增记录算未结算）
-  const map = scrapMonthMap();
+  // 已结算 / 未结算分离（按结算日期口径,结算后新增更晚记录算未结算）
+  const monthSet = {};
+  last12.forEach(l => { monthSet[monthOf(l.date)] = true; });
   let settledSum = 0, unsettledSum = 0, unsettledMonths = 0;
-  Object.keys(map).forEach(m => {
-    const total = map[m].total;
-    const snap = scrapSettledSnap(m, map);
-    const settledPart = Math.min(total, snap);
-    const unsettledPart = total - settledPart;
-    settledSum += settledPart;
-    unsettledSum += unsettledPart;
-    if (unsettledPart > 0) unsettledMonths++;
+  Object.keys(monthSet).forEach(m => {
+    const p = scrapMonthSettledParts(m);
+    settledSum += p.settledTotal;
+    unsettledSum += p.unsettledTotal;
+    if (p.unsettledTotal > 0) unsettledMonths++;
   });
 
   const money = v => Math.round(v).toLocaleString() + ' 元';
@@ -7351,27 +7369,31 @@ function renderScrapMonth() {
     return;
   }
   const money = v => Math.round(v).toLocaleString();
+  const rows = months.map(m => {
+    const p = scrapMonthSettledParts(m);
+    const settleOn = !p.isSettled;   // 未结算→"结算"可点
+    const unsettleOn = p.isSettled;  // 已结算→"取消结算"可点
+    const row1 = `<tr>
+      <td>${m}</td>
+      <td>${p.settledCount + p.unsettledCount}</td>
+      <td>${money(p.settledTotal + p.unsettledTotal)}</td>
+      <td class="sc-actions">
+        <button class="wt-settle ${settleOn ? 'on' : ''}" data-action="sc-settle" data-month="${m}" ${settleOn ? '' : 'disabled'}>结算</button>
+        <button class="wt-settle ${unsettleOn ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${unsettleOn ? '' : 'disabled'}>取消结算</button>
+      </td>
+    </tr>`;
+    const row2 = (p.isSettled && p.unsettledCount > 0) ? `<tr class="sc-sub">
+      <td>↳ 未结算</td>
+      <td>${p.unsettledCount}</td>
+      <td>${money(p.unsettledTotal)}</td>
+      <td></td>
+    </tr>` : '';
+    return row1 + row2;
+  }).join('');
   el.innerHTML = `
     <table class="wt-cat">
       <thead><tr><th>月份</th><th>笔数</th><th>金额</th><th>结算</th></tr></thead>
-      <tbody>
-        ${months.map(m => {
-          const total = map[m].total;
-          const snap = scrapSettledSnap(m, map);
-          const settledPart = Math.min(total, snap);
-          const unsettledPart = total - settledPart;
-          const settled = snap > 0;
-          const splitTxt = (unsettledPart > 0)
-            ? `<div class="sc-split">已结算 ${money(settledPart)} · <span class="u">未结算 ${money(unsettledPart)}</span></div>`
-            : '';
-          return `<tr>
-            <td>${m}</td>
-            <td>${map[m].count}</td>
-            <td>${money(total)}${splitTxt}</td>
-            <td><button class="wt-settle ${settled ? 'on' : ''}" data-action="sc-settle" data-month="${m}">${settled ? '已结算' : '未结算'}</button></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
+      <tbody>${rows}</tbody>
     </table>`;
 }
 
@@ -7476,17 +7498,27 @@ function bindScrapEvents() {
 
   if (monthEl) {
     monthEl.addEventListener('click', e => {
-      const btn = e.target.closest('[data-action="sc-settle"]');
-      if (!btn) return;
-      const m = btn.dataset.month;
-      if (scrapSettled[m] != null) {
-        delete scrapSettled[m];                       // 取消结算:仅影响此月
-      } else {
-        const map = scrapMonthMap();                  // 结算:快照当月总额,仅标记此月
-        scrapSettled[m] = map[m] ? map[m].total : 0;
+      // 结算: 把当月全部结算掉(结算时快照总额与笔数)
+      const settleBtn = e.target.closest('[data-action="sc-settle"]');
+      if (settleBtn && !settleBtn.disabled) {
+        const m = settleBtn.dataset.month;
+        const mm = scrapMonthMap();
+        scrapSettled[m] = { total: mm[m] ? mm[m].total : 0, count: mm[m] ? mm[m].count : 0 };
+        saveScrapSettled();
+        refreshAll();
+        showToast('已结算 ' + m + ' 全部');
+        return;
       }
-      saveScrapSettled();
-      refreshAll();
+      // 取消结算: 取消当月结算
+      const unsettleBtn = e.target.closest('[data-action="sc-unsettle"]');
+      if (unsettleBtn && !unsettleBtn.disabled) {
+        const m = unsettleBtn.dataset.month;
+        delete scrapSettled[m];
+        saveScrapSettled();
+        refreshAll();
+        showToast('已取消结算 ' + m);
+        return;
+      }
     });
   }
 }
