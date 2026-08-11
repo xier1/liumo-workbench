@@ -2784,18 +2784,23 @@
   .wt-delta.down { color: #10b981; }
   .wt-delta.up { color: #ef4444; }
   .wt-delta.neutral { color: var(--text-muted); }
-  .co-items-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
-  .co-items-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .co-admin-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+  .co-admin-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
   .co-add-item { border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
   .co-add-item:hover { border-color: var(--primary-2); color: var(--primary-2); }
-  .co-items { display: flex; flex-direction: column; gap: 8px; }
-  .co-item-row { display: flex; align-items: center; gap: 8px; }
-  .co-item-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
-  .co-item-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
-  .co-item-amount { flex: 0 0 120px; width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
-  .co-item-amount:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
-  .co-item-del { flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; transition: all var(--transition); }
-  .co-item-del:hover { border-color: #ef4444; color: #ef4444; }
+  .co-admin-list { display: flex; flex-direction: column; gap: 8px; }
+  .co-admin-row { display: flex; align-items: center; gap: 8px; }
+  .co-admin-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
+  .co-admin-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-admin-del { flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; transition: all var(--transition); }
+  .co-admin-del:hover { border-color: #ef4444; color: #ef4444; }
+  .co-form-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+  .co-form-head { margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .co-form-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; }
+  .co-form-row { display: flex; align-items: center; gap: 8px; }
+  .co-form-name { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .co-form-amt { flex: 0 0 120px; width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-form-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
   .co-note-field { flex: 0 0 180px; }
   .wt-cat .co-grand td { background: var(--bg-soft); font-weight: 700; }
   .co-matrix { min-width: 520px; }
@@ -2895,7 +2900,7 @@ const MODULES = [
   {
     id: 'cost',
     name: '超市成本核算',
-    desc: '自定义成本项 · 按月登记金额 · 成本项与月度双维度汇总',
+    desc: '固定成本项清单（可增删改）· 按月逐项填金额 · 成本项与月度双维度汇总',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>',
     enabled: true
   },
@@ -3002,6 +3007,7 @@ let salaryLogs = [];   // { id, date:'YYYY-MM', total:Number, head:Number, creat
 
 // ---------- 超市成本核算状态 ----------
 let costLogs = [];     // { id, date:'YYYY-MM', items:[{name:String, amount:Number}], note:String, createdAt, updatedAt }
+let costItems = [];    // [{ id, name }] 全局固定成本项清单（可在大表单中增删改）
 
 // ---------- 废品记录状态 ----------
 let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
@@ -6947,6 +6953,8 @@ function bindSalaryEvents() {
 
 // ==================== 超市成本核算模块 ====================
 const COST_LOGS_KEY = 'liumo_cost_logs';
+const COST_ITEMS_KEY = 'liumo_cost_items';
+const COST_DEFAULT_ITEMS = ['房租', '人工', '进货成本', '水电', '损耗', '其他'];
 
 function loadCost() {
   try {
@@ -6958,6 +6966,17 @@ function loadCost() {
   costLogs = costLogs.map(normalizeCostLog);
   costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 }
+function loadCostItems() {
+  try {
+    const d = localStorage.getItem(COST_ITEMS_KEY);
+    let arr = d ? JSON.parse(d) : null;
+    if (!Array.isArray(arr)) arr = null;
+    costItems = arr;
+  } catch (e) { costItems = null; }
+  // 首次无数据：初始化一份常见默认成本项（用户可增删改）
+  if (!costItems) { costItems = COST_DEFAULT_ITEMS.map(n => ({ id: uid(), name: n })); saveCostItems(); }
+}
+function saveCostItems() { localStorage.setItem(COST_ITEMS_KEY, JSON.stringify(costItems)); }
 // 把任意记录规范为 { id, date, items:[{name,amount}], note } 结构
 function normalizeCostLog(l) {
   if (!l || typeof l !== 'object') return { id: uid(), date: currentMonthStr(), items: [], note: '' };
@@ -6996,6 +7015,23 @@ function costWindowLogs() {
   const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
   return costAsc().filter(l => l.date >= cutoffStr);
 }
+// 改名成本项：同步所有历史记录里同名的项
+function renameCostItem(id, newName) {
+  const it = costItems.find(x => x.id === id);
+  if (!it) return;
+  const oldName = it.name;
+  it.name = newName;
+  costLogs.forEach(r => (r.items || []).forEach(i => { if (i.name === oldName) i.name = newName; }));
+  saveCostItems(); saveCostLogs();
+}
+// 删除成本项：移除定义并清理所有历史记录中该名称的金额
+function removeCostItem(id) {
+  const it = costItems.find(x => x.id === id);
+  if (!it) return;
+  costItems = costItems.filter(x => x.id !== id);
+  costLogs.forEach(r => { r.items = (r.items || []).filter(i => i.name !== it.name); });
+  saveCostItems(); saveCostLogs();
+}
 
 // ---------- 渲染:超市成本核算模块 ----------
 function renderCostModule(content, mod) {
@@ -7006,11 +7042,19 @@ function renderCostModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：每条记录为<b>某个月</b>的成本明细。你可以<b>自由添加成本项</b>（如 房租、人工、进货、水电、损耗…），逐项填入金额；
-      系统自动按<b>成本项</b>和<b>月份</b>汇总，并在下方「成本汇总」中给出各成本项的合计、占比与月份明细矩阵。同月再记录会覆盖该月。
+      说明：先在下方<b>成本项设置</b>里维护你固定的成本项（如 房租、人工、进货…），可<b>增删改</b>；
+      每月记录时系统会把这些成本项<b>逐项列出</b>让你填金额，并自动按<b>成本项</b>和<b>月份</b>汇总。同月再记录会覆盖该月。
     </div>
 
     <div class="wt-stats" id="coStats"></div>
+
+    <div class="co-admin-card">
+      <div class="co-admin-head">
+        <span>成本项设置（全局固定，可增删改）</span>
+        <button class="co-add-item" id="coItemAddBtn" type="button">+ 添加成本项</button>
+      </div>
+      <div class="co-admin-list" id="coItemList"></div>
+    </div>
 
     <div class="toolbar wt-add-bar">
       <div class="wt-field">
@@ -7027,12 +7071,9 @@ function renderCostModule(content, mod) {
       </button>
     </div>
 
-    <div class="co-items-card">
-      <div class="co-items-head">
-        <span>成本项（自由添加，逐项填金额）</span>
-        <button class="co-add-item" id="costAddItemBtn" type="button">+ 添加成本项</button>
-      </div>
-      <div class="co-items" id="costItems"></div>
+    <div class="co-form-card">
+      <div class="co-form-head">本月各项金额（按上方成本项逐项填写）</div>
+      <div class="co-form-items" id="costFormItems"></div>
     </div>
 
     <div class="wt-chart-card">
@@ -7054,11 +7095,38 @@ function renderCostModule(content, mod) {
   `;
 
   bindCostEvents();
+  renderCostItemAdmin();
+  renderCostForm();
   renderCostStats();
   renderCostChart();
   renderCostSummary();
   renderCostMatrix();
   renderCostList();
+}
+
+// 成本项管理大表单：逐项列出，可改名/删除
+function renderCostItemAdmin() {
+  const el = document.getElementById('coItemList');
+  if (!el) return;
+  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">还没有成本项，点右上角「+ 添加成本项」</div>`; return; }
+  el.innerHTML = costItems.map(it => `
+    <div class="co-admin-row" data-id="${it.id}">
+      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" />
+      <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
+    </div>`).join('');
+}
+// 录入表单：按成本项清单逐项生成金额输入框
+function renderCostForm() {
+  const el = document.getElementById('costFormItems');
+  if (!el) return;
+  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">请先在上方「成本项设置」中添加成本项</div>`; return; }
+  el.innerHTML = costItems.map(it => `
+    <div class="co-form-row">
+      <label class="co-form-name" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</label>
+      <input type="number" step="0.01" min="0" class="co-form-amt" placeholder="0" />
+    </div>`).join('');
+  // 用 data-item 存名称，便于读取
+  el.querySelectorAll('.co-form-row').forEach((r, i) => { r.querySelector('.co-form-amt').dataset.item = costItems[i].name; });
 }
 
 function renderCostStats() {
@@ -7133,7 +7201,14 @@ function renderCostMatrix() {
   const logs = costDesc();
   if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
   const totals = costItemTotals();
-  const itemNames = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+  // 列顺序优先按成本项清单顺序，历史中遗漏的项追加在末尾
+  const seen = new Set();
+  const itemNames = [];
+  costItems.forEach(it => {
+    const n = (it.name || '').trim();
+    if (n && totals[n] != null && !seen.has(n)) { itemNames.push(n); seen.add(n); }
+  });
+  Object.keys(totals).forEach(n => { if (!seen.has(n)) { itemNames.push(n); seen.add(n); } });
   const money = v => Math.round(v).toLocaleString();
   const sumsOf = r => {
     const s = {};
@@ -7191,47 +7266,65 @@ function bindCostEvents() {
   const addBtn = document.getElementById('costAddBtn');
   const monthEl = document.getElementById('costMonth');
   const noteEl = document.getElementById('costNote');
-  const itemsEl = document.getElementById('costItems');
-  const addItemBtn = document.getElementById('costAddItemBtn');
+  const adminList = document.getElementById('coItemList');
+  const addItemBtn = document.getElementById('coItemAddBtn');
+  const formItems = document.getElementById('costFormItems');
   const list = document.getElementById('coList');
 
-  function appendItemRow(name, amount) {
-    const row = document.createElement('div');
-    row.className = 'co-item-row';
-    row.innerHTML = `
-      <input type="text" class="co-item-name" placeholder="成本项，如 房租" value="${escapeHtml(name || '')}" />
-      <input type="number" step="0.01" min="0" class="co-item-amount" placeholder="金额" value="${amount != null && amount !== '' ? amount : ''}" />
-      <button class="co-item-del" type="button" title="删除该项">×</button>`;
-    itemsEl.appendChild(row);
+  function refreshDerived() {
+    renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
   }
-  function resetItems() { itemsEl.innerHTML = ''; appendItemRow('', ''); }
 
-  if (!itemsEl.children.length) resetItems();
-
-  addItemBtn.addEventListener('click', () => appendItemRow('', ''));
-  itemsEl.addEventListener('click', e => {
-    const del = e.target.closest('.co-item-del');
+  // 成本项管理：添加
+  addItemBtn.addEventListener('click', () => {
+    costItems.push({ id: uid(), name: '新成本项' });
+    saveCostItems();
+    renderCostItemAdmin();
+    renderCostForm();
+    const rows = adminList.querySelectorAll('.co-admin-row');
+    const last = rows[rows.length - 1];
+    if (last) last.querySelector('.co-admin-name').focus();
+  });
+  // 成本项管理：删除（同时清理历史金额）
+  adminList.addEventListener('click', e => {
+    const del = e.target.closest('.co-admin-del');
     if (del) {
-      const row = del.closest('.co-item-row');
-      if (itemsEl.children.length > 1) row.remove();
-      else { row.querySelector('.co-item-name').value = ''; row.querySelector('.co-item-amount').value = ''; }
+      const id = del.dataset.id;
+      const it = costItems.find(x => x.id === id);
+      removeCostItem(id);
+      renderCostItemAdmin();
+      renderCostForm();
+      refreshDerived();
+      showToast('已删除成本项' + (it ? '「' + it.name + '」' : '') + '及其历史金额');
+    }
+  });
+  // 成本项管理：改名（失焦保存并同步历史）
+  adminList.addEventListener('change', e => {
+    const inp = e.target.closest('.co-admin-name');
+    if (inp) {
+      const id = inp.dataset.id;
+      const newName = (inp.value || '').trim() || '未命名';
+      inp.value = newName;
+      renameCostItem(id, newName);
+      renderCostForm();   // 录入表单标签同步
+      refreshDerived();
     }
   });
 
-  function readItems() {
+  // 录入：读取各成本项金额
+  function readFormItems() {
     const items = [];
-    itemsEl.querySelectorAll('.co-item-row').forEach(r => {
-      const name = (r.querySelector('.co-item-name').value || '').trim();
-      const amt = parseFloat(r.querySelector('.co-item-amount').value);
-      if (!isNaN(amt) && amt >= 0) items.push({ name: name || '未命名', amount: amt });
+    formItems.querySelectorAll('.co-form-row').forEach(r => {
+      const name = r.querySelector('.co-form-amt').dataset.item;
+      const amt = parseFloat(r.querySelector('.co-form-amt').value);
+      if (!isNaN(amt) && amt > 0) items.push({ name, amount: amt });
     });
     return items;
   }
 
   function addLog() {
     const date = monthEl.value || currentMonthStr();
-    const items = readItems();
-    if (items.length === 0) { showToast('请至少填写一项有效金额'); return; }
+    const items = readFormItems();
     const note = (noteEl.value || '').trim();
     const exist = costLogs.find(l => l.date === date);
     if (exist) { exist.items = items; exist.note = note; exist.updatedAt = Date.now(); }
@@ -7239,15 +7332,15 @@ function bindCostEvents() {
     costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     saveCostLogs();
     noteEl.value = '';
-    resetItems();
-    renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
+    renderCostForm();   // 清空金额
+    refreshDerived();
     showToast(exist ? '已更新 ' + date + ' 成本' : '已记录 ' + date + ' 成本');
   }
 
   addBtn.addEventListener('click', addLog);
   noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
-  itemsEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.target.classList.contains('co-item-amount') || e.target.classList.contains('co-item-name'))) { e.preventDefault(); addLog(); }
+  formItems.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.classList.contains('co-form-amt')) { e.preventDefault(); addLog(); }
   });
 
   if (list) list.addEventListener('click', e => {
@@ -7257,7 +7350,7 @@ function bindCostEvents() {
       const id = delBtn.dataset.id;
       costLogs = costLogs.filter(l => l.id !== id);
       saveCostLogs();
-      renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
+      refreshDerived();
       showToast('已删除该记录');
       return;
     }
@@ -7266,9 +7359,14 @@ function bindCostEvents() {
       if (rec) {
         monthEl.value = rec.date;
         noteEl.value = rec.note || '';
-        itemsEl.innerHTML = '';
-        if (rec.items && rec.items.length) rec.items.forEach(it => appendItemRow(it.name, it.amount));
-        else appendItemRow('', '');
+        renderCostForm();
+        // 把该月各成本项金额填回对应输入框
+        const sums = {};
+        (rec.items || []).forEach(it => { sums[(it.name || '').trim()] = it.amount; });
+        formItems.querySelectorAll('.co-form-row').forEach(r => {
+          const name = r.querySelector('.co-form-amt').dataset.item;
+          r.querySelector('.co-form-amt').value = sums[name] != null ? sums[name] : '';
+        });
         monthEl.focus();
         showToast('已载入 ' + rec.date + '，修改后点「记录成本」即可更新');
       }
@@ -7317,11 +7415,16 @@ function renderScrapModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。每条记录可<b>修改 / 删除</b>；
-      在下方「按月统计」中，点「结算」选择<b>截止日</b>，截止日及之前的当月记录算<b>已结算</b>、之后的留<b>未结算</b>；可随时再点「结算」改截止日，点「取消结算」清空。
+      说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。顶部统计仅展示<b>本月金额</b>与<b>未结算金额</b>，下方「每月总金额趋势」给出近一年曲线；
+      每条记录可<b>修改 / 删除</b>；在「按月统计」中，点「结算」选择<b>截止日</b>，截止日及之前的当月记录算<b>已结算</b>、之后的留<b>未结算</b>；可随时再点「结算」改截止日，点「取消结算」清空。
     </div>
 
     <div class="wt-stats" id="scStats"></div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">每月总金额趋势（近一年）</div>
+      <div id="scChart"></div>
+    </div>
 
     <div class="toolbar wt-add-bar">
       <div class="wt-field">
@@ -7353,6 +7456,7 @@ function renderScrapModule(content, mod) {
   scrapEditingId = null;
   bindScrapEvents();
   renderScrapStats();
+  renderScrapChart();
   renderScrapMonth();
   renderScrapList();
 }
@@ -7408,29 +7512,43 @@ function renderScrapStats() {
   const last12 = all.filter(l => monthOf(l.date) >= cutoffStr);
   const curRecs = all.filter(l => monthOf(l.date) === curMonth);
   const curSum = curRecs.reduce((s, l) => s + (l.amount || 0), 0);
-  const sum12 = last12.reduce((s, l) => s + (l.amount || 0), 0);
 
-  // 已结算 / 未结算分离（按结算日期口径,结算后新增更晚记录算未结算）
+  // 未结算金额（按结算日期口径, 结算后新增更晚记录算未结算）
   const monthSet = {};
   last12.forEach(l => { monthSet[monthOf(l.date)] = true; });
-  let settledSum = 0, unsettledSum = 0, unsettledMonths = 0;
+  let unsettledSum = 0;
   Object.keys(monthSet).forEach(m => {
     const p = scrapMonthSettledParts(m);
-    settledSum += p.settledTotal;
     unsettledSum += p.unsettledTotal;
-    if (p.unsettledTotal > 0) unsettledMonths++;
   });
 
   const money = v => Math.round(v).toLocaleString() + ' 元';
   const cards = [];
   cards.push(statCard('本月金额', money(curSum), 'success'));
-  cards.push(statCard('本月笔数', curRecs.length + ' 笔', ''));
-  cards.push(statCard('近一年总金额', money(sum12), 'success'));
-  cards.push(statCard('近一年笔数', last12.length + ' 笔', ''));
-  cards.push(statCard('已结算金额', money(settledSum), 'success'));
   cards.push(statCard('未结算金额', money(unsettledSum), unsettledSum > 0 ? 'warning' : 'success'));
-  cards.push(statCard('未结算月份', unsettledMonths + ' 个月', unsettledMonths > 0 ? 'warning' : 'success'));
   el.innerHTML = cards.join('');
+}
+
+function renderScrapChart() {
+  const el = document.getElementById('scChart');
+  if (!el) return;
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1); // 近一年 = 12 个月
+  const map = scrapMonthMap();
+  // 构造连续 12 个月序列（缺月补 0）, 便于看趋势
+  const series = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const key = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+    const rec = map[key];
+    series.push({ date: key, total: rec ? rec.total : 0 });
+  }
+  series.sort((a, b) => a.date.localeCompare(b.date));
+  if (series.every(s => s.total === 0)) {
+    el.innerHTML = `<div class="wt-empty">还没有废品记录,先在上方登记一笔吧</div>`;
+    return;
+  }
+  el.innerHTML = buildSalaryLineSVG(series, l => l.total, '#f59e0b', '元');
 }
 
 function renderScrapMonth() {
@@ -7519,6 +7637,7 @@ function bindScrapEvents() {
 
   function refreshAll() {
     renderScrapStats();
+    renderScrapChart();
     renderScrapMonth();
     renderScrapList();
   }
@@ -8054,6 +8173,7 @@ async function init() {
   loadWeight();
   loadSalary();
   loadCost();
+  loadCostItems();
   loadScrap();
   loadRope();
 
@@ -8445,7 +8565,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadScrap(); loadRope();
+  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope();
 }
 
 function exportBackup(){
