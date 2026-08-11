@@ -2751,22 +2751,23 @@
   .wt-chart-sub { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--bg); }
   .wt-chart-subtitle { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
   .wt-empty { color: var(--text-muted); text-align: center; padding: 24px 12px; font-size: 13px; }
-  .wt-cat { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .wt-cat th, .wt-cat td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .wt-cat-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wt-cat { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .wt-cat th, .wt-cat td { padding: 7px 7px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .wt-cat th:first-child, .wt-cat td:first-child { text-align: left; }
   .wt-cat th { color: var(--text-muted); font-weight: 600; background: var(--bg-soft); }
   .wt-cat tbody tr:hover { background: var(--bg-soft); }
   .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
   .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
-  .wt-settle { border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 999px; padding: 3px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+  .wt-settle { border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
   .wt-settle:hover { border-color: var(--text-muted); }
   .wt-settle.on { background: #10b981; border-color: #10b981; color: #fff; }
   .wt-settle:disabled { opacity: .4; cursor: not-allowed; }
   .wt-settle + .wt-settle { margin-left: 6px; }
   .sc-amt.settled { color: #10b981; font-weight: 600; }
   .sc-amt.unsettled { color: #ef4444; font-weight: 600; }
-  .sc-settle-date { font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-right: 6px; }
+  .sc-settle-date { font-size: 12px; padding: 2px 4px; width: 134px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-right: 6px; }
   .sc-settle-date-col { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
   .wt-cat .sc-sub td { background: var(--bg-soft); color: var(--text-muted); font-size: 12px; }
   .wt-cat .sc-sub td:first-child { padding-left: 24px; }
@@ -7259,7 +7260,7 @@ function renderScrapModule(content, mod) {
 
     <div class="wt-note">
       说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。每条记录可<b>修改 / 删除</b>；
-      在下方「按月统计」中，点「结算」把<b>当月全部</b>结算掉，点「取消结算」取消当月结算。结算后当月再新增的记录会自动计入「未结算」并单独显示。
+      在下方「按月统计」中，点「结算」选择<b>截止日</b>，截止日及之前的当月记录算<b>已结算</b>、之后的留<b>未结算</b>；可随时再点「结算」改截止日，点「取消结算」清空。
     </div>
 
     <div class="wt-stats" id="scStats"></div>
@@ -7404,24 +7405,23 @@ function renderScrapMonth() {
         </td>
       </tr>`;
     }
-    const settleDateTxt = p.isSettled ? p.settleDate : '—';
+    const settleDateTxt = p.isSettled ? p.settleDate.slice(5) : '—';
     return `<tr>
       <td>${m}</td>
       <td>${p.settledCount + p.unsettledCount}</td>
       <td class="sc-amt settled">${settledTxt}</td>
       <td class="sc-amt unsettled">${unsettledTxt}</td>
-      <td class="sc-settle-date-col">${settleDateTxt}</td>
+      <td class="sc-settle-date-col"${p.isSettled ? ' title="' + p.settleDate + '"' : ''}>${settleDateTxt}</td>
       <td class="sc-actions">
         <button class="wt-settle ${p.isSettled ? '' : 'on'}" data-action="sc-settle" data-month="${m}">结算</button>
         <button class="wt-settle ${p.isSettled ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${p.isSettled ? '' : 'disabled'}>取消结算</button>
       </td>
     </tr>`;
   }).join('');
-  el.innerHTML = `
-    <table class="wt-cat">
+  el.innerHTML = `<div class="wt-cat-wrap"><table class="wt-cat">
       <thead><tr><th>月份</th><th>笔数</th><th>已结算</th><th>未结算</th><th>结算日</th><th>操作</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table></div>`;
 }
 
 function renderScrapList() {
