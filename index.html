@@ -2784,6 +2784,22 @@
   .wt-delta.down { color: #10b981; }
   .wt-delta.up { color: #ef4444; }
   .wt-delta.neutral { color: var(--text-muted); }
+  .co-items-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+  .co-items-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .co-add-item { border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+  .co-add-item:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .co-items { display: flex; flex-direction: column; gap: 8px; }
+  .co-item-row { display: flex; align-items: center; gap: 8px; }
+  .co-item-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-item-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-item-amount { flex: 0 0 120px; width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-item-amount:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-item-del { flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; transition: all var(--transition); }
+  .co-item-del:hover { border-color: #ef4444; color: #ef4444; }
+  .co-note-field { flex: 0 0 180px; }
+  .wt-cat .co-grand td { background: var(--bg-soft); font-weight: 700; }
+  .co-matrix { min-width: 520px; }
+  .co-matrix .co-rowtotal { color: var(--text); white-space: nowrap; }
 
 </style>
 </head>
@@ -2879,7 +2895,7 @@ const MODULES = [
   {
     id: 'cost',
     name: '超市成本核算',
-    desc: '按月按品类核算进货成本·销售额·损耗·毛利·毛利率',
+    desc: '自定义成本项 · 按月登记金额 · 成本项与月度双维度汇总',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>',
     enabled: true
   },
@@ -2985,7 +3001,7 @@ let weightSettings = { target: null, height: null };   // target: 目标体重kg
 let salaryLogs = [];   // { id, date:'YYYY-MM', total:Number, head:Number, createdAt, updatedAt }
 
 // ---------- 超市成本核算状态 ----------
-let costLogs = [];     // { id, date:'YYYY-MM', category:String, cost:Number, sale:Number, loss:Number, createdAt, updatedAt }
+let costLogs = [];     // { id, date:'YYYY-MM', items:[{name:String, amount:Number}], note:String, createdAt, updatedAt }
 
 // ---------- 废品记录状态 ----------
 let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
@@ -6938,14 +6954,42 @@ function loadCost() {
     costLogs = d ? JSON.parse(d) : [];
     if (!Array.isArray(costLogs)) costLogs = [];
   } catch (e) { costLogs = []; }
+  // 兼容旧版（字段为 category/cost/sale/loss）: 转为「成本项」结构
+  costLogs = costLogs.map(normalizeCostLog);
   costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+// 把任意记录规范为 { id, date, items:[{name,amount}], note } 结构
+function normalizeCostLog(l) {
+  if (!l || typeof l !== 'object') return { id: uid(), date: currentMonthStr(), items: [], note: '' };
+  if (Array.isArray(l.items)) {
+    const items = l.items
+      .map(it => ({ name: String(it && it.name != null ? it.name : '').trim() || '未命名', amount: Number(it && it.amount != null ? it.amount : 0) || 0 }))
+      .filter(it => it.amount > 0 || it.name !== '未命名');
+    return { id: l.id || uid(), date: l.date, items, note: l.note || '', createdAt: l.createdAt || Date.now(), updatedAt: l.updatedAt || Date.now() };
+  }
+  // 旧版: 只有单条成本/损耗, 并入 items
+  const items = [];
+  const cat = (l.category || '').trim() || '进货成本';
+  if (l.cost != null && !isNaN(Number(l.cost)) && Number(l.cost) > 0) items.push({ name: cat, amount: Number(l.cost) });
+  if (l.loss != null && !isNaN(Number(l.loss)) && Number(l.loss) > 0) items.push({ name: '损耗', amount: Number(l.loss) });
+  return { id: l.id || uid(), date: l.date, items, note: l.note || '', createdAt: l.createdAt || Date.now(), updatedAt: l.updatedAt || Date.now() };
 }
 function saveCostLogs() { localStorage.setItem(COST_LOGS_KEY, JSON.stringify(costLogs)); }
 function costAsc() { return [...costLogs].sort((a, b) => (a.date || '').localeCompare(b.date || '')); }
 function costDesc() { return [...costLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
-// 毛利 = 销售额 - 进货成本 - 损耗金额；毛利率 = 毛利 / 销售额
-function grossOf(l) { return (l.sale || 0) - (l.cost || 0) - (l.loss || 0); }
-function marginOf(l) { return (l.sale || 0) > 0 ? grossOf(l) / (l.sale || 0) : null; }
+// 单条记录的总支出
+function costRecTotal(rec) { return (rec.items || []).reduce((s, it) => s + (Number(it.amount) || 0), 0); }
+// 全部记录的总支出
+function costAllTotal() { return costLogs.reduce((s, r) => s + costRecTotal(r), 0); }
+// 各成本项累计（跨所有月份）: { name: total }
+function costItemTotals() {
+  const map = {};
+  costLogs.forEach(r => (r.items || []).forEach(it => {
+    const n = (it.name || '').trim() || '未命名';
+    map[n] = (map[n] || 0) + (Number(it.amount) || 0);
+  }));
+  return map;
+}
 function costWindowLogs() {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - 11, 1); // 近一年 = 12 个月
@@ -6962,8 +7006,8 @@ function renderCostModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：每条记录为<b>某月某品类</b>的汇总数据。<b>毛利</b> = 销售额 − 进货成本 − 损耗金额；
-      <b>毛利率</b> = 毛利 ÷ 销售额。损耗金额指报损、过期、丢失等直接损失。同月同品类会自动合并为一条。
+      说明：每条记录为<b>某个月</b>的成本明细。你可以<b>自由添加成本项</b>（如 房租、人工、进货、水电、损耗…），逐项填入金额；
+      系统自动按<b>成本项</b>和<b>月份</b>汇总，并在下方「成本汇总」中给出各成本项的合计、占比与月份明细矩阵。同月再记录会覆盖该月。
     </div>
 
     <div class="wt-stats" id="coStats"></div>
@@ -6973,31 +7017,9 @@ function renderCostModule(content, mod) {
         <label>月份</label>
         <input type="month" class="co-month" id="costMonth" value="${currentMonthStr()}" />
       </div>
-      <div class="wt-field">
-        <label>品类</label>
-        <input type="text" class="co-cat" id="costCat" list="costCatList" placeholder="如 生鲜" />
-        <datalist id="costCatList">
-          <option value="生鲜"></option>
-          <option value="零食"></option>
-          <option value="饮料"></option>
-          <option value="日用品"></option>
-          <option value="粮油"></option>
-          <option value="乳品"></option>
-          <option value="烟酒"></option>
-          <option value="其他"></option>
-        </datalist>
-      </div>
-      <div class="wt-field">
-        <label>进货成本 (元)</label>
-        <input type="number" step="0.01" min="0" class="co-cost" id="costCost" placeholder="如 50000" />
-      </div>
-      <div class="wt-field">
-        <label>销售额 (元)</label>
-        <input type="number" step="0.01" min="0" class="co-sale" id="costSale" placeholder="如 80000" />
-      </div>
-      <div class="wt-field">
-        <label>损耗金额 (元)</label>
-        <input type="number" step="0.01" min="0" class="co-loss" id="costLoss" placeholder="如 2000" value="0" />
+      <div class="wt-field co-note-field">
+        <label>备注（可选）</label>
+        <input type="text" class="co-note" id="costNote" placeholder="如 总店" />
       </div>
       <button class="btn-add" id="costAddBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -7005,14 +7027,27 @@ function renderCostModule(content, mod) {
       </button>
     </div>
 
-    <div class="wt-chart-card">
-      <div class="wt-chart-title">近一年趋势 · 各指标单独曲线</div>
-      <div class="wt-charts-grid" id="coChart"></div>
+    <div class="co-items-card">
+      <div class="co-items-head">
+        <span>成本项（自由添加，逐项填金额）</span>
+        <button class="co-add-item" id="costAddItemBtn" type="button">+ 添加成本项</button>
+      </div>
+      <div class="co-items" id="costItems"></div>
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">近一年品类汇总（按毛利排序）</div>
-      <div id="coCat"></div>
+      <div class="wt-chart-title">月度总支出趋势（近一年）</div>
+      <div id="coChart"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">成本汇总 · 各成本项合计与占比</div>
+      <div id="coSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">月度明细矩阵 · 月份 × 成本项</div>
+      <div class="wt-cat-wrap"><div id="coMatrix"></div></div>
     </div>
 
     <div class="wt-list" id="coList"></div>
@@ -7021,37 +7056,28 @@ function renderCostModule(content, mod) {
   bindCostEvents();
   renderCostStats();
   renderCostChart();
-  renderCostCategory();
+  renderCostSummary();
+  renderCostMatrix();
   renderCostList();
 }
 
 function renderCostStats() {
   const el = document.getElementById('coStats');
   if (!el) return;
-  const w = costWindowLogs();
-  const desc = costDesc();
-  const last = desc.length ? desc[0] : null;
-  const sumSale = w.reduce((s, l) => s + (l.sale || 0), 0);
-  const sumCost = w.reduce((s, l) => s + (l.cost || 0), 0);
-  const sumLoss = w.reduce((s, l) => s + (l.loss || 0), 0);
-  const sumGross = sumSale - sumCost - sumLoss;
-  const avgMargin = sumSale > 0 ? sumGross / sumSale : null;
-  // 上月：取最近一个自然月（可能含多条品类记录）汇总
-  const lastMonth = last ? (last.date || '').slice(0, 7) : null;
-  const lastRecs = lastMonth ? desc.filter(l => (l.date || '').slice(0, 7) === lastMonth) : [];
-  const lastSale = lastRecs.reduce((s, l) => s + (l.sale || 0), 0);
-  const lastGross = lastRecs.reduce((s, l) => s + grossOf(l), 0);
-  const lastMargin = lastSale > 0 ? lastGross / lastSale : null;
+  const total = costAllTotal();                 // 总支出（全部月份）
+  const months = costLogs.length;               // 记录月份数
+  const itemMap = costItemTotals();
+  const kinds = Object.keys(itemMap).length;    // 成本项种类数
+  const avg = months > 0 ? total / months : 0;  // 月均支出
+  const last = costDesc()[0];
+  const lastTotal = last ? costRecTotal(last) : 0;
   const money = v => Math.round(v).toLocaleString() + ' 元';
-  const pct = v => v != null ? (v * 100).toFixed(1) + '%' : '—';
-  const marginCls = v => (v != null && v >= 0) ? 'success' : 'warning';
   const cards = [];
-  cards.push(statCard('上月销售额', lastSale != null ? money(lastSale) : '—', ''));
-  cards.push(statCard('上月毛利', lastGross != null ? money(lastGross) : '—', 'success'));
-  cards.push(statCard('上月毛利率', pct(lastMargin), lastMargin != null ? marginCls(lastMargin) : ''));
-  cards.push(statCard('近一年总毛利', money(sumGross), 'success'));
-  cards.push(statCard('近一年平均毛利率', pct(avgMargin), avgMargin != null ? marginCls(avgMargin) : ''));
-  cards.push(statCard('近一年总损耗', money(sumLoss), 'warning'));
+  cards.push(statCard('总支出', money(total), ''));
+  cards.push(statCard('记录月份', months + ' 个月', ''));
+  cards.push(statCard('成本项种类', kinds + ' 类', ''));
+  cards.push(statCard('月均支出', money(avg), ''));
+  cards.push(statCard('最近月支出', money(lastTotal), 'success'));
   el.innerHTML = cards.join('');
 }
 
@@ -7060,61 +7086,75 @@ function renderCostChart() {
   if (!el) return;
   const logs = costWindowLogs();
   if (logs.length === 0) {
-    el.innerHTML = `<div class="wt-empty">还没有成本记录,先在上方记录月份品类数据吧</div>`;
+    el.innerHTML = `<div class="wt-empty">还没有成本记录,先在上方记录月份数据吧</div>`;
     return;
   }
-  const charts = [
-    { title: '销售额 (元)', color: '#14b8a6', unit: '元', get: l => l.sale || 0 },
-    { title: '进货成本 (元)', color: '#6366f1', unit: '元', get: l => l.cost || 0 },
-    { title: '损耗金额 (元)', color: '#ef4444', unit: '元', get: l => l.loss || 0 },
-    { title: '毛利 (元)', color: '#10b981', unit: '元', get: l => grossOf(l) },
-  ];
-  el.innerHTML = charts.map(c => `
-    <div class="wt-chart-sub">
-      <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
-      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit)}
-    </div>`).join('');
+  el.innerHTML = buildSalaryLineSVG(logs, costRecTotal, '#6366f1', '元');
 }
 
-function renderCostCategory() {
-  const el = document.getElementById('coCat');
+// 成本汇总：各成本项跨月合计、占比、条形
+function renderCostSummary() {
+  const el = document.getElementById('coSummary');
   if (!el) return;
-  const w = costWindowLogs();
-  const map = {};
-  w.forEach(l => {
-    const c = ((l.category || '').trim()) || '未分类';
-    if (!map[c]) map[c] = { sale: 0, cost: 0, loss: 0 };
-    map[c].sale += (l.sale || 0);
-    map[c].cost += (l.cost || 0);
-    map[c].loss += (l.loss || 0);
-  });
-  const rows = Object.keys(map).map(c => {
-    const m = map[c];
-    const gross = m.sale - m.cost - m.loss;
-    const margin = m.sale > 0 ? gross / m.sale : null;
-    return { c, sale: m.sale, cost: m.cost, loss: m.loss, gross, margin };
-  }).sort((a, b) => b.gross - a.gross);
-  if (rows.length === 0) {
-    el.innerHTML = `<div class="wt-empty">暂无数据</div>`;
-    return;
-  }
-  const maxAbs = Math.max.apply(null, rows.map(r => Math.abs(r.gross))) || 1;
+  const map = costItemTotals();
+  const names = Object.keys(map).sort((a, b) => map[b] - map[a]);
+  const grand = names.reduce((s, n) => s + map[n], 0);
+  if (names.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
   const money = v => Math.round(v).toLocaleString();
-  const pct = v => v != null ? (v * 100).toFixed(1) + '%' : '—';
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
   el.innerHTML = `
     <table class="wt-cat">
-      <thead><tr><th>品类</th><th>销售额</th><th>进货成本</th><th>损耗</th><th>毛利</th><th>毛利率</th></tr></thead>
+      <thead><tr><th>成本项</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
       <tbody>
-        ${rows.map(r => {
-          const share = Math.max(0, r.gross) / maxAbs * 100;
-          const color = r.gross >= 0 ? '#10b981' : '#ef4444';
+        ${names.map(n => {
+          const v = map[n];
+          const share = grand > 0 ? v / grand * 100 : 0;
           return `<tr>
-            <td>${escapeHtml(r.c)}</td>
-            <td>${money(r.sale)}</td>
-            <td>${money(r.cost)}</td>
-            <td>${money(r.loss)}</td>
-            <td><div class="cat-gross"><span>${money(r.gross)}</span><span class="bar"><i style="width:${share.toFixed(1)}%;background:${color}"></i></span></div></td>
-            <td>${pct(r.margin)}</td>
+            <td>${escapeHtml(n)}</td>
+            <td>${money(v)} 元</td>
+            <td>${pct(v)}</td>
+            <td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#6366f1"></i></span></div></td>
+          </tr>`;
+        }).join('')}
+        <tr class="co-grand">
+          <td><b>合计</b></td>
+          <td><b>${money(grand)} 元</b></td>
+          <td>100%</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// 月度明细矩阵：月份 × 成本项
+function renderCostMatrix() {
+  const el = document.getElementById('coMatrix');
+  if (!el) return;
+  const logs = costDesc();
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const totals = costItemTotals();
+  const itemNames = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+  const money = v => Math.round(v).toLocaleString();
+  const sumsOf = r => {
+    const s = {};
+    (r.items || []).forEach(it => { const n = (it.name || '').trim() || '未命名'; s[n] = (s[n] || 0) + (Number(it.amount) || 0); });
+    return s;
+  };
+  el.innerHTML = `
+    <table class="wt-cat co-matrix">
+      <thead><tr>
+        <th>月份</th>
+        ${itemNames.map(n => `<th>${escapeHtml(n)}</th>`).join('')}
+        <th>合计</th>
+      </tr></thead>
+      <tbody>
+        ${logs.map(r => {
+          const sums = sumsOf(r);
+          const rowTotal = costRecTotal(r);
+          return `<tr>
+            <td>${escapeHtml(r.date)}${r.note ? ' · ' + escapeHtml(r.note) : ''}</td>
+            ${itemNames.map(n => `<td>${sums[n] ? money(sums[n]) : '—'}</td>`).join('')}
+            <td class="co-rowtotal"><b>${money(rowTotal)}</b></td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -7130,14 +7170,13 @@ function renderCostList() {
     return;
   }
   const money = v => Math.round(v).toLocaleString();
-  const pct = v => v != null ? (v * 100).toFixed(1) + '%' : '—';
   el.innerHTML = logs.map(l => {
-    const gross = grossOf(l);
-    const margin = marginOf(l);
+    const total = costRecTotal(l);
+    const itemTxt = (l.items || []).map(it => `${escapeHtml(it.name || '未命名')} ${money(it.amount)}`).join('、');
     return `
       <div class="wt-item" data-id="${l.id}">
-        <div class="wt-item-date">${escapeHtml(l.date)}</div>
-        <div class="wt-item-delta">${escapeHtml(l.category || '未分类')} · 进货 ${money(l.cost)}元 · 销售 ${money(l.sale)}元${l.loss ? ' · 损耗 ' + money(l.loss) + '元' : ''} · 毛利 ${money(gross)}元 · 毛利率 ${pct(margin)}</div>
+        <div class="wt-item-date">${escapeHtml(l.date)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</div>
+        <div class="wt-item-delta">共 ${(l.items || []).length} 项 · 合计 ${money(total)}元${itemTxt ? ' · ' + itemTxt : ''}</div>
         <button class="action-btn edit" data-action="co-edit" data-id="${l.id}" title="修改">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </button>
@@ -7151,71 +7190,90 @@ function renderCostList() {
 function bindCostEvents() {
   const addBtn = document.getElementById('costAddBtn');
   const monthEl = document.getElementById('costMonth');
-  const catEl = document.getElementById('costCat');
-  const costEl = document.getElementById('costCost');
-  const saleEl = document.getElementById('costSale');
-  const lossEl = document.getElementById('costLoss');
+  const noteEl = document.getElementById('costNote');
+  const itemsEl = document.getElementById('costItems');
+  const addItemBtn = document.getElementById('costAddItemBtn');
   const list = document.getElementById('coList');
+
+  function appendItemRow(name, amount) {
+    const row = document.createElement('div');
+    row.className = 'co-item-row';
+    row.innerHTML = `
+      <input type="text" class="co-item-name" placeholder="成本项，如 房租" value="${escapeHtml(name || '')}" />
+      <input type="number" step="0.01" min="0" class="co-item-amount" placeholder="金额" value="${amount != null && amount !== '' ? amount : ''}" />
+      <button class="co-item-del" type="button" title="删除该项">×</button>`;
+    itemsEl.appendChild(row);
+  }
+  function resetItems() { itemsEl.innerHTML = ''; appendItemRow('', ''); }
+
+  if (!itemsEl.children.length) resetItems();
+
+  addItemBtn.addEventListener('click', () => appendItemRow('', ''));
+  itemsEl.addEventListener('click', e => {
+    const del = e.target.closest('.co-item-del');
+    if (del) {
+      const row = del.closest('.co-item-row');
+      if (itemsEl.children.length > 1) row.remove();
+      else { row.querySelector('.co-item-name').value = ''; row.querySelector('.co-item-amount').value = ''; }
+    }
+  });
+
+  function readItems() {
+    const items = [];
+    itemsEl.querySelectorAll('.co-item-row').forEach(r => {
+      const name = (r.querySelector('.co-item-name').value || '').trim();
+      const amt = parseFloat(r.querySelector('.co-item-amount').value);
+      if (!isNaN(amt) && amt >= 0) items.push({ name: name || '未命名', amount: amt });
+    });
+    return items;
+  }
 
   function addLog() {
     const date = monthEl.value || currentMonthStr();
-    const category = (catEl.value || '').trim() || '未分类';
-    const cost = parseFloat(costEl.value);
-    const sale = parseFloat(saleEl.value);
-    const loss = parseFloat(lossEl.value) || 0;
-    if (isNaN(cost) || cost < 0) { showToast('请输入有效进货成本'); costEl.focus(); return; }
-    if (isNaN(sale) || sale < 0) { showToast('请输入有效销售额'); saleEl.focus(); return; }
-    if (loss < 0) { showToast('损耗金额不能为负'); lossEl.focus(); return; }
-    // 同月同品类合并为一条
-    const exist = costLogs.find(l => l.date === date && ((l.category || '未分类') === category));
-    if (exist) {
-      exist.cost = cost; exist.sale = sale; exist.loss = loss; exist.updatedAt = Date.now();
-    } else {
-      costLogs.push({ id: uid(), date, category, cost, sale, loss, createdAt: Date.now(), updatedAt: Date.now() });
-    }
+    const items = readItems();
+    if (items.length === 0) { showToast('请至少填写一项有效金额'); return; }
+    const note = (noteEl.value || '').trim();
+    const exist = costLogs.find(l => l.date === date);
+    if (exist) { exist.items = items; exist.note = note; exist.updatedAt = Date.now(); }
+    else { costLogs.push({ id: uid(), date, items, note, createdAt: Date.now(), updatedAt: Date.now() }); }
     costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     saveCostLogs();
-    costEl.value = ''; saleEl.value = ''; lossEl.value = '0'; catEl.value = '';
-    renderCostStats();
-    renderCostChart();
-    renderCostCategory();
-    renderCostList();
-    showToast(exist ? '已更新该月该品类成本' : '已记录成本');
+    noteEl.value = '';
+    resetItems();
+    renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
+    showToast(exist ? '已更新 ' + date + ' 成本' : '已记录 ' + date + ' 成本');
   }
 
   addBtn.addEventListener('click', addLog);
-  [costEl, saleEl, lossEl].forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); }));
+  noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
+  itemsEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.target.classList.contains('co-item-amount') || e.target.classList.contains('co-item-name'))) { e.preventDefault(); addLog(); }
+  });
 
-  if (list) {
-    list.addEventListener('click', e => {
-      const delBtn = e.target.closest('[data-action="co-del"]');
-      const editBtn = e.target.closest('[data-action="co-edit"]');
-      if (delBtn) {
-        const id = delBtn.dataset.id;
-        costLogs = costLogs.filter(l => l.id !== id);
-        saveCostLogs();
-        renderCostStats();
-        renderCostChart();
-        renderCostCategory();
-        renderCostList();
-        showToast('已删除该记录');
-        return;
+  if (list) list.addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-action="co-del"]');
+    const editBtn = e.target.closest('[data-action="co-edit"]');
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      costLogs = costLogs.filter(l => l.id !== id);
+      saveCostLogs();
+      renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
+      showToast('已删除该记录');
+      return;
+    }
+    if (editBtn) {
+      const rec = costLogs.find(l => l.id === editBtn.dataset.id);
+      if (rec) {
+        monthEl.value = rec.date;
+        noteEl.value = rec.note || '';
+        itemsEl.innerHTML = '';
+        if (rec.items && rec.items.length) rec.items.forEach(it => appendItemRow(it.name, it.amount));
+        else appendItemRow('', '');
+        monthEl.focus();
+        showToast('已载入 ' + rec.date + '，修改后点「记录成本」即可更新');
       }
-      if (editBtn) {
-        const rec = costLogs.find(l => l.id === editBtn.dataset.id);
-        if (rec) {
-          monthEl.value = rec.date;
-          catEl.value = rec.category || '';
-          costEl.value = rec.cost;
-          saleEl.value = (rec.sale != null ? rec.sale : '');
-          lossEl.value = (rec.loss != null ? rec.loss : 0);
-          costEl.focus();
-          renderCostList();
-          showToast('已载入该记录,修改后点「记录成本」即可更新');
-        }
-      }
-    });
-  }
+    }
+  });
 }
 
 // ==================== 废品记录模块 ====================
