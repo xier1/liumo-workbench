@@ -2846,11 +2846,20 @@
   .pl-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .pl-name { font-size: 15px; font-weight: 600; color: var(--text); }
   .pl-cat { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--bg-soft); color: var(--text-soft); border: 1px solid var(--border); }
-  .pl-prio { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-  .pl-prio.high { background: #fee2e2; color: #ef4444; }
-  .pl-prio.mid { background: #fef3c7; color: #d97706; }
-  .pl-prio.low { background: #d1fae5; color: #059669; }
   .pl-note { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; word-break: break-word; }
+  .pl-cat-field { display: flex; gap: 6px; align-items: center; }
+  .pl-cat-field select { flex: 1 1 auto; min-width: 0; }
+  .pl-add-cat { flex: 0 0 auto; width: 36px; height: 38px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text-soft); border-radius: var(--radius-sm); font-size: 18px; line-height: 1; cursor: pointer; transition: all var(--transition); }
+  .pl-add-cat:hover { border-color: var(--primary-2); color: var(--primary-2); background: var(--card); }
+  .pl-new-cat { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .pl-new-cat input { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; }
+  .pl-new-cat input:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .pl-cat-ok, .pl-cat-cancel { border: 1px solid var(--border); background: var(--bg); color: var(--text-soft); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .pl-cat-ok { background: var(--primary-2); color: #fff; border-color: var(--primary-2); }
+  .pl-cat-ok:hover { filter: brightness(1.05); }
+  .pl-cat-cancel:hover { border-color: var(--danger); color: var(--danger); }
+  .pl-cat-filter { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); font-size: 13px; color: var(--text-soft); transition: all var(--transition); }
+  .pl-cat-filter:focus { outline: none; border-color: var(--primary-2); }
   .pl-done-badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #d1fae5; color: #059669; font-weight: 600; }
   .pl-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
   .pl-done-btn { border: 1px solid var(--border); background: var(--bg); color: var(--text-soft); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
@@ -8074,16 +8083,14 @@ function bindRopeEvents() {
 
 // ==================== 去哪儿玩模块 ====================
 const PLACES_KEY = 'liumo_places';
-const PLACE_PRIORITIES = [
-  { value: 'high', label: '超想去' },
-  { value: 'mid', label: '想去' },
-  { value: 'low', label: '随便' }
-];
-function placePrioLabel(v) { return (PLACE_PRIORITIES.find(p => p.value === v) || PLACE_PRIORITIES[1]).label; }
+const PLACE_CATS_KEY = 'liumo_place_cats';
+const PLACE_DEFAULT_CATS = ['国内', '国外', '美食', '自然风光', '城市观光', '亲子游乐'];
 
 let places = [];
-let placeSortMode = localStorage.getItem('liumo_place_sort') || 'custom'; // custom | priority | name | category | time
-let placeFilter = 'all';   // all | todo | done
+let placeCats = [];
+let placeSortMode = localStorage.getItem('liumo_place_sort') || 'custom'; // custom | name | category | time
+let placeFilter = 'all';    // all | todo | done
+let placeCatFilter = 'all'; // all | <category>
 let placeEditingId = null;
 let placeDragId = null;
 
@@ -8093,19 +8100,44 @@ function loadPlaces() {
     places = d ? JSON.parse(d) : [];
     if (!Array.isArray(places)) places = [];
   } catch (e) { places = []; }
-  places.forEach(p => { if (typeof p.visited !== 'boolean') p.visited = false; });
+  // 归一化:visited 必须为布尔;清掉历史遗留的 priority 字段
+  places.forEach(p => {
+    if (typeof p.visited !== 'boolean') p.visited = false;
+    if ('priority' in p) delete p.priority;
+  });
 }
 function savePlaces() { localStorage.setItem(PLACES_KEY, JSON.stringify(places)); }
+
+function loadPlaceCats() {
+  try {
+    const d = localStorage.getItem(PLACE_CATS_KEY);
+    placeCats = d ? JSON.parse(d) : null;
+    if (!Array.isArray(placeCats)) placeCats = null;
+  } catch (e) { placeCats = null; }
+  if (!placeCats) { placeCats = [...PLACE_DEFAULT_CATS]; savePlaceCats(); }
+}
+function savePlaceCats() { localStorage.setItem(PLACE_CATS_KEY, JSON.stringify(placeCats)); }
+// 下拉用分类列表 = 自定义清单 ∪ 实际用到的分类(去重)
+function placeCatOptions() {
+  const set = new Set(placeCats);
+  places.forEach(p => { const c = (p.category || '').trim(); if (c) set.add(c); });
+  return Array.from(set);
+}
+function addPlaceCat(name) {
+  name = (name || '').trim();
+  if (!name || placeCatOptions().includes(name)) return false;
+  placeCats.push(name);
+  savePlaceCats();
+  return true;
+}
 
 // 按当前「筛选 + 排序」返回展示用列表(不改变 underlying 数组顺序)
 function placesSorted() {
   let list = [...places];
   if (placeFilter === 'todo') list = list.filter(p => !p.visited);
   else if (placeFilter === 'done') list = list.filter(p => p.visited);
-  const prioRank = { high: 0, mid: 1, low: 2 };
-  if (placeSortMode === 'priority') {
-    list.sort((a, b) => ((prioRank[a.priority] ?? 3) - (prioRank[b.priority] ?? 3)) || (a.name || '').localeCompare(b.name || '', 'zh'));
-  } else if (placeSortMode === 'name') {
+  if (placeCatFilter !== 'all') list = list.filter(p => (p.category || '未分类') === placeCatFilter);
+  if (placeSortMode === 'name') {
     list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'));
   } else if (placeSortMode === 'category') {
     list.sort((a, b) => (a.category || '未分类').localeCompare(b.category || '未分类', 'zh') || (a.name || '').localeCompare(b.name || '', 'zh'));
@@ -8114,6 +8146,16 @@ function placesSorted() {
   }
   // 'custom' 保持数组原顺序
   return list;
+}
+
+// 分类选择框 / 分类筛选框 的 option HTML
+function catSelectOptionsHtml(sel) {
+  const opts = placeCats.map(c => `<option value="${escapeHtml(c)}"${c === sel ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  return `<option value=""${sel === '' ? ' selected' : ''}>未分类</option>` + opts;
+}
+function catFilterOptionsHtml(sel) {
+  const opts = placeCatOptions().map(c => `<option value="${escapeHtml(c)}"${c === sel ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  return `<option value="all"${sel === 'all' ? ' selected' : ''}>全部分类</option>` + opts;
 }
 
 // ---------- 渲染:去哪儿玩模块 ----------
@@ -8125,7 +8167,7 @@ function renderPlacesModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      把想去的地点收藏下来,下次直接看。可<b>添加 / 修改 / 删除</b>;选「自定义顺序」后用左侧手柄<b>拖拽排序</b>;点「标记去过」记录已打卡的地点。
+      把想去的地点收藏下来,下次直接看。可<b>添加 / 修改 / 删除</b>;分类用下拉框选择,点 ＋ 可<b>自定义分类</b>;顶部<b>分类筛选</b>可只看某一类;选「自定义顺序」后用左侧手柄<b>拖拽排序</b>;点「标记去过」记录已打卡的地点。
     </div>
 
     <div class="pl-stats" id="plStats"></div>
@@ -8138,13 +8180,15 @@ function renderPlacesModule(content, mod) {
         </div>
         <div class="wt-field">
           <label>分类 (选填)</label>
-          <input type="text" id="plCat" placeholder="如 国内 / 美食" />
-        </div>
-        <div class="wt-field">
-          <label>想去程度</label>
-          <select id="plPrio">
-            ${PLACE_PRIORITIES.map(p => `<option value="${p.value}"${p.value === 'mid' ? ' selected' : ''}>${p.label}</option>`).join('')}
-          </select>
+          <div class="pl-cat-field">
+            <select id="plCat">${catSelectOptionsHtml('')}</select>
+            <button type="button" class="pl-add-cat" id="plAddCatBtn" title="新建分类">＋</button>
+          </div>
+          <div class="pl-new-cat" id="plNewCatRow" style="display:none;">
+            <input type="text" id="plNewCatInput" placeholder="新分类名称" />
+            <button type="button" class="pl-cat-ok" id="plNewCatOk">确定</button>
+            <button type="button" class="pl-cat-cancel" id="plNewCatCancel">取消</button>
+          </div>
         </div>
       </div>
       <div class="pl-form-row" style="margin-top:10px;">
@@ -8165,9 +8209,9 @@ function renderPlacesModule(content, mod) {
         <button class="filter-btn ${placeFilter==='todo'?'active':''}" data-pfilter="todo">想去</button>
         <button class="filter-btn ${placeFilter==='done'?'active':''}" data-pfilter="done">已去过</button>
       </div>
+      <select class="pl-cat-filter" id="plCatFilter" title="按分类查看">${catFilterOptionsHtml(placeCatFilter)}</select>
       <div class="filter-group sort-group">
         <button class="filter-btn ${placeSortMode==='custom'?'active':''}" data-psort="custom" title="可拖动自定义顺序">自定义顺序</button>
-        <button class="filter-btn ${placeSortMode==='priority'?'active':''}" data-psort="priority" title="超想去的排前面">按想去程度</button>
         <button class="filter-btn ${placeSortMode==='name'?'active':''}" data-psort="name" title="按名称">按名称</button>
         <button class="filter-btn ${placeSortMode==='category'?'active':''}" data-psort="category" title="按分类">按分类</button>
         <button class="filter-btn ${placeSortMode==='time'?'active':''}" data-psort="time" title="最近添加排前面">按添加时间</button>
@@ -8210,7 +8254,6 @@ function renderPlacesList() {
     return;
   }
   const draggable = placeSortMode === 'custom';
-  const prioClass = { high: 'high', mid: 'mid', low: 'low' };
   el.innerHTML = list.map(p => `
       <div class="pl-item ${p.visited ? 'visited' : ''}" data-id="${p.id}" ${draggable ? 'draggable="true"' : ''}>
         <div class="drag-handle" title="拖动排序">
@@ -8219,7 +8262,6 @@ function renderPlacesList() {
         <div class="pl-body">
           <div class="pl-top">
             <span class="pl-name">${escapeHtml(p.name)}</span>
-            <span class="pl-prio ${prioClass[p.priority] || 'mid'}">${placePrioLabel(p.priority)}</span>
             ${p.category ? `<span class="pl-cat">${escapeHtml(p.category)}</span>` : ''}
             ${p.visited ? '<span class="pl-done-badge">已去过</span>' : ''}
           </div>
@@ -8240,22 +8282,47 @@ function renderPlacesList() {
 function bindPlacesEvents() {
   const nameEl = document.getElementById('plName');
   const catEl = document.getElementById('plCat');
-  const prioEl = document.getElementById('plPrio');
   const noteEl = document.getElementById('plNote');
   const addBtn = document.getElementById('plAddBtn');
   const cancelBtn = document.getElementById('plCancelBtn');
   const listEl = document.getElementById('plList');
+  const addCatBtn = document.getElementById('plAddCatBtn');
+  const newCatRow = document.getElementById('plNewCatRow');
+  const newCatInput = document.getElementById('plNewCatInput');
+  const newCatOk = document.getElementById('plNewCatOk');
+  const newCatCancel = document.getElementById('plNewCatCancel');
+  const catFilterEl = document.getElementById('plCatFilter');
 
   function refreshAll() { renderPlacesStats(); renderPlacesList(); }
+
+  // 重建两个分类下拉(新增分类后调用;newSel 为表单里要选中的新分类)
+  function refreshCatSelects(newSel) {
+    if (catEl) catEl.innerHTML = catSelectOptionsHtml(newSel !== undefined ? newSel : catEl.value);
+    if (catFilterEl) catFilterEl.innerHTML = catFilterOptionsHtml(catFilterEl.value);
+  }
+  function openNewCat() {
+    if (!newCatRow) return;
+    newCatRow.style.display = '';
+    if (newCatInput) { newCatInput.value = ''; newCatInput.focus(); }
+  }
+  function closeNewCat() { if (newCatRow) newCatRow.style.display = 'none'; if (newCatInput) newCatInput.value = ''; }
+  function confirmNewCat() {
+    if (!newCatInput) return;
+    const name = newCatInput.value.trim();
+    if (!name) { showToast('请输入分类名称'); newCatInput.focus(); return; }
+    const added = addPlaceCat(name);
+    refreshCatSelects(name);
+    showToast(added ? '已新增分类：' + name : '该分类已存在');
+    closeNewCat();
+  }
 
   function loadForm(p) {
     nameEl.value = p.name || '';
     catEl.value = p.category || '';
-    prioEl.value = p.priority || 'mid';
     noteEl.value = p.note || '';
   }
   function clearForm() {
-    nameEl.value = ''; catEl.value = ''; prioEl.value = 'mid'; noteEl.value = '';
+    nameEl.value = ''; catEl.value = ''; noteEl.value = '';
     placeEditingId = null;
     addBtn.textContent = '添加地点';
     cancelBtn.style.display = 'none';
@@ -8267,13 +8334,12 @@ function bindPlacesEvents() {
     const data = {
       name,
       category: (catEl.value || '').trim(),
-      priority: prioEl.value || 'mid',
       note: (noteEl.value || '').trim()
     };
     if (placeEditingId) {
       const rec = places.find(p => p.id === placeEditingId);
       if (rec) {
-        rec.name = data.name; rec.category = data.category; rec.priority = data.priority; rec.note = data.note; rec.updatedAt = Date.now();
+        rec.name = data.name; rec.category = data.category; rec.note = data.note; rec.updatedAt = Date.now();
         savePlaces();
         showToast('已更新地点');
       }
@@ -8282,7 +8348,7 @@ function bindPlacesEvents() {
     } else {
       const dup = places.find(p => (p.name || '').trim() === name && ((p.category || '') === data.category));
       if (dup) { showToast('该地点已存在'); return; }
-      places.push({ id: uid(), name: data.name, category: data.category, priority: data.priority, note: data.note, visited: false, createdAt: Date.now(), updatedAt: Date.now() });
+      places.push({ id: uid(), name: data.name, category: data.category, note: data.note, visited: false, createdAt: Date.now(), updatedAt: Date.now() });
       savePlaces();
       clearForm();
       refreshAll();
@@ -8296,7 +8362,13 @@ function bindPlacesEvents() {
   nameEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
   noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
 
-  // 筛选 + 排序
+  // 自定义分类
+  if (addCatBtn) addCatBtn.addEventListener('click', openNewCat);
+  if (newCatOk) newCatOk.addEventListener('click', confirmNewCat);
+  if (newCatCancel) newCatCancel.addEventListener('click', closeNewCat);
+  if (newCatInput) newCatInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmNewCat(); else if (e.key === 'Escape') closeNewCat(); });
+
+  // 筛选 + 排序 + 分类筛选
   const filterBar = document.querySelector('.pl-filter-bar');
   if (filterBar) {
     filterBar.addEventListener('click', e => {
@@ -8314,6 +8386,12 @@ function bindPlacesEvents() {
         filterBar.querySelectorAll('[data-psort]').forEach(b => b.classList.toggle('active', b === sb));
         renderPlacesList();
         return;
+      }
+    });
+    filterBar.addEventListener('change', e => {
+      if (e.target && e.target.id === 'plCatFilter') {
+        placeCatFilter = e.target.value;
+        renderPlacesList();
       }
     });
   }
@@ -8633,6 +8711,7 @@ async function init() {
   loadScrap();
   loadRope();
   loadPlaces();
+  loadPlaceCats();
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
   const restored = await tryCloudRestoreFirst();
