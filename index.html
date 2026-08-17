@@ -7546,14 +7546,18 @@ function loadScrap() {
     if (typeof scrapSettled !== 'object' || !scrapSettled) scrapSettled = {};
   } catch (e) { scrapSettled = {}; }
   // 兼容旧版“整月快照”格式: 没有 date 字段的视为结算到月末(保持已结算状态)
+  let migrated = false;
   Object.keys(scrapSettled).forEach(m => {
     const raw = scrapSettled[m];
     if (raw && typeof raw === 'object') {
-      if (!raw.date) raw.date = scrapMonthEndStr(m);
-      // 旧数据无 ts: 以加载时刻为快照,既有的记录保持已结算,之后新增的算未结算
-      if (typeof raw.ts !== 'number') raw.ts = Date.now();
+      if (!raw.date) { raw.date = scrapMonthEndStr(m); migrated = true; }
+      // 旧数据无 ts: 以“截止日当天 00:00”为快照(与加载时间无关, 刷新稳定),
+      // 结算后新增(createdAt 晚于该时刻)一律算未结算, 修复“刷新后未结算变已结算”
+      if (typeof raw.ts !== 'number') { raw.ts = tsForCutoffStart(raw.date); migrated = true; }
     }
   });
+  // 固化迁移结果(把推导出的 ts 写回), 避免每次加载重新推导造成的潜在漂移
+  if (migrated) saveScrapSettled();
   scrapLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 }
 function saveScrapLogs() { localStorage.setItem(SCRAP_LOGS_KEY, JSON.stringify(scrapLogs)); }
@@ -7637,6 +7641,14 @@ function scrapMonthEndStr(m) {
   const [y, mo] = m.split('-').map(Number);
   const last = new Date(y, mo, 0).getDate();
   return m + '-' + ('0' + last).slice(-2);
+}
+// 旧结算数据缺 ts 时, 用截止日当天 00:00:00 作为结算快照:
+// 结算发生在截止日当天或之后, 因此“结算后新增(createdAt 晚于截止日 00:00)”一律算未结算,
+// 且与加载时间无关, 刷新后稳定, 不会出现“刷新后未结算变已结算”的漂移。
+function tsForCutoffStart(cutoff) {
+  const p = (cutoff || '').split('-').map(Number);
+  if (p.length !== 3 || p.some(isNaN)) return 0;
+  return new Date(p[0], p[1] - 1, p[2], 0, 0, 0, 0).getTime();
 }
 // 结算截止日默认: 当月=今天; 过去月=月末(整月结清); 未来月=月初
 function scrapSettleDefaultDate(m) {
