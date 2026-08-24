@@ -2880,6 +2880,28 @@
   .pl-done-btn:hover { border-color: var(--primary-2); color: var(--primary-2); }
   .pl-done-btn.on { background: #059669; border-color: #059669; color: #fff; }
 
+  /* ========== 销售分析报表模块 ========== */
+  .sa-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .sa-form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .sa-form .wt-field { flex: 1 1 150px; min-width: 0; }
+  .sa-form-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  .sa-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .sa-analysis { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .sa-analysis-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .sa-hint { font-size: 12.5px; color: var(--text-muted); line-height: 1.75; margin-bottom: 12px; }
+  .sa-hint code { background: var(--bg-soft); padding: 1px 6px; border-radius: 5px; font-size: 12px; color: var(--text-soft); }
+  .sa-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .sa-pill { font-size: 12.5px; padding: 4px 11px; border-radius: 999px; font-weight: 600; }
+  .sa-pill.ok { background: #d1fae5; color: #059669; }
+  .sa-pill.warn { background: #fee2e2; color: #ef4444; }
+  .sa-check-ok { color: #059669; font-weight: 600; }
+  .sa-check-warn { color: #ef4444; font-weight: 600; }
+  .sa-row-warn { background: #fff7f7; }
+  .sa-row-warn td { border-top-color: #fecaca; }
+  .sa-mom { font-weight: 700; margin-left: 6px; }
+  .sa-mom.up { color: #ef4444; }
+  .sa-mom.down { color: #10b981; }
+
 </style>
 </head>
 <body>
@@ -2990,6 +3012,13 @@ const MODULES = [
     name: '去哪儿玩',
     desc: '收藏想去的地点 · 拖拽排序 · 增删改 · 标记去过',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'sales',
+    name: '销售分析报表',
+    desc: '按月录入零售总额·日均销售额·客单量·客单价 · 自动一致性校验与趋势分析',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
     enabled: true
   },
   {
@@ -3384,6 +3413,12 @@ function renderContent() {
   // 去哪儿玩模块
   if (currentModule === 'places') {
     renderPlacesModule(content, mod);
+    return;
+  }
+
+  // 销售分析报表模块
+  if (currentModule === 'sales') {
+    renderSalesModule(content, mod);
     return;
   }
 
@@ -8599,6 +8634,338 @@ function bindPlacesEvents() {
   }
 }
 
+// ==================== 销售分析报表模块 ====================
+const SALES_KEY = 'liumo_sales_logs';
+let salesLogs = [];   // { id, date:'YYYY-MM', retail, dailySales, dailyOrders, avgTicket, note, createdAt, updatedAt }
+
+function loadSales() {
+  try {
+    const d = localStorage.getItem(SALES_KEY);
+    salesLogs = d ? JSON.parse(d) : [];
+    if (!Array.isArray(salesLogs)) salesLogs = [];
+  } catch (e) { salesLogs = []; }
+  salesLogs.forEach(l => {
+    l.retail = Number(l.retail) || 0;
+    l.dailySales = Number(l.dailySales) || 0;
+    l.dailyOrders = Number(l.dailyOrders) || 0;
+    l.avgTicket = Number(l.avgTicket) || 0;
+    if (typeof l.note !== 'string') l.note = '';
+  });
+  salesLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+function saveSalesLogs() { localStorage.setItem(SALES_KEY, JSON.stringify(salesLogs)); }
+function salesAsc() { return [...salesLogs].sort((a, b) => (a.date || '').localeCompare(b.date || '')); }
+function salesDesc() { return [...salesLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+function daysInMonth(m) { const p = (m || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; }
+
+const saMoney = v => (Math.round(Number(v) || 0)).toLocaleString() + ' 元';
+const saNum = v => { const n = Number(v) || 0; return (Math.round(n * 100) / 100).toString(); };
+
+// 一致性分析：基于两条恒等式
+//  ① 日均销售额 = 日均客单量 × 日均客单价   → 推算客单价 = 日均销售额 ÷ 日均客单量
+//  ② 零售总额   = 日均销售额 × 天数口径      → 推算天数   = 零售总额 ÷ 日均销售额
+function analyzeSales(rec) {
+  const retail = rec.retail, D = rec.dailySales, Q = rec.dailyOrders, A = rec.avgTicket;
+  const impliedTicket = (Q > 0) ? D / Q : null;
+  const impliedDays = (D > 0) ? retail / D : null;
+  const actualDays = daysInMonth(rec.date);
+  let ticketDev = null, ticketFlag = false;
+  if (impliedTicket != null && A > 0 && impliedTicket > 0) {
+    const mid = (A + impliedTicket) / 2;
+    ticketDev = Math.abs(A - impliedTicket) / mid * 100;   // 对称相对偏差%
+    ticketFlag = ticketDev > 5;
+  }
+  let daysDev = null, daysFlag = false, businessLike = false;
+  if (impliedDays != null && actualDays) {
+    daysDev = (impliedDays - actualDays) / actualDays * 100;
+    businessLike = impliedDays >= actualDays * 0.55 && impliedDays <= actualDays * 0.9; // 近似工作日口径
+    daysFlag = impliedDays < actualDays * 0.5 || impliedDays > actualDays * 1.15;         // 明显异常
+  }
+  let status, statusClass;
+  if (ticketFlag && daysFlag) status = '客单价+天数异常';
+  else if (ticketFlag) status = '客单价偏差';
+  else if (daysFlag) status = '天数异常';
+  else if (businessLike && daysDev != null && Math.abs(daysDev) > 10) status = '按工作日口径';
+  else status = '一致';
+  statusClass = (ticketFlag || daysFlag) ? 'warn' : 'ok';
+  return { impliedTicket, impliedDays, actualDays, ticketDev, ticketFlag, daysDev, daysFlag, businessLike, status, statusClass };
+}
+
+// ---------- 渲染:销售分析报表模块 ----------
+function renderSalesModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      按月录入<b>零售总额 / 日均销售额 / 日均客单量 / 日均客单价</b>四项，系统自动按<b>两项恒等式</b>做一致性校验（客单价是否自洽、天数口径是否对得上），并生成<b>趋势图与明细报表</b>。同月再录入会覆盖该月。
+    </div>
+
+    <div class="wt-stats" id="saStats"></div>
+
+    <div class="sa-form">
+      <div class="sa-form-row">
+        <div class="wt-field">
+          <label>月份</label>
+          <input type="month" id="saMonth" value="${currentMonthStr()}" />
+        </div>
+        <div class="wt-field">
+          <label>零售总额 (元)</label>
+          <input type="number" step="0.01" min="0" id="saRetail" placeholder="如 300000" />
+        </div>
+        <div class="wt-field">
+          <label>日均销售额 (元)</label>
+          <input type="number" step="0.01" min="0" id="saDailySales" placeholder="如 10000" />
+        </div>
+      </div>
+      <div class="sa-form-row" style="margin-top:12px;">
+        <div class="wt-field">
+          <label>日均客单量 (单)</label>
+          <input type="number" step="0.01" min="0" id="saDailyOrders" placeholder="如 320" />
+        </div>
+        <div class="wt-field">
+          <label>日均客单价 (元)</label>
+          <input type="number" step="0.01" min="0" id="saAvgTicket" placeholder="如 31.25" />
+        </div>
+        <div class="wt-field">
+          <label>备注 (选填)</label>
+          <input type="text" id="saNote" placeholder="如 暑期促销" />
+        </div>
+      </div>
+      <div class="sa-form-actions">
+        <button class="btn-add" id="saAddBtn">保存记录</button>
+        <button class="btn-cancel" id="saCancelBtn" style="display:none;">取消编辑</button>
+      </div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">月度趋势 · 零售总额 / 日均销售额 / 客单量 / 客单价</div>
+      <div class="sa-charts" id="saCharts"></div>
+    </div>
+
+    <div class="sa-analysis">
+      <div class="sa-analysis-title">数据一致性分析</div>
+      <div class="sa-hint">
+        系统按两条恒等式自动校验每月数据：
+        ① <code>日均销售额 = 日均客单量 × 日均客单价</code>，据此推算客单价并与你录入的「日均客单价」对比（偏差 &gt; 5% 提示）；
+        ② <code>零售总额 = 日均销售额 × 天数口径</code>，据此推算天数并与当月实际天数对比（推算天数落在工作日区间则标注「按工作日口径」，明显不符则提示异常）。
+      </div>
+      <div class="sa-summary" id="saAnalysisSummary"></div>
+      <div class="wt-cat-wrap" id="saAnalysisTable"></div>
+    </div>
+
+    <div class="wt-list" id="saList"></div>
+  `;
+
+  bindSalesEvents();
+  renderSalesStats();
+  renderSalesCharts();
+  renderSalesAnalysis();
+  renderSalesList();
+}
+
+function renderSalesStats() {
+  const el = document.getElementById('saStats');
+  if (!el) return;
+  const logs = salesLogs;
+  const months = logs.length;
+  const totalRetail = logs.reduce((s, l) => s + (l.retail || 0), 0);
+  const avgRetail = months ? totalRetail / months : 0;
+  const avgDaily = months ? logs.reduce((s, l) => s + (l.dailySales || 0), 0) / months : 0;
+  const avgOrders = months ? logs.reduce((s, l) => s + (l.dailyOrders || 0), 0) / months : 0;
+  const avgTicket = months ? logs.reduce((s, l) => s + (l.avgTicket || 0), 0) / months : 0;
+  const last = salesDesc()[0];
+  const lastRetail = last ? last.retail : 0;
+  const cards = [
+    statCard('累计零售额', saMoney(totalRetail), ''),
+    statCard('月均零售额', saMoney(avgRetail), ''),
+    statCard('月均日均销售额', saMoney(avgDaily), ''),
+    statCard('月均客单量', (Math.round(avgOrders * 10) / 10) + ' 单', ''),
+    statCard('月均客单价', '¥' + saNum(avgTicket), ''),
+    statCard('记录月份', months + ' 个月', 'success')
+  ];
+  el.innerHTML = cards.join('');
+}
+
+function renderSalesCharts() {
+  const el = document.getElementById('saCharts');
+  if (!el) return;
+  const logs = salesAsc();
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有销售数据,先在上方录入月份数据</div>`; return; }
+  const charts = [
+    { title: '月度零售总额 (元)', color: '#6366f1', unit: '元', get: l => l.retail || 0 },
+    { title: '日均销售额 (元)', color: '#14b8a6', unit: '元', get: l => l.dailySales || 0 },
+    { title: '日均客单量 (单)', color: '#f59e0b', unit: '单', get: l => l.dailyOrders || 0 },
+    { title: '日均客单价 (元)', color: '#ec4899', unit: '元', get: l => l.avgTicket || 0 }
+  ];
+  el.innerHTML = charts.map(c => `
+    <div class="wt-chart-sub">
+      <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
+      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit)}
+    </div>`).join('');
+}
+
+function renderSalesAnalysis() {
+  const el = document.getElementById('saAnalysisTable');
+  const sumEl = document.getElementById('saAnalysisSummary');
+  if (!el) return;
+  const logs = salesDesc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">暂无数据，先在上方录入月份数据</div>`;
+    if (sumEl) sumEl.innerHTML = '';
+    return;
+  }
+  let warn = 0;
+  const rows = logs.map(l => {
+    const a = analyzeSales(l);
+    if (a.statusClass === 'warn') warn++;
+    const ticketTxt = a.impliedTicket != null ? saNum(a.impliedTicket) + ' 元' : '—';
+    const devTxt = a.ticketDev != null ? (a.ticketDev > 0 ? '+' : '') + a.ticketDev.toFixed(1) + '%' : '—';
+    const daysTxt = a.impliedDays != null ? a.impliedDays.toFixed(1) + ' 天' : '—';
+    const daysDevTxt = a.daysDev != null ? (a.daysDev > 0 ? '+' : '') + a.daysDev.toFixed(0) + '%' : '—';
+    const statusCls = a.statusClass === 'warn' ? 'sa-check-warn' : 'sa-check-ok';
+    return `<tr class="${a.statusClass === 'warn' ? 'sa-row-warn' : ''}">
+      <td>${escapeHtml(l.date)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</td>
+      <td>${saMoney(l.retail)}</td>
+      <td>${saMoney(l.dailySales)}</td>
+      <td>${l.dailyOrders ? l.dailyOrders + ' 单' : '—'}</td>
+      <td>${l.avgTicket ? '¥' + saNum(l.avgTicket) : '—'}</td>
+      <td>${ticketTxt}</td>
+      <td class="${a.ticketFlag ? 'sa-check-warn' : ''}">${devTxt}</td>
+      <td>${daysTxt}</td>
+      <td>${a.actualDays != null ? a.actualDays + ' 天' : '—'}</td>
+      <td>${daysDevTxt}</td>
+      <td class="${statusCls}">${a.statusClass === 'warn' ? '⚠ ' : '✓ '}${escapeHtml(a.status)}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr>
+        <th>月份</th><th>零售总额</th><th>日均销售额</th><th>日均客单量</th>
+        <th>录入客单价</th><th>推算客单价</th><th>客单价偏差</th>
+        <th>推算天数</th><th>实际天数</th><th>天数偏差</th><th>校验</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  if (sumEl) {
+    const total = logs.length;
+    sumEl.innerHTML = `
+      <span class="sa-pill ok">${total - warn} 条自洽</span>
+      <span class="sa-pill warn">${warn} 条需核对</span>`;
+  }
+}
+
+function renderSalesList() {
+  const el = document.getElementById('saList');
+  if (!el) return;
+  const logs = salesDesc();
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无记录</div>`; return; }
+  el.innerHTML = logs.map((l, i) => {
+    const prev = logs[i + 1];   // 降序排列, i+1 为更早一个月
+    let mom = '';
+    if (prev && prev.retail > 0) {
+      const g = (l.retail - prev.retail) / prev.retail * 100;
+      const cls = g >= 0 ? 'up' : 'down';
+      mom = `<span class="sa-mom ${cls}">${g >= 0 ? '▲' : '▼'} ${Math.abs(g).toFixed(1)}%</span>`;
+    }
+    return `
+      <div class="wt-item" data-id="${l.id}">
+        <div class="wt-item-date">${escapeHtml(l.date)}</div>
+        <div class="wt-item-delta" style="margin-left:auto;">零售 ${saMoney(l.retail)} · 日均 ${saMoney(l.dailySales)} · 客单量 ${l.dailyOrders ? l.dailyOrders + ' 单' : '—'} · 客单价 ${l.avgTicket ? '¥' + saNum(l.avgTicket) : '—'}${l.note ? ' · ' + escapeHtml(l.note) : ''}${mom}</div>
+        <button class="action-btn edit" data-action="sa-edit" data-id="${l.id}" title="修改">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+        <button class="action-btn delete" data-action="sa-del" data-id="${l.id}" title="删除">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function bindSalesEvents() {
+  const addBtn = document.getElementById('saAddBtn');
+  const cancelBtn = document.getElementById('saCancelBtn');
+  const monthEl = document.getElementById('saMonth');
+  const retailEl = document.getElementById('saRetail');
+  const dailyEl = document.getElementById('saDailySales');
+  const ordersEl = document.getElementById('saDailyOrders');
+  const ticketEl = document.getElementById('saAvgTicket');
+  const noteEl = document.getElementById('saNote');
+  const list = document.getElementById('saList');
+  let editingId = null;
+
+  function refreshAll() { renderSalesStats(); renderSalesCharts(); renderSalesAnalysis(); renderSalesList(); }
+
+  function clearForm() {
+    monthEl.value = currentMonthStr();
+    retailEl.value = ''; dailyEl.value = ''; ordersEl.value = ''; ticketEl.value = ''; noteEl.value = '';
+    editingId = null;
+    addBtn.textContent = '保存记录';
+    cancelBtn.style.display = 'none';
+  }
+
+  function save() {
+    const date = (monthEl.value || '').trim();
+    if (!date || !/^\d{4}-\d{2}$/.test(date)) { showToast('请选择月份'); monthEl.focus(); return; }
+    const rec = {
+      retail: parseFloat(retailEl.value) || 0,
+      dailySales: parseFloat(dailyEl.value) || 0,
+      dailyOrders: parseFloat(ordersEl.value) || 0,
+      avgTicket: parseFloat(ticketEl.value) || 0,
+      note: (noteEl.value || '').trim()
+    };
+    if (!rec.retail && !rec.dailySales && !rec.dailyOrders && !rec.avgTicket) { showToast('请至少填写一项数值'); return; }
+    const exist = salesLogs.find(l => l.date === date);
+    if (exist) {
+      Object.assign(exist, rec, { updatedAt: Date.now() });
+      showToast('已更新 ' + date);
+    } else {
+      salesLogs.push({ id: uid(), date, ...rec, createdAt: Date.now(), updatedAt: Date.now() });
+      showToast('已保存 ' + date);
+    }
+    salesLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    saveSalesLogs();
+    clearForm();
+    refreshAll();
+  }
+
+  addBtn.addEventListener('click', save);
+  cancelBtn.addEventListener('click', clearForm);
+  noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+
+  if (list) list.addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-action="sa-del"]');
+    const editBtn = e.target.closest('[data-action="sa-edit"]');
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      const rec = salesLogs.find(l => l.id === id);
+      salesLogs = salesLogs.filter(l => l.id !== id);
+      saveSalesLogs();
+      refreshAll();
+      showToast('已删除 ' + (rec ? rec.date : '记录'));
+      return;
+    }
+    if (editBtn) {
+      const rec = salesLogs.find(l => l.id === editBtn.dataset.id);
+      if (rec) {
+        monthEl.value = rec.date;
+        retailEl.value = rec.retail || '';
+        dailyEl.value = rec.dailySales || '';
+        ordersEl.value = rec.dailyOrders || '';
+        ticketEl.value = rec.avgTicket || '';
+        noteEl.value = rec.note || '';
+        editingId = rec.id;
+        addBtn.textContent = '更新记录';
+        cancelBtn.style.display = '';
+        monthEl.focus();
+        showToast('已载入 ' + rec.date + '，修改后点「更新记录」');
+      }
+    }
+  });
+}
+
 function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
@@ -8838,6 +9205,7 @@ async function init() {
   loadRope();
   loadPlaces();
   loadPlaceCats();
+  loadSales();
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
   const restored = await tryCloudRestoreFirst();
@@ -9227,7 +9595,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope();
+  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales();
 }
 
 function exportBackup(){
