@@ -8907,9 +8907,11 @@ function buildYearLineChart(years, unit) {
   }
   // 年份曲线
   let lines = '';
+  const Y = years.length;
   years.forEach((y, yi) => {
     const color = YEAR_COLORS[yi % YEAR_COLORS.length];
-    const isLatest = yi === years.length - 1;   // 仅最新年份常驻标注，避免跨年文字重叠
+    // 按年份做轻微纵向错位，避免同月多年度数值接近时标签互相压住
+    const off = (yi - (Y - 1) / 2) * 9;
     let seg = [], lastPt = null;
     const flush = () => {
       if (seg.length) {
@@ -8927,23 +8929,19 @@ function buildYearLineChart(years, unit) {
       lastPt = { x, yy, v };
     }
     flush();
-    // 圆点 + 悬停提示(所有年份均可查,无重叠)
+    // 圆点 + 悬停提示(所有年份均可查)
     let dots = '';
     pts.forEach(p => {
       dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.yy.toFixed(1)}" r="2.8" fill="${color}"><title>${y.year}年${p.i + 1}月: ${fmt(p.v)}</title></circle>`;
     });
-    // 最新年份: 逐点标注(末点除外,由末端汇总标签承担,避免重复)
+    // 各年各点都常驻标注数值；白底描边保证接近时仍可读；越界则反向避让
     let labels = '';
-    if (isLatest) {
-      pts.forEach((p, idx) => {
-        if (idx === pts.length - 1) return;
-        const ty = (p.yy - 8) < padT ? p.yy + 12 : p.yy - 8;   // 贴顶则标在下方
-        labels += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}">${fmtShort(p.v)}</text>`;
-      });
-      if (lastPt) {
-        lines += `<text x="${lastPt.x.toFixed(1)}" y="${(lastPt.yy - 7).toFixed(1)}" text-anchor="end" font-size="9" fill="${color}" font-weight="600">${fmt(lastPt.v)}</text>`;
-      }
-    }
+    pts.forEach(p => {
+      let ty = p.yy + off;
+      if (ty - 8 < padT) ty = p.yy + 12;
+      else if (ty + 4 > H - padB) ty = p.yy - 10;
+      labels += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}" paint-order="stroke" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round">${fmtShort(p.v)}</text>`;
+    });
     lines += dots + labels;
   });
   // 图例
@@ -8966,7 +8964,7 @@ function renderSalesYearModule(content, mod) {
     <div class="wt-note">
       将<b>销售分析报表</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
       直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售分析报表，此处只读展示。
-      <b>最新年份</b>在图上直接标注各月数值；<b>其余年份把鼠标移到圆点上</b>即可查看「年份+月份+数值」，避免多年度标签互相重叠。
+      <b>所有年份</b>都会在图上直接标注各月数值；同月若多年度数值接近，标签会按年份轻微错位并加白底描边以保证可读，鼠标移到圆点还能看「年份+月份+数值」明细。
     </div>
 
     <div class="wt-chart-card">
