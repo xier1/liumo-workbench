@@ -2789,6 +2789,12 @@
   .co-add-item { border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
   .co-add-item:hover { border-color: var(--primary-2); color: var(--primary-2); }
   .co-admin-list { display: flex; flex-direction: column; gap: 8px; }
+  /* 固定成本设置：默认折叠，点击标题展开/收起 */
+  .co-toggle { display: inline-flex; align-items: center; gap: 6px; border: none; background: transparent; color: var(--text-soft); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+  .co-toggle:hover { color: var(--primary-2); }
+  .co-caret { transition: transform var(--transition); }
+  .co-admin-card:not(.co-collapsed) .co-caret { transform: rotate(90deg); }
+  .co-admin-card.co-collapsed .co-collapse-body { display: none; }
   .co-admin-row { display: flex; align-items: center; gap: 8px; }
   .co-admin-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
   .co-admin-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
@@ -7293,18 +7299,21 @@ function renderCostModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：先在下方<b>成本项设置</b>里维护你固定的成本项和<b>默认值</b>（如 房租 5000、人工 8000…），均可<b>增删改</b>；
+      说明：先在下方<b>固定成本设置</b>里维护你固定的成本项和<b>默认值</b>（如 房租 5000、人工 8000…），均可<b>增删改</b>；
       每月记录时点「<b>一键填入默认值</b>」即可把所有项的默认金额铺好，再<b>手动微调</b>或点「<b>+ 手动添加成本项</b>」追加额外项。系统自动按<b>成本项</b>和<b>月份</b>汇总，同月再记录会覆盖该月。
     </div>
 
     <div class="wt-stats" id="coStats"></div>
 
-    <div class="co-admin-card">
+    <div class="co-admin-card co-collapsed">
       <div class="co-admin-head">
-        <span>成本项设置（全局固定，可增删改）</span>
+        <button class="co-toggle" id="coAdminToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>固定成本设置（全局固定，可增删改）</span>
+        </button>
         <button class="co-add-item" id="coItemAddBtn" type="button">+ 添加成本项</button>
       </div>
-      <div class="co-admin-list" id="coItemList"></div>
+      <div class="co-admin-list co-collapse-body" id="coItemList"></div>
     </div>
 
     <div class="toolbar wt-add-bar">
@@ -7377,7 +7386,7 @@ function renderCostItemAdmin() {
 function renderCostForm() {
   const el = document.getElementById('costFormItems');
   if (!el) return;
-  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">请先在上方「成本项设置」中添加成本项</div>`; return; }
+  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">请先在上方「固定成本设置」中添加成本项</div>`; return; }
   el.innerHTML = costItems.map(it => `
     <div class="co-form-row">
       <label class="co-form-name" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</label>
@@ -7542,12 +7551,28 @@ function bindCostEvents() {
     renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
   }
 
+  // 固定成本设置：折叠/展开
+  const adminToggle = document.getElementById('coAdminToggle');
+  if (adminToggle) {
+    adminToggle.addEventListener('click', () => {
+      const card = adminToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      adminToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
+
   // 成本项管理：添加
   addItemBtn.addEventListener('click', () => {
     costItems.push({ id: uid(), name: '新成本项' });
     saveCostItems();
     renderCostItemAdmin();
     renderCostForm();
+    // 添加新项时自动展开，便于立即编辑
+    const card = addItemBtn.closest('.co-admin-card');
+    if (card && card.classList.contains('co-collapsed')) {
+      card.classList.remove('co-collapsed');
+      if (adminToggle) adminToggle.setAttribute('aria-expanded', 'true');
+    }
     const rows = adminList.querySelectorAll('.co-admin-row');
     const last = rows[rows.length - 1];
     if (last) last.querySelector('.co-admin-name').focus();
