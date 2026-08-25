@@ -7171,7 +7171,7 @@ function costItemTotals() {
 }
 function costWindowLogs() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1); // 近一年 = 12 个月
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24 个月
   const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
   return costAsc().filter(l => l.date >= cutoffStr);
 }
@@ -7242,7 +7242,7 @@ function renderCostModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">月度总支出趋势（近一年）</div>
+      <div class="wt-chart-title">月度总支出趋势（近两年）</div>
       <div id="coChart"></div>
     </div>
 
@@ -7324,7 +7324,13 @@ function renderCostChart() {
     el.innerHTML = `<div class="wt-empty">还没有成本记录,先在上方记录月份数据吧</div>`;
     return;
   }
-  el.innerHTML = buildSalaryLineSVG(logs, costRecTotal, '#6366f1', '元');
+  const lastLog = logs[logs.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
+  el.innerHTML = buildSalaryLineSVG(logs, costRecTotal, '#6366f1', '元', { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })
+    + `<div class="wt-chart-subnote">最新 <b style="color:#6366f1">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>`;
 }
 
 // 成本汇总：各成本项跨月合计、占比、条形
@@ -7649,7 +7655,7 @@ function renderScrapModule(content, mod) {
     <div class="wt-stats" id="scStats"></div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">每月总金额趋势（近一年）</div>
+      <div class="wt-chart-title">每月总金额趋势（近两年）</div>
       <div id="scChart"></div>
     </div>
 
@@ -7777,11 +7783,11 @@ function renderScrapChart() {
   const el = document.getElementById('scChart');
   if (!el) return;
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1); // 近一年 = 12 个月
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24 个月
   const map = scrapMonthMap();
-  // 构造连续 12 个月序列（缺月补 0）, 便于看趋势
+  // 构造连续 24 个月序列（缺月补 0）, 便于看趋势
   const series = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 24; i++) {
     const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
     const key = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
     const rec = map[key];
@@ -7792,7 +7798,13 @@ function renderScrapChart() {
     el.innerHTML = `<div class="wt-empty">还没有废品记录,先在上方登记一笔吧</div>`;
     return;
   }
-  el.innerHTML = buildSalaryLineSVG(series, l => l.total, '#f59e0b', '元');
+  const lastLog = series[series.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = series.findIndex(l => l.date === yoyStr);
+  el.innerHTML = buildSalaryLineSVG(series, l => l.total, '#f59e0b', '元', { last: series.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })
+    + `<div class="wt-chart-subnote">最新 <b style="color:#f59e0b">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>`;
 }
 
 function renderScrapMonth() {
