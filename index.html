@@ -2880,7 +2880,7 @@
   .pl-done-btn:hover { border-color: var(--primary-2); color: var(--primary-2); }
   .pl-done-btn.on { background: #059669; border-color: #059669; color: #fff; }
 
-  /* ========== 销售分析报表模块 ========== */
+  /* ========== 销售数据管理模块 ========== */
   .sa-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
   .sa-form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
   .sa-form .wt-field { flex: 1 1 150px; min-width: 0; }
@@ -3020,15 +3020,15 @@ const MODULES = [
   },
   {
     id: 'sales',
-    name: '销售分析报表',
-    desc: '按月录入零售总额·日均销售额·客单量·客单价 · 自动一致性校验与趋势分析',
+    name: '销售数据管理',
+    desc: '按月录入与管理零售总额·日均销售额·客单量·客单价，含统计卡片与明细列表',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
     enabled: true
   },
   {
     id: 'salesyear',
     name: '销售年度曲线',
-    desc: '以销售分析报表数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
+    desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 14 9 9 15 12 21 5"/><polyline points="3 18 9 15 15 17 21 11"/></svg>',
     enabled: true
   },
@@ -3427,7 +3427,7 @@ function renderContent() {
     return;
   }
 
-  // 销售分析报表模块
+  // 销售数据管理模块
   if (currentModule === 'sales') {
     renderSalesModule(content, mod);
     return;
@@ -8690,7 +8690,7 @@ function bindPlacesEvents() {
   }
 }
 
-// ==================== 销售分析报表模块 ====================
+// ==================== 销售数据管理模块 ====================
 const SALES_KEY = 'liumo_sales_logs';
 let salesLogs = [];   // { id, date:'YYYY-MM', retail, dailySales, dailyOrders, avgTicket, note, createdAt, updatedAt }
 
@@ -8718,7 +8718,7 @@ const saMoney = v => (Math.round(Number(v) || 0)).toLocaleString() + ' 元';
 const saNum = v => { const n = Number(v) || 0; return (Math.round(n * 100) / 100).toString(); };
 
 
-// ---------- 渲染:销售分析报表模块 ----------
+// ---------- 渲染:销售数据管理模块 ----------
 function renderSalesModule(content, mod) {
   content.innerHTML = `
     <div class="page-header">
@@ -8767,17 +8767,11 @@ function renderSalesModule(content, mod) {
       </div>
     </div>
 
-    <div class="wt-chart-card">
-      <div class="wt-chart-title">月度趋势 · 零售总额 / 日均销售额 / 客单量 / 客单价</div>
-      <div class="sa-charts" id="saCharts"></div>
-    </div>
-
     <div class="wt-list" id="saList"></div>
   `;
 
   bindSalesEvents();
   renderSalesStats();
-  renderSalesCharts();
   renderSalesList();
 }
 
@@ -8804,29 +8798,6 @@ function renderSalesStats() {
   el.innerHTML = cards.join('');
 }
 
-function renderSalesCharts() {
-  const el = document.getElementById('saCharts');
-  if (!el) return;
-  const logs = salesAsc();
-  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有销售数据,先在上方录入月份数据</div>`; return; }
-  const lastLog = logs[logs.length - 1];
-  const lastDate = lastLog.date;
-  const [ly, lm] = lastDate.split('-').map(Number);
-  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
-  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
-  const charts = [
-    { title: '月度零售总额 (元)', color: '#6366f1', unit: '元', get: l => l.retail || 0 },
-    { title: '日均销售额 (元)', color: '#14b8a6', unit: '元', get: l => l.dailySales || 0 },
-    { title: '日均客单量 (单)', color: '#f59e0b', unit: '单', get: l => l.dailyOrders || 0 },
-    { title: '日均客单价 (元)', color: '#ec4899', unit: '元', get: l => l.avgTicket || 0 }
-  ];
-  el.innerHTML = charts.map(c => `
-    <div class="wt-chart-sub">
-      <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
-      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit, { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })}
-      <div class="wt-chart-subnote">最新 <b style="color:${c.color}">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>
-    </div>`).join('');
-}
 
 /* ===== 销售年度曲线：横轴=月份(1-12)，一年一条曲线 ===== */
 const YEAR_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#3b82f6', '#10b981',
@@ -8917,8 +8888,8 @@ function renderSalesYearModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      将<b>销售分析报表</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
-      直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售分析报表，此处只读展示。
+      将<b>销售数据管理</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
+      直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售数据管理，此处只读展示。
       <b>所有年份</b>都会在图上直接标注各月数值；同月若多年度数值接近，标签会按年份轻微错位并加白底描边以保证可读，鼠标移到圆点还能看「年份+月份+数值」明细。
     </div>
 
@@ -8933,7 +8904,7 @@ function renderSalesYearCharts() {
   const el = document.getElementById('syCharts');
   if (!el) return;
   if (salesLogs.length === 0) {
-    el.innerHTML = `<div class="wt-empty">还没有销售数据，请先在「销售分析报表」模块录入月份数据</div>`;
+    el.innerHTML = `<div class="wt-empty">还没有销售数据，请先在「销售数据管理」模块录入月份数据</div>`;
     return;
   }
   // 按年份分组，逐月存放记录
@@ -9002,7 +8973,7 @@ function bindSalesEvents() {
   const list = document.getElementById('saList');
   let editingId = null;
 
-  function refreshAll() { renderSalesStats(); renderSalesCharts(); renderSalesList(); }
+  function refreshAll() { renderSalesStats(); renderSalesList(); }
 
   function clearForm() {
     monthEl.value = currentMonthStr();
