@@ -2903,6 +2903,9 @@
   .sa-mom.down { color: #10b981; }
 
   .wt-chart-subnote { font-size: 11px; color: #64748b; margin: 2px 0 8px; padding-left: 2px; }
+.yy-legend{display:flex;flex-wrap:wrap;gap:2px 0;margin-top:6px;padding-top:7px;border-top:1px dashed #eef1f6;}
+.yy-legend span{line-height:18px;}
+
 </style>
 </head>
 <body>
@@ -3020,6 +3023,13 @@ const MODULES = [
     name: '销售分析报表',
     desc: '按月录入零售总额·日均销售额·客单量·客单价 · 自动一致性校验与趋势分析',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'salesyear',
+    name: '销售年度曲线',
+    desc: '以销售分析报表数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 14 9 9 15 12 21 5"/><polyline points="3 18 9 15 15 17 21 11"/></svg>',
     enabled: true
   },
   {
@@ -3420,6 +3430,12 @@ function renderContent() {
   // 销售分析报表模块
   if (currentModule === 'sales') {
     renderSalesModule(content, mod);
+    return;
+  }
+
+  // 销售年度曲线模块
+  if (currentModule === 'salesyear') {
+    renderSalesYearModule(content, mod);
     return;
   }
 
@@ -8851,6 +8867,128 @@ function renderSalesCharts() {
       ${buildSalaryLineSVG(logs, c.get, c.color, c.unit, { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })}
       <div class="wt-chart-subnote">最新 <b style="color:${c.color}">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>
     </div>`).join('');
+}
+
+/* ===== 销售年度曲线：横轴=月份(1-12)，一年一条曲线 ===== */
+const YEAR_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#3b82f6', '#10b981',
+  '#ef4444', '#8b5cf6', '#f97316', '#0ea5e9', '#a855f7', '#22c55e'];
+
+// years: [{ year:'2025', data:[12 个数值或 null] }]  unit: 单位字符串
+function buildYearLineChart(years, unit) {
+  const W = 720, H = 330;
+  const padL = 56, padR = 16, padT = 30, padB = 36;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = 12;
+  const xOf = i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1));
+  let vmin = Infinity, vmax = -Infinity, any = false;
+  years.forEach(y => y.data.forEach(v => {
+    if (v != null && isFinite(v)) { any = true; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v); }
+  }));
+  if (!any) { vmin = 0; vmax = 1; }
+  const span = (vmax - vmin) || 1;
+  vmin = vmin - span * 0.08; vmax = vmax + span * 0.08;
+  if (vmin === vmax) { vmin -= 1; vmax += 1; }
+  const yOf = v => padT + plotH * (1 - (v - vmin) / (vmax - vmin));
+  const fmt = v => (Math.round(Number(v) * 100) / 100).toLocaleString() + (unit ? (' ' + unit) : '');
+  // 横向网格 + Y 轴刻度
+  const rows = 4;
+  let grid = '';
+  for (let r = 0; r <= rows; r++) {
+    const gy = (padT + plotH * r / rows).toFixed(1);
+    const gv = vmax - (vmax - vmin) * r / rows;
+    grid += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="#eef1f6" stroke-width="1"/>`;
+    grid += `<text x="${padL - 6}" y="${(Number(gy) + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#9aa3b2">${fmt(gv)}</text>`;
+  }
+  // 月份轴
+  let xlab = '';
+  for (let i = 0; i < n; i++) {
+    xlab += `<text x="${xOf(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9" fill="#9aa3b2">${i + 1}月</text>`;
+  }
+  // 年份曲线
+  let lines = '';
+  years.forEach((y, yi) => {
+    const color = YEAR_COLORS[yi % YEAR_COLORS.length];
+    let seg = [], dots = '', lastPt = null;
+    const flush = () => {
+      if (seg.length) {
+        lines += `<polyline points="${seg.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+        seg = [];
+      }
+    };
+    for (let i = 0; i < n; i++) {
+      const v = y.data[i];
+      if (v == null || !isFinite(v)) { flush(); continue; }
+      const x = xOf(i), yy = yOf(v);
+      seg.push([x.toFixed(1), yy.toFixed(1)]);
+      dots += `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="2.6" fill="${color}"/>`;
+      lastPt = { x, yy, v };
+    }
+    flush();
+    lines += dots;
+    if (lastPt) {
+      lines += `<text x="${lastPt.x.toFixed(1)}" y="${(lastPt.yy - 7).toFixed(1)}" text-anchor="end" font-size="9" fill="${color}" font-weight="600">${fmt(lastPt.v)}</text>`;
+    }
+  });
+  // 图例
+  let legend = '';
+  years.forEach((y, yi) => {
+    const color = YEAR_COLORS[yi % YEAR_COLORS.length];
+    legend += `<span style="display:inline-flex;align-items:center;margin-right:14px;font-size:11px;color:#4b5563;"><span style="display:inline-block;width:14px;height:3px;background:${color};border-radius:2px;margin-right:5px;"></span>${y.year}年</span>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${lines}${xlab}</svg>
+    <div class="yy-legend">${legend || '（暂无数据）'}</div>`;
+}
+
+function renderSalesYearModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      将<b>销售分析报表</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
+      直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售分析报表，此处只读展示。
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按年销售曲线 · 横轴为月份，一年一条曲线</div>
+      <div class="sa-charts" id="syCharts"></div>
+    </div>`;
+  renderSalesYearCharts();
+}
+
+function renderSalesYearCharts() {
+  const el = document.getElementById('syCharts');
+  if (!el) return;
+  if (salesLogs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售数据，请先在「销售分析报表」模块录入月份数据</div>`;
+    return;
+  }
+  // 按年份分组，逐月存放记录
+  const byYear = {};
+  salesLogs.forEach(l => {
+    const p = (l.date || '').split('-');
+    const y = p[0], m = parseInt(p[1], 10);
+    if (!y || !(m >= 1 && m <= 12)) return;
+    if (!byYear[y]) byYear[y] = new Array(12).fill(null);
+    byYear[y][m - 1] = l;
+  });
+  const years = Object.keys(byYear).sort();
+  const yearObjs = years.map(y => ({ year: y, data: byYear[y] }));
+  const metrics = [
+    { title: '月度零售总额 (元)', unit: '元', get: l => l.retail || 0 },
+    { title: '日均销售额 (元)', unit: '元', get: l => l.dailySales || 0 },
+    { title: '日均客单量 (单)', unit: '单', get: l => l.dailyOrders || 0 },
+    { title: '日均客单价 (元)', unit: '元', get: l => l.avgTicket || 0 }
+  ];
+  el.innerHTML = metrics.map(c => {
+    const yr = yearObjs.map(yo => ({ year: yo.year, data: yo.data.map(rec => rec ? c.get(rec) : null) }));
+    return `<div class="wt-chart-sub">
+      <div class="wt-chart-subtitle">${c.title}</div>
+      ${buildYearLineChart(yr, c.unit)}
+    </div>`;
+  }).join('');
 }
 
 function renderSalesAnalysis() {
