@@ -750,8 +750,6 @@
   /* ========== 响应式 ========== */
   @media (max-width: 900px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
-    /* 成本核算录入表单在平板/小桌面上改为 2 列 */
-    .co-entry-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 768px) {
@@ -770,17 +768,6 @@
     .toolbar { flex-direction: column; align-items: stretch; }
     .input-add, .select-priority, .btn-add { width: 100%; }
     .search-box { max-width: none; margin-left: 0; }
-    /* 成本核算：录入表单移动端单列堆叠 */
-    .co-entry-grid { grid-template-columns: 1fr; gap: 12px; }
-    .co-entry-grid .co-note-field { grid-column: auto; }
-    .co-inline { flex-direction: column; align-items: stretch; gap: 8px; }
-    .co-fill-default { width: 100%; }
-    .co-entry-actions { flex-direction: column; align-items: stretch; gap: 12px; }
-    .co-entry-total { text-align: center; }
-    .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
-    .co-admin-head .co-add-item { width: 100%; }
-    .co-admin-row { flex-wrap: wrap; }
-    .co-matrix { min-width: 0; }
   }
 
   /* ========== 心灵鸡汤模块 ========== */
@@ -2866,7 +2853,7 @@
   .co-entry-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
   .co-entry-head { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .co-entry-head::before { content: ''; width: 4px; height: 16px; background: var(--brand-grad); border-radius: 2px; }
-  .co-entry-grid { display: grid; grid-template-columns: 160px repeat(3, 1fr); gap: 14px 18px; align-items: end; }
+  .co-entry-grid { display: grid; grid-template-columns: minmax(150px, 1.2fr) minmax(220px, 1.6fr) minmax(120px, 1fr) minmax(120px, 1fr); gap: 14px 18px; align-items: end; }
   .co-entry-grid .co-note-field { grid-column: 1 / -1; }
   .co-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .co-inline .co-entry-amt { flex: 1 1 120px; min-width: 0; }
@@ -2912,6 +2899,28 @@
   .wt-cat .co-grand td { background: var(--bg-soft); font-weight: 700; }
   .co-matrix { min-width: 520px; }
   .co-matrix .co-rowtotal { color: var(--text); white-space: nowrap; }
+
+  /* 成本核算：响应式断点（必须放在默认 co-* 样式之后才能正确覆盖） */
+  @media (max-width: 900px) {
+    .co-entry-grid { grid-template-columns: repeat(2, 1fr); }
+    .co-entry-grid .co-note-field { grid-column: 1 / -1; }
+  }
+  @media (max-width: 768px) {
+    .co-entry-grid { grid-template-columns: 1fr; gap: 12px; }
+    .co-entry-grid .co-note-field { grid-column: auto; }
+    .co-inline { flex-direction: column; align-items: stretch; gap: 8px; }
+    .co-inline .co-entry-amt { flex: 0 0 auto; width: 100%; }
+    .co-fill-default { width: 100%; }
+    .co-entry-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+    .co-entry-total { text-align: center; width: 100%; }
+    .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
+    .co-admin-head .co-add-item { width: 100%; }
+    .co-admin-row { flex-wrap: wrap; gap: 8px; }
+    .co-admin-row .co-admin-name { flex: 1 1 100%; min-width: 0; }
+    .co-admin-row .co-admin-unit { display: none; }
+    .co-admin-row .co-admin-default { flex: 1 1 auto; min-width: 0; }
+    .co-matrix { min-width: 0; }
+  }
 
   /* ========== 去哪儿玩模块 ========== */
   .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
