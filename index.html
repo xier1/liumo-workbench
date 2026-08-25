@@ -8905,17 +8905,17 @@ function buildYearLineChart(years, unit) {
   for (let i = 0; i < n; i++) {
     xlab += `<text x="${xOf(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9" fill="#9aa3b2">${i + 1}月</text>`;
   }
-  // 年份曲线
-  let lines = '';
+  // 年份曲线（分层绘制：先全部折线 → 再全部圆点 → 最后全部标签，避免后画系列遮挡先画标签）
+  let polyLayer = '', dotLayer = '', labelLayer = '';
   const Y = years.length;
   years.forEach((y, yi) => {
     const color = YEAR_COLORS[yi % YEAR_COLORS.length];
     // 按年份做轻微纵向错位，避免同月多年度数值接近时标签互相压住
     const off = (yi - (Y - 1) / 2) * 9;
-    let seg = [], lastPt = null;
+    let seg = [];
     const flush = () => {
       if (seg.length) {
-        lines += `<polyline points="${seg.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+        polyLayer += `<polyline points="${seg.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
         seg = [];
       }
     };
@@ -8926,23 +8926,19 @@ function buildYearLineChart(years, unit) {
       const x = xOf(i), yy = yOf(v);
       seg.push([x.toFixed(1), yy.toFixed(1)]);
       pts.push({ i, x, yy, v });
-      lastPt = { x, yy, v };
     }
     flush();
     // 圆点 + 悬停提示(所有年份均可查)
-    let dots = '';
     pts.forEach(p => {
-      dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.yy.toFixed(1)}" r="2.8" fill="${color}"><title>${y.year}年${p.i + 1}月: ${fmt(p.v)}</title></circle>`;
+      dotLayer += `<circle cx="${p.x.toFixed(1)}" cy="${p.yy.toFixed(1)}" r="2.8" fill="${color}"><title>${y.year}年${p.i + 1}月: ${fmt(p.v)}</title></circle>`;
     });
     // 各年各点都常驻标注数值；白底描边保证接近时仍可读；越界则反向避让
-    let labels = '';
     pts.forEach(p => {
       let ty = p.yy + off;
       if (ty - 8 < padT) ty = p.yy + 12;
       else if (ty + 4 > H - padB) ty = p.yy - 10;
-      labels += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}" paint-order="stroke" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round">${fmtShort(p.v)}</text>`;
+      labelLayer += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}" paint-order="stroke" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round">${fmtShort(p.v)}</text>`;
     });
-    lines += dots + labels;
   });
   // 图例
   let legend = '';
@@ -8950,7 +8946,7 @@ function buildYearLineChart(years, unit) {
     const color = YEAR_COLORS[yi % YEAR_COLORS.length];
     legend += `<span style="display:inline-flex;align-items:center;margin-right:14px;font-size:11px;color:#4b5563;"><span style="display:inline-block;width:14px;height:3px;background:${color};border-radius:2px;margin-right:5px;"></span>${y.year}年</span>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${lines}${xlab}</svg>
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${polyLayer}${dotLayer}${labelLayer}${xlab}</svg>
     <div class="yy-legend">${legend || '（暂无数据）'}</div>`;
 }
 
