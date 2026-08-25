@@ -219,13 +219,30 @@
     padding: 36px 44px 56px;
     max-width: 1160px;
     margin: 0 auto;
+    scrollbar-width: thin;
   }
+  .main::-webkit-scrollbar { width: 8px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+  .main::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
   .page-header {
     margin-bottom: 26px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    position: relative;
+    padding-left: 14px;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 4px;
+    background: var(--brand-grad);
+    border-radius: 2px;
   }
 
   .page-title {
@@ -261,6 +278,18 @@
     padding: 16px 18px;
     box-shadow: var(--shadow-sm);
     transition: transform var(--transition), box-shadow var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--brand-grad);
+    opacity: 0.85;
   }
 
   .stat-card:hover {
@@ -271,13 +300,15 @@
   .stat-label {
     font-size: 12px;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    font-weight: 500;
   }
 
   .stat-value {
     font-size: 22px;
     font-weight: 600;
     line-height: 1.2;
+    font-variant-numeric: tabular-nums;
   }
 
   .stat-value.primary { color: var(--primary); }
@@ -2560,15 +2591,21 @@
   /* 云端同步面板 */
   .sync-box { margin-top: 12px; }
   .sync-row { display: flex; align-items: center; gap: 8px; }
-  .sync-btn { background: #1F9D55; color: #fff; border: none; border-radius: 8px; padding: 7px 10px; font-size: 12px; cursor: pointer; }
-  .sync-status { font-size: 11px; color: var(--text-muted); }
-  .sync-panel { margin-top: 10px; padding: 10px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; gap: 8px; }
-  .sync-label { font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; }
-  .sync-input { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); font-size: 12px; }
-  .sync-check { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .sync-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 14px -4px rgba(16, 185, 129, 0.42); transition: all var(--transition); }
+  .sync-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -4px rgba(16, 185, 129, 0.55); }
+  .sync-status { font-size: 11px; color: rgba(255,255,255,0.72); }
+  .sync-panel { margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.16); border-radius: 12px; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 10px; }
+  .sync-label { font-size: 11px; color: rgba(255,255,255,0.82); display: flex; flex-direction: column; gap: 5px; }
+  .sync-input { padding: 7px 10px; border: 1px solid rgba(255,255,255,0.22); border-radius: 8px; background: rgba(0,0,0,0.18); color: #fff; font-size: 12px; transition: all var(--transition); }
+  .sync-input::placeholder { color: rgba(255,255,255,0.45); }
+  .sync-input:focus { outline: none; border-color: rgba(255,255,255,0.45); background: rgba(0,0,0,0.26); }
+  .sync-check { font-size: 11px; color: rgba(255,255,255,0.82); display: flex; align-items: center; gap: 6px; }
+  .sync-check input[type="checkbox"] { accent-color: #10b981; }
   .sync-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-  .sync-mini { flex: 1; min-width: 64px; padding: 6px 4px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
-  .sync-tip { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+  .sync-mini { flex: 1; min-width: 64px; padding: 7px 5px; font-size: 11px; border: 1px solid rgba(255,255,255,0.22); border-radius: 8px; background: rgba(255,255,255,0.10); color: #fff; cursor: pointer; transition: all var(--transition); }
+  .sync-mini:hover { background: rgba(255,255,255,0.20); border-color: rgba(255,255,255,0.35); }
+  .sync-mini.danger:hover { background: rgba(239,68,68,0.22); border-color: rgba(239,68,68,0.45); }
+  .sync-tip { font-size: 10px; color: rgba(255,255,255,0.55); line-height: 1.45; }
 
 
   /* 学做店长 */
@@ -2737,20 +2774,58 @@
   .insp-emp-add .insp-input { flex: 1; }
   /* ========== 减肥打卡 ========== */
   .wt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .wt-note { margin: 0 0 14px; padding: 10px 14px; background: var(--bg-soft); border: 1px solid var(--border); border-left: 3px solid var(--primary-2); border-radius: var(--radius-sm); color: var(--text-soft); font-size: 12.5px; line-height: 1.65; }
+  .wt-note { margin: 0 0 18px; padding: 12px 16px; background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-2); border-radius: var(--radius-sm); color: var(--text-soft); font-size: 12.5px; line-height: 1.7; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8); }
   .wt-note b { color: var(--text); font-weight: 600; }
-  .wt-add-bar { align-items: flex-end; }
+  .wt-add-bar { align-items: flex-end; justify-content: flex-start; }
   .wt-field { display: flex; flex-direction: column; gap: 4px; }
   .wt-field label { font-size: 12px; color: var(--text-muted); }
   .wt-field input { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
   .wt-field input:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
   .wt-settings { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; background: var(--bg-soft); padding: 12px 14px; border-radius: var(--radius); }
-  .wt-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
-  .wt-chart-title { font-weight: 600; margin-bottom: 8px; }
-  .wt-empty { color: var(--text-muted); text-align: center; padding: 24px 12px; font-size: 13px; }
+  .wt-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); transition: box-shadow var(--transition); }
+  .wt-chart-card:hover { box-shadow: var(--shadow-md); }
+  .wt-chart-title { font-weight: 600; margin-bottom: 14px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .wt-chart-title::before { content: ''; width: 5px; height: 18px; background: var(--brand-grad); border-radius: 3px; }
+  .wt-charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .wt-chart-sub { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--bg); }
+  .wt-chart-subtitle { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .wt-empty { color: var(--text-muted); text-align: center; padding: 44px 20px; font-size: 13px; background: rgba(248,250,252,0.7); border-radius: var(--radius); border: 1px dashed var(--border); }
+  .wt-empty::before { content: '📭'; display: block; font-size: 28px; margin-bottom: 10px; opacity: 0.55; }
+  .wt-cat-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow-sm); scrollbar-width: thin; scrollbar-color: #c7c8d3 var(--bg-soft); }
+  .wt-cat-wrap::-webkit-scrollbar { height: 8px; }
+  .wt-cat-wrap::-webkit-scrollbar-track { background: var(--bg-soft); border-radius: 4px; }
+  .wt-cat-wrap::-webkit-scrollbar-thumb { background: #c7c8d3; border-radius: 4px; }
+  .wt-cat { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .wt-cat th, .wt-cat td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .wt-cat th:first-child, .wt-cat td:first-child { text-align: left; }
+  .wt-cat thead th { position: sticky; top: 0; z-index: 2; color: #fff; font-weight: 600; background: var(--brand-grad); border-bottom: none; }
+  .wt-cat thead th:first-child { border-top-left-radius: var(--radius-sm); }
+  .wt-cat thead th:last-child { border-top-right-radius: var(--radius-sm); }
+  .wt-cat tbody tr:nth-child(even) { background: rgba(243,244,246,0.55); }
+  .wt-cat tbody tr:hover { background: rgba(99,102,241,0.06); }
+  .wt-cat tbody tr:last-child td { border-bottom: none; }
+  .wt-cat tbody tr:last-child td:first-child { border-bottom-left-radius: var(--radius-sm); }
+  .wt-cat tbody tr:last-child td:last-child { border-bottom-right-radius: var(--radius-sm); }
+  .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
+  .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
+  .wt-settle { border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+  .wt-settle:hover { border-color: var(--text-muted); }
+  .wt-settle.on { background: #10b981; border-color: #10b981; color: #fff; }
+  .wt-settle:disabled { opacity: .4; cursor: not-allowed; }
+  .wt-settle + .wt-settle { margin-left: 6px; }
+  .sc-amt.settled { color: #10b981; font-weight: 600; }
+  .sc-amt.unsettled { color: #ef4444; font-weight: 600; }
+  .sc-settle-date { font-size: 12px; padding: 2px 4px; width: 134px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-right: 6px; }
+  .sc-settle-date-col { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+  .wt-cat .sc-sub td { background: var(--bg-soft); color: var(--text-muted); font-size: 12px; }
+  .wt-cat .sc-sub td:first-child { padding-left: 24px; }
+  .sc-split { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
+  .sc-split .u { color: #ef4444; }
   .wt-list { display: flex; flex-direction: column; gap: 8px; }
-  .wt-item { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; transition: box-shadow var(--transition); }
-  .wt-item:hover { box-shadow: var(--shadow-sm); }
+  .wt-item { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; transition: all var(--transition); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .wt-item:hover { box-shadow: var(--shadow-md); border-color: #d1d5db; transform: translateY(-1px); }
+  .wt-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brand-grad); opacity: 0.7; }
   .wt-item-date { width: 108px; color: var(--text-soft); font-size: 14px; }
   .wt-item-weight { font-size: 18px; font-weight: 700; color: var(--text); }
   .wt-item-weight .wt-unit { font-size: 12px; color: var(--text-muted); margin-left: 2px; font-weight: 400; }
@@ -2759,7 +2834,217 @@
   .wt-delta.down { color: #10b981; }
   .wt-delta.up { color: #ef4444; }
   .wt-delta.neutral { color: var(--text-muted); }
+  .co-admin-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+  .co-admin-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .co-add-item { border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 999px; padding: 5px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+  .co-add-item:hover { border-color: var(--primary-2); color: var(--primary-2); background: var(--primary-soft); }
+  .co-admin-list { display: flex; flex-direction: column; gap: 10px; }
+  /* 固定成本设置：默认折叠，点击标题展开/收起 */
+  .co-toggle { display: inline-flex; align-items: center; gap: 8px; border: none; background: var(--bg-soft); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: var(--radius-sm); transition: all var(--transition); }
+  .co-toggle:hover { background: var(--primary-soft); color: var(--primary-2); }
+  .co-caret { transition: transform var(--transition); color: var(--text-muted); }
+  .co-admin-card:not(.co-collapsed) .co-caret { transform: rotate(90deg); }
+  .co-admin-card.co-collapsed .co-collapse-body { display: none; }
+  /* 固定成本设置：成本合计行 */
+  .co-admin-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 10px 12px; background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%); border: 1px solid #e0e7ff; border-radius: var(--radius-sm); font-size: 13px; }
+  .co-admin-total-label { color: var(--text-soft); font-weight: 600; }
+  .co-admin-total-val { color: var(--primary-2); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  /* 录入：固定成本金额 / 人工成本 / 其他 三项聚合 */
+  .co-entry-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+  .co-entry-head { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .co-entry-head::before { content: ''; width: 4px; height: 16px; background: var(--brand-grad); border-radius: 2px; }
+  .co-entry-grid { display: grid; grid-template-columns: minmax(150px, 1.2fr) minmax(220px, 1.6fr) minmax(120px, 1fr) minmax(120px, 1fr); gap: 14px 18px; align-items: end; }
+  .co-entry-grid .co-note-field { grid-column: 1 / -1; }
+  .co-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .co-inline .co-entry-amt { flex: 1 1 120px; min-width: 0; }
+  .co-fill-default { flex: 0 0 auto; }
+  .co-entry-amt { flex: 1 1 110px; min-width: 0; width: 110px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-entry-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-fixed-field .co-entry-amt { font-weight: 600; color: var(--primary-2); }
+  .co-entry-actions { display: flex; align-items: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+  .co-entry-total { font-size: 13px; color: var(--text-soft); background: var(--bg-soft); padding: 8px 14px; border-radius: 999px; }
+  .co-entry-total b { color: var(--text); font-size: 15px; }
+  .co-admin-row { display: flex; align-items: center; gap: 10px; }
+  .co-admin-name { flex: 1 1 auto; min-width: 0; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
+  .co-admin-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-admin-del { flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; transition: all var(--transition); }
+  .co-admin-del:hover { background: var(--danger-soft); border-color: #ef4444; color: #ef4444; }
+  .co-form-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+  .co-form-head { margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .co-form-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; }
+  .co-form-row { display: flex; align-items: center; gap: 8px; }
+  .co-form-name { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .co-form-amt { flex: 0 0 120px; width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-form-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-note-field { flex: 0 0 180px; }
+  /* 成本项管理：默认值列 */
+  .co-admin-unit { font-size: 12px; color: var(--text-muted); margin: 0 2px 0 4px; }
+  .co-admin-default { flex: 0 0 110px; width: 110px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
+  .co-admin-default:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  /* 录入：一键填入默认值 */
+  .co-form-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--text-soft); font-weight: 600; flex-wrap: wrap; }
+  .co-fill-default { border: 1px solid var(--border); background: var(--primary-2); color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .co-fill-default:hover { filter: brightness(1.05); }
+  /* 手动追加成本项 */
+  .co-add-extra { margin-top: 10px; border: 1px dashed var(--border); background: var(--bg-soft); color: var(--text); border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all var(--transition); }
+  .co-add-extra:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .co-extra-items { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .co-extra-row { display: flex; align-items: center; gap: 8px; }
+  .co-extra-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
+  .co-extra-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-extra-amt { flex: 0 0 120px; width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
+  .co-extra-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-extra-del { flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; transition: all var(--transition); }
+  .co-extra-del:hover { border-color: #ef4444; color: #ef4444; }
+  .wt-cat .co-grand td { background: var(--bg-soft); font-weight: 700; }
+  .co-matrix { min-width: 520px; }
+  .co-matrix .co-rowtotal { color: var(--text); white-space: nowrap; }
 
+  /* 成本核算：响应式断点（必须放在默认 co-* 样式之后才能正确覆盖） */
+  @media (max-width: 900px) {
+    .co-entry-grid { grid-template-columns: repeat(2, 1fr); }
+    .co-entry-grid .co-note-field { grid-column: 1 / -1; }
+  }
+  @media (max-width: 768px) {
+    .co-entry-grid { grid-template-columns: 1fr; gap: 12px; }
+    .co-entry-grid .co-note-field { grid-column: auto; }
+    .co-inline { flex-direction: row; align-items: center; gap: 8px; }
+    .co-inline .co-entry-amt { flex: 1 1 auto; width: auto; min-width: 0; }
+    .co-fill-default { flex: 0 0 auto; width: auto; }
+    .co-entry-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+    .co-entry-total { text-align: center; width: 100%; }
+    .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
+    .co-admin-head .co-add-item { width: 100%; }
+    .co-admin-row { gap: 8px; }
+    .co-admin-row .co-admin-name { flex: 1 1 auto; min-width: 0; }
+    .co-admin-row .co-admin-default { flex: 0 0 110px; width: 110px; min-width: 0; }
+    .co-matrix { min-width: 0; }
+  }
+
+  /* 成本录入模块 */
+  .ce-item-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 14px; color: var(--text); transition: all var(--transition); }
+  .ce-item-select:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .wt-item.editing { border-color: var(--primary-2); box-shadow: var(--ring); }
+
+  /* ========== 去哪儿玩模块 ========== */
+  .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .pl-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .pl-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .pl-form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .pl-form .wt-field { flex: 1 1 180px; min-width: 0; }
+  .pl-form select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); font-size: 14px; }
+  .pl-form select:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .pl-form-actions { display: flex; gap: 8px; align-items: center; }
+  .pl-list { display: flex; flex-direction: column; gap: 10px; }
+  .pl-item { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; transition: box-shadow var(--transition); }
+  .pl-item:hover { box-shadow: var(--shadow-sm); }
+  .pl-item[draggable="true"] { cursor: default; }
+  .pl-item.dragging { opacity: 0.4; }
+  .pl-item.drag-over { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+  .pl-item.visited { opacity: 0.58; }
+  .pl-item.visited .pl-name { text-decoration: line-through; }
+  .pl-body { flex: 1 1 auto; min-width: 0; }
+  .pl-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pl-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .pl-cat { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--bg-soft); color: var(--text-soft); border: 1px solid var(--border); }
+  .pl-note { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; word-break: break-word; }
+  .pl-cat-field { display: flex; gap: 6px; align-items: center; }
+  .pl-cat-field select { flex: 1 1 auto; min-width: 0; }
+  .pl-add-cat { flex: 0 0 auto; width: 36px; height: 38px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text-soft); border-radius: var(--radius-sm); font-size: 18px; line-height: 1; cursor: pointer; transition: all var(--transition); }
+  .pl-add-cat:hover { border-color: var(--primary-2); color: var(--primary-2); background: var(--card); }
+  .pl-new-cat { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .pl-new-cat input { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; }
+  .pl-new-cat input:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .pl-cat-ok, .pl-cat-cancel { border: 1px solid var(--border); background: var(--bg); color: var(--text-soft); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .pl-cat-ok { background: var(--primary-2); color: #fff; border-color: var(--primary-2); }
+  .pl-cat-ok:hover { filter: brightness(1.05); }
+  .pl-cat-cancel:hover { border-color: var(--danger); color: var(--danger); }
+  .pl-cat-filter { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); font-size: 13px; color: var(--text-soft); transition: all var(--transition); }
+  .pl-cat-filter:focus { outline: none; border-color: var(--primary-2); }
+  .pl-manage-cats { border: 1px solid var(--border); background: var(--bg-soft); color: var(--text-soft); border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .pl-manage-cats:hover { border-color: var(--primary-2); color: var(--primary-2); background: var(--card); }
+  .pl-cat-manage { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; }
+  .pl-cat-manage-title { font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px; }
+  .pl-cat-manage-empty { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .pl-cat-manage-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .pl-cat-manage-row { display: flex; gap: 8px; align-items: center; }
+  .pl-cat-manage-row .pl-cat-rename { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; }
+  .pl-cat-manage-row .pl-cat-rename:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .pl-cat-del { border: 1px solid var(--border); background: var(--bg); color: var(--danger); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .pl-cat-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .pl-cat-manage-add { display: flex; gap: 8px; align-items: center; }
+  .pl-cat-manage-add input { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; }
+  .pl-cat-manage-add input:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .pl-done-badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #d1fae5; color: #059669; font-weight: 600; }
+  .pl-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .pl-done-btn { border: 1px solid var(--border); background: var(--bg); color: var(--text-soft); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .pl-done-btn:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .pl-done-btn.on { background: #059669; border-color: #059669; color: #fff; }
+
+  /* ========== 销售数据管理模块 ========== */
+  .sa-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .sa-form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .sa-form .wt-field { flex: 1 1 150px; min-width: 0; }
+  .sa-form-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  .sa-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .sa-analysis { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .sa-analysis-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .sa-hint { font-size: 12.5px; color: var(--text-muted); line-height: 1.75; margin-bottom: 12px; }
+  .sa-hint code { background: var(--bg-soft); padding: 1px 6px; border-radius: 5px; font-size: 12px; color: var(--text-soft); }
+  .sa-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .sa-pill { font-size: 12.5px; padding: 4px 11px; border-radius: 999px; font-weight: 600; }
+  .sa-pill.ok { background: #d1fae5; color: #059669; }
+  .sa-pill.warn { background: #fee2e2; color: #ef4444; }
+  .sa-check-ok { color: #059669; font-weight: 600; }
+  .sa-check-warn { color: #ef4444; font-weight: 600; }
+  .sa-row-warn { background: #fff7f7; }
+  .sa-row-warn td { border-top-color: #fecaca; }
+  .sa-mom { font-weight: 700; margin-left: 6px; }
+  .sa-mom.up { color: #ef4444; }
+  .sa-mom.down { color: #10b981; }
+
+  .wt-chart-subnote { font-size: 11px; color: #64748b; margin: 2px 0 8px; padding-left: 2px; }
+.yy-legend{display:flex;flex-wrap:wrap;gap:2px 0;margin-top:6px;padding-top:7px;border-top:1px dashed #eef1f6;}
+.yy-legend span{line-height:18px;}
+
+
+/* ========== 销售计划模块 ========== */
+.sp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); transition: box-shadow var(--transition); }
+.sp-card:hover { box-shadow: var(--shadow-md); }
+.sp-card-t { font-size: 15px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+.sp-card-t::before { content: ''; width: 5px; height: 18px; background: var(--brand-grad); border-radius: 3px; }
+.sp-tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #eef2ff; color: var(--primary-2); }
+.sp-strat { display: flex; flex-wrap: wrap; gap: 10px; }
+.sp-opt { flex: 1 1 140px; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: .15s; background: #fff; }
+.sp-opt:hover { border-color: #c7d2fe; }
+.sp-opt.active { border-color: var(--primary-2); background: #eef2ff; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+.sp-opt-t { font-size: 13px; font-weight: 600; }
+.sp-opt-d { font-size: 11px; color: var(--text-soft); margin-top: 3px; }
+.sp-growth { display: none; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; background: #f8fafc; border-radius: 10px; }
+.sp-growth.show { display: flex; }
+.sp-growth input[type=range] { flex: 1; }
+.sp-growth b { color: var(--primary-2); min-width: 46px; text-align: right; }
+.sp-input { width: 100%; font-size: 18px; font-weight: 700; border: 1px solid var(--primary-2); border-radius: 8px; padding: 4px 6px; color: var(--text); }
+.sp-note { font-size: 12px; color: var(--text-soft); margin-top: 12px; line-height: 1.6; }
+.sp-up { color: #16a34a; font-weight: 600; }
+.sp-down { color: #dc2626; font-weight: 600; }
+.sp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; align-items: start; }
+.sp-grid .sp-card { margin-bottom: 0; }
+.sp-hl { background: #fff7ed; }
+.sp-hl td:first-child { font-weight: 700; }
+.qg-cell { text-align: center; vertical-align: middle; }
+.qg-g { font-size: 11px; margin-top: 2px; font-weight: 600; }
+.qg-empty { color: #c2c8d2; }
+.sp-ok { color: #10b981; font-weight: 600; }
+.sp-badge { font-size: 10px; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
+.sp-yoy { background: #ffedd5; color: #c2410c; }
+.sp-re { background: #cffafe; color: #0e7490; }
+.sp-bar { height: 14px; border-radius: 999px; background: #eef2f7; overflow: hidden; margin-top: 8px; }
+.sp-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #6366f1); }
+.sp-compare-row { display: flex; justify-content: space-between; font-size: 13px; margin: 10px 0 2px; }
+.sp-pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+.sp-pill.g { background: #dcfce7; color: #15803d; }
+.sp-pill.r { background: #fee2e2; color: #b91c1c; }
 </style>
 </head>
 <body>
@@ -2849,6 +3134,69 @@ const MODULES = [
     name: '工资管理',
     desc: '月工资·营业额·人数·人效·平均工资 · 近一年趋势',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'cost',
+    name: '超市成本核算',
+    desc: '固定成本项清单（可增删改）· 按月逐项填金额 · 成本项与月度双维度汇总',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'costentry',
+    name: '成本录入',
+    desc: '按日期录入任意成本项金额 · 成本项可自定义增删改 · 按月与按成本项双维度汇总',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h11l2 3"/><circle cx="17" cy="13" r="1.5"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'scrap',
+    name: '废品记录',
+    desc: '每日废品收入登记 · 增删改查 · 按月统计 · 结算标记',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'places',
+    name: '去哪儿玩',
+    desc: '收藏想去的地点 · 拖拽排序 · 增删改 · 标记去过',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'sales',
+    name: '销售数据管理',
+    desc: '按月录入与管理零售总额·日均销售额·客单量·客单价，含统计卡片与明细列表',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'salesyear',
+    name: '销售年度曲线',
+    desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 14 9 9 15 12 21 5"/><polyline points="3 18 9 15 15 17 21 11"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'salesplan',
+    name: '销售计划',
+    desc: '基于销售数据管理历史，按策略生成本月计划销售数据，并对比实际达成',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'yeargrowth',
+    name: '年度增长率',
+    desc: '基于销售数据管理，按年汇总日均销售额·月均客单量·月均客单价的同比增长',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-9"/><path d="M21 6h-5M21 6v5"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'quartergrowth',
+    name: '季度增长率',
+    desc: '基于销售数据管理，按季度(Q1-Q4)汇总日均销售额·月均客单量·月均客单价的同季度同比增长',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="4" height="16" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="11" width="4" height="9" rx="1"/></svg>',
     enabled: true
   },
   {
@@ -2944,6 +3292,16 @@ let weightSettings = { target: null, height: null };   // target: 目标体重kg
 
 // ---------- 工资管理状态 ----------
 let salaryLogs = [];   // { id, date:'YYYY-MM', total:Number, head:Number, createdAt, updatedAt }
+
+// ---------- 超市成本核算状态 ----------
+let costLogs = [];     // { id, date:'YYYY-MM', items:[{name:String, amount:Number}], note:String, createdAt, updatedAt }
+let costItems = [];    // [{ id, name, default }] 全局固定成本项清单（含默认值，可在大表单中增删改）
+
+// ---------- 废品记录状态 ----------
+let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:String, createdAt, updatedAt }
+let scrapSettled = {};         // { 'YYYY-MM': { date:'YYYY-MM-DD' 结算截止日 } 有该 key 即表示已结算(截止日及之前的当月记录算已结算)
+let scrapSettleMonth = null;   // 当前正在选择结算截止日的月份(null 表示无)
+let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
 
 // 待办优先级 = 时间管理四象限
 const TODO_PRIORITIES = [
@@ -3217,6 +3575,57 @@ function renderContent() {
   }
   if (currentModule === 'salary') {
     renderSalaryModule(content, mod);
+    return;
+  }
+
+  if (currentModule === 'cost') {
+    renderCostModule(content, mod);
+    return;
+  }
+
+  if (currentModule === 'costentry') {
+    renderCostEntryModule(content, mod);
+    return;
+  }
+
+  if (currentModule === 'scrap') {
+    renderScrapModule(content, mod);
+    return;
+  }
+
+  // 去哪儿玩模块
+  if (currentModule === 'places') {
+    renderPlacesModule(content, mod);
+    return;
+  }
+
+  // 销售数据管理模块
+  if (currentModule === 'sales') {
+    renderSalesModule(content, mod);
+    return;
+  }
+
+  // 销售年度曲线模块
+  if (currentModule === 'salesyear') {
+    renderSalesYearModule(content, mod);
+    return;
+  }
+
+  // 销售计划模块
+  if (currentModule === 'salesplan') {
+    renderSalesPlanModule(content, mod);
+    return;
+  }
+
+  // 年度增长率模块
+  if (currentModule === 'yeargrowth') {
+    renderYearGrowthModule(content, mod);
+    return;
+  }
+
+  // 季度增长率模块
+  if (currentModule === 'quartergrowth') {
+    renderQuarterGrowthModule(content, mod);
     return;
   }
 
@@ -6666,8 +7075,8 @@ function renderSalaryModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">近一年趋势 · 总工资 & 营业额 & 人数 & 人效</div>
-      <div id="saChart"></div>
+      <div class="wt-chart-title">近两年趋势 · 各指标单独曲线</div>
+      <div class="wt-charts-grid" id="saChart"></div>
     </div>
 
     <div class="wt-list" id="saList"></div>
@@ -6703,92 +7112,106 @@ function renderSalaryStats() {
   const avgSalLast12 = last12.map(avgSalOf).filter(v => v != null);
   const avgSalary12 = avgSalLast12.length ? Math.round(avgSalLast12.reduce((s, v) => s + v, 0) / avgSalLast12.length) : null;
   const cards = [];
-  cards.push(statCard('最近月份总工资', last ? last.total + ' 元' : '—', 'primary'));
-  cards.push(statCard('近一年总工资', sum12 > 0 ? sum12.toLocaleString() + ' 元' : '—', ''));
+  cards.push(statCard('上月人数', last ? last.head + ' 人' : '—', ''));
   cards.push(statCard('平均月人数', avgHead != null ? avgHead.toFixed(1) + ' 人' : '—', ''));
-  cards.push(statCard('最近月人效', perCap != null ? Math.round(perCap) + ' 元/人' : '—', avgHead != null && avgHead > 0 ? 'success' : ''));
+  cards.push(statCard('上月人效', perCap != null ? Math.round(perCap) + ' 元/人' : '—', 'success'));
   cards.push(statCard('近一年平均人效', avgEff != null ? avgEff + ' 元/人' : '—', ''));
-  cards.push(statCard('最近月平均工资', avgSal != null ? Math.round(avgSal) + ' 元/人' : '—', ''));
+  cards.push(statCard('上月平均工资', avgSal != null ? Math.round(avgSal) + ' 元/人' : '—', ''));
   cards.push(statCard('近一年平均工资', avgSalary12 != null ? avgSalary12 + ' 元/人' : '—', ''));
-  cards.push(statCard('记录月份', asc.length + ' 个月', ''));
   el.innerHTML = cards.join('');
 }
 
-function buildSalaryChartSVG(logs) {
-  const W = 640, H = 270, padL = 52, padR = 80, padT = 18, padB = 34;
-  const totals = logs.map(l => l.total || 0);
-  const revenues = logs.map(l => l.revenue || 0);
-  const heads = logs.map(l => l.head || 0);
-  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
-  const effs = logs.map(l => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null; });
-  // 左轴(金额)同时覆盖总工资与营业额
-  const moneys = totals.concat(revenues);
-  let tMin = Math.min.apply(null, moneys), tMax = Math.max.apply(null, moneys);
-  let hMin = Math.min.apply(null, heads), hMax = Math.max.apply(null, heads);
-  if (tMin === tMax) { tMin -= 1000; tMax += 1000; }
-  if (hMin === hMax) { hMin = Math.max(0, hMin - 1); hMax += 1; }
-  const eVals = effs.filter(v => v != null);
-  let eMin = eVals.length ? Math.min.apply(null, eVals) : 0;
-  let eMax = eVals.length ? Math.max.apply(null, eVals) : 1;
-  if (eMin === eMax) { eMin = Math.max(0, eMin - 100); eMax += 100; }
-  const tRange = tMax - tMin, hRange = hMax - hMin, eRange = eMax - eMin;
+function buildSalaryLineSVG(logs, getVal, color, unit, marks) {
+  const W = 640, H = 210, padL = 54, padR = 14, padT = 12, padB = 28;
+  const all = logs.map(getVal).filter(v => v != null && isFinite(v));
+  if (all.length === 0) return `<div class="wt-empty" style="padding:18px 0;">暂无数据</div>`;
+  let vMin = Math.min.apply(null, all), vMax = Math.max.apply(null, all);
+  if (vMin === vMax) { const pad = Math.max(1, Math.abs(vMax) * 0.1 || 1); vMin -= pad; vMax += pad; }
+  const vRange = vMax - vMin;
   const n = logs.length;
   const xOf = i => padL + (n === 1 ? (W - padL - padR) / 2 : i * (W - padL - padR) / (n - 1));
-  const yT = v => H - padB - ((v - tMin) / tRange) * (H - padT - padB);
-  const yH = v => H - padB - ((v - hMin) / hRange) * (H - padT - padB);
-  const yE = v => H - padB - ((v - eMin) / eRange) * (H - padT - padB);
+  const yOf = v => H - padB - ((v - vMin) / vRange) * (H - padT - padB);
   let grid = '';
   for (let k = 0; k <= 3; k++) {
     const gy = padT + k * (H - padT - padB) / 3;
-    const val = tMax - (k / 3) * tRange;
+    const val = vMax - (k / 3) * vRange;
     grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="#eef0f3"/><text x="${padL - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#9ca3af">${Math.round(val)}</text>`;
   }
-  let rAxis = '';
-  for (let k = 0; k <= 3; k++) {
-    const gy = padT + k * (H - padT - padB) / 3;
-    const val = hMax - (k / 3) * hRange;
-    rAxis += `<text x="${W - padR + 8}" y="${(gy + 4).toFixed(1)}" text-anchor="start" font-size="10" fill="#f59e0b">${Math.round(val)}</text>`;
-  }
-  let eAxis = '';
-  for (let k = 0; k <= 3; k++) {
-    const gy = padT + k * (H - padT - padB) / 3;
-    const val = eMax - (k / 3) * eRange;
-    eAxis += `<text x="${W - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#10b981">${Math.round(val)}</text>`;
-  }
-  const ptsT = logs.map((l, i) => ({ x: xOf(i), y: yT(l.total || 0), l }));
-  const lineT = ptsT.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsT = ptsT.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#6366f1" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 总工资 ${p.l.total || 0}元</title></circle>`).join('');
-  const ptsR = logs.map((l, i) => ({ x: xOf(i), y: yT(l.revenue || 0), l }));
-  const lineR = ptsR.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsR = ptsR.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#14b8a6" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 营业额 ${p.l.revenue || 0}元</title></circle>`).join('');
-  const ptsH = logs.map((l, i) => ({ x: xOf(i), y: yH(l.head || 0), l }));
-  const lineH = ptsH.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dotsH = ptsH.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#f59e0b" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人数 ${p.l.head || 0}人</title></circle>`).join('');
-  const ptsE = logs.map((l, i) => { const d = (l.date || '').split('-').map(Number); const days = (d[0] && d[1]) ? new Date(d[0], d[1], 0).getDate() : null; return { x: xOf(i), l, v: (days && l.head > 2) ? (l.revenue || 0) / days / (l.head - 2) : null }; });
-  const lineE = ptsE.filter(p => p.v != null).map(p => `${p.x.toFixed(1)},${yE(p.v).toFixed(1)}`).join(' ');
-  const dotsE = ptsE.filter(p => p.v != null).map(p => `<circle cx="${p.x.toFixed(1)}" cy="${yE(p.v).toFixed(1)}" r="3.5" fill="#10b981" stroke="#fff" stroke-width="2"><title>${escapeHtml(p.l.date)} 人效 ${Math.round(p.v)}元/人</title></circle>`).join('');
+  let line = '', dots = '', prev = false;
+  logs.forEach((l, i) => {
+    const v = getVal(l);
+    if (v == null || !isFinite(v)) { prev = false; return; }
+    const x = xOf(i), y = yOf(v);
+    line += (prev ? ' ' : '') + x.toFixed(1) + ',' + y.toFixed(1);
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHtml(l.date)} ${Math.round(v)}${unit}</title></circle>`;
+    prev = true;
+  });
   let xlab = '';
   const step = Math.max(1, Math.ceil(n / 6));
   logs.forEach((l, i) => {
     if (i % step === 0 || i === n - 1) {
       const x = xOf(i);
-      xlab += `<text x="${x.toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#9ca3af">${escapeHtml(l.date.slice(5))}</text>`;
+      xlab += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#9ca3af">${escapeHtml(l.date.slice(5))}</text>`;
     }
   });
-  const legend = `<g font-size="11"><rect x="${padL}" y="0" width="10" height="10" rx="2" fill="#6366f1"/><text x="${padL + 14}" y="9" fill="#6b7280">总工资(元)</text><rect x="${padL + 118}" y="0" width="10" height="10" rx="2" fill="#14b8a6"/><text x="${padL + 132}" y="9" fill="#6b7280">营业额(元)</text><rect x="${padL + 236}" y="0" width="10" height="10" rx="2" fill="#f59e0b"/><text x="${padL + 250}" y="9" fill="#6b7280">人数(人)</text><rect x="${padL + 358}" y="0" width="10" height="10" rx="2" fill="#10b981"/><text x="${padL + 372}" y="9" fill="#6b7280">人效(元/人)</text></g>`;
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${rAxis}${eAxis}${legend}<polyline points="${lineT}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round"/>${dotsT}<polyline points="${lineR}" fill="none" stroke="#14b8a6" stroke-width="2.5" stroke-linejoin="round"/>${dotsR}<polyline points="${lineH}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>${dotsH}<polyline points="${lineE}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>${dotsE}${xlab}</svg>`;
+  let marksSvg = '';
+  if (marks) {
+    const markList = [];
+    if (marks.last != null) markList.push({ i: marks.last, kind: 'last' });
+    if (marks.yoy != null) markList.push({ i: marks.yoy, kind: 'yoy' });
+    markList.forEach(m => {
+      const l = logs[m.i];
+      if (!l) return;
+      const v = getVal(l);
+      if (v == null || !isFinite(v)) return;
+      const x = xOf(m.i), y = yOf(v);
+      const ring = m.kind === 'yoy' ? '#dc2626' : color;
+      const isEnd = m.i === n - 1;
+      const anchor = isEnd ? 'end' : 'middle';
+      const tx = isEnd ? x - 6 : x;
+      let ty = y - 9;
+      if (ty < 14) ty = y + 16;
+      marksSvg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" fill="none" stroke="${ring}" stroke-width="2"/>`;
+      marksSvg += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="10" font-weight="700" fill="${ring}">${Math.round(v)}${unit}</text>`;
+    });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}${marksSvg}</svg>`;
 }
 
 function renderSalaryChart() {
   const el = document.getElementById('saChart');
   if (!el) return;
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24个月
   const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
   const logs = salaryAsc().filter(l => l.date >= cutoffStr);
-  el.innerHTML = logs.length === 0
-    ? `<div class="wt-empty">还没有工资记录,先在上方记录月份工资吧</div>`
-    : buildSalaryChartSVG(logs);
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有工资记录,先在上方记录月份工资吧</div>`;
+    return;
+  }
+  const daysOf = l => { const p = (l.date || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; };
+  // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
+  const effOf = l => { const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
+  // 平均工资 = 总工资 ÷（人数 − 2）（不含管理人员）
+  const avgSalOf = l => (l.head > 2 ? l.total / (l.head - 2) : null);
+  const lastLog = logs[logs.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
+  const charts = [
+    { title: '营业额 (元)', color: '#14b8a6', unit: '元', get: l => l.revenue || 0 },
+    { title: '总工资 (元)', color: '#6366f1', unit: '元', get: l => l.total || 0 },
+    { title: '人数 (人)', color: '#f59e0b', unit: '人', get: l => l.head || 0 },
+    { title: '人效 (元/人·天)', color: '#10b981', unit: '元/人', get: effOf },
+    { title: '平均工资 (元/人)', color: '#ec4899', unit: '元/人', get: avgSalOf },
+  ];
+  el.innerHTML = charts.map(c => `
+    <div class="wt-chart-sub">
+      <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
+      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit, { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })}
+      <div class="wt-chart-subnote">最新 <b style="color:${c.color}">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>
+    </div>`).join('');
 }
 
 function renderSalaryList() {
@@ -6807,8 +7230,7 @@ function renderSalaryList() {
     return `
       <div class="wt-item" data-id="${l.id}">
         <div class="wt-item-date">${escapeHtml(l.date)}</div>
-        <div class="wt-item-weight">${l.total}<span class="wt-unit">元</span></div>
-        <div class="wt-item-delta">营业额 ${(l.revenue || 0)}元 · 人数 ${l.head}人${eff != null ? ' · 人效' + eff + '元/人' : ''}${avgSal != null ? ' · 平均工资' + avgSal + '元/人' : ''}</div>
+        <div class="wt-item-delta">营业额 ${(l.revenue || 0)}元 · 总工资 ${l.total}元 · 人数 ${l.head}人${eff != null ? ' · 人效' + eff + '元/人' : ''}${avgSal != null ? ' · 平均工资' + avgSal + '元/人' : ''}</div>
         <button class="action-btn edit" data-action="sa-edit" data-id="${l.id}" title="修改">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </button>
@@ -6847,7 +7269,7 @@ function bindSalaryEvents() {
     renderSalaryStats();
     renderSalaryChart();
     renderSalaryList();
-    showToast(exist ? '已更新该月工资' : '已记录工资');
+      showToast(exist ? '已更新该月工资' : '已记录工资');
   }
 
   addBtn.addEventListener('click', addLog);
@@ -6866,7 +7288,7 @@ function bindSalaryEvents() {
         renderSalaryStats();
         renderSalaryChart();
         renderSalaryList();
-        showToast('已删除该记录');
+              showToast('已删除该记录');
         return;
       }
       if (editBtn) {
@@ -6880,6 +7302,1341 @@ function bindSalaryEvents() {
           renderSalaryList();
           showToast('已载入该月工资,修改后点「记录工资」即可更新');
         }
+      }
+    });
+  }
+}
+
+// ==================== 超市成本核算模块 ====================
+const COST_LOGS_KEY = 'liumo_cost_logs';
+const COST_ITEMS_KEY = 'liumo_cost_items';
+// 默认成本项模板（含默认值，每月录入时可一键填入，默认值均可编辑）
+const COST_DEFAULT_ITEMS = [
+  { name: '房租', default: 5000 },
+  { name: '人工', default: 8000 },
+  { name: '进货成本', default: 0 },
+  { name: '水电', default: 1200 },
+  { name: '损耗', default: 800 },
+  { name: '其他', default: 0 },
+];
+
+function loadCost() {
+  try {
+    const d = localStorage.getItem(COST_LOGS_KEY);
+    costLogs = d ? JSON.parse(d) : [];
+    if (!Array.isArray(costLogs)) costLogs = [];
+  } catch (e) { costLogs = []; }
+  // 兼容旧版（字段为 category/cost/sale/loss）: 转为「成本项」结构
+  costLogs = costLogs.map(normalizeCostLog);
+  costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+function loadCostItems() {
+  try {
+    const d = localStorage.getItem(COST_ITEMS_KEY);
+    let arr = d ? JSON.parse(d) : null;
+    if (!Array.isArray(arr)) arr = null;
+    costItems = arr;
+  } catch (e) { costItems = null; }
+  // 首次无数据：初始化一份常见默认成本项（用户可增删改）
+  if (!costItems) { costItems = COST_DEFAULT_ITEMS.map(n => ({ id: uid(), name: n.name, default: n.default || 0 })); saveCostItems(); }
+  // 兼容旧数据（无 default 字段）
+  costItems.forEach(it => { it.default = (it.default != null && !isNaN(Number(it.default))) ? Number(it.default) : 0; });
+}
+function saveCostItems() { localStorage.setItem(COST_ITEMS_KEY, JSON.stringify(costItems)); }
+// 把任意记录规范为 { id, date, items:[{name,amount}], note } 结构
+function normalizeCostLog(l) {
+  if (!l || typeof l !== 'object') return { id: uid(), date: currentMonthStr(), items: [], note: '' };
+  if (Array.isArray(l.items)) {
+    const items = l.items
+      .map(it => ({ name: String(it && it.name != null ? it.name : '').trim() || '未命名', amount: Number(it && it.amount != null ? it.amount : 0) || 0 }))
+      .filter(it => it.amount > 0 || it.name !== '未命名');
+    return { id: l.id || uid(), date: l.date, items, note: l.note || '', createdAt: l.createdAt || Date.now(), updatedAt: l.updatedAt || Date.now() };
+  }
+  // 旧版: 只有单条成本/损耗, 并入 items
+  const items = [];
+  const cat = (l.category || '').trim() || '进货成本';
+  if (l.cost != null && !isNaN(Number(l.cost)) && Number(l.cost) > 0) items.push({ name: cat, amount: Number(l.cost) });
+  if (l.loss != null && !isNaN(Number(l.loss)) && Number(l.loss) > 0) items.push({ name: '损耗', amount: Number(l.loss) });
+  return { id: l.id || uid(), date: l.date, items, note: l.note || '', createdAt: l.createdAt || Date.now(), updatedAt: l.updatedAt || Date.now() };
+}
+function saveCostLogs() { localStorage.setItem(COST_LOGS_KEY, JSON.stringify(costLogs)); }
+function costAsc() { return [...costLogs].sort((a, b) => (a.date || '').localeCompare(b.date || '')); }
+function costDesc() { return [...costLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+// 单条记录的总支出
+function costRecTotal(rec) { return (rec.items || []).reduce((s, it) => s + (Number(it.amount) || 0), 0); }
+// 全部记录的总支出
+function costAllTotal() { return costLogs.reduce((s, r) => s + costRecTotal(r), 0); }
+// 各成本项累计（跨所有月份）: { name: total }
+function costItemTotals() {
+  const map = {};
+  costLogs.forEach(r => (r.items || []).forEach(it => {
+    const n = (it.name || '').trim() || '未命名';
+    map[n] = (map[n] || 0) + (Number(it.amount) || 0);
+  }));
+  return map;
+}
+function costWindowLogs() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24 个月
+  const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
+  return costAsc().filter(l => l.date >= cutoffStr);
+}
+// 改名成本项：同步所有历史记录里同名的项
+function renameCostItem(id, newName) {
+  const it = costItems.find(x => x.id === id);
+  if (!it) return;
+  const oldName = it.name;
+  it.name = newName;
+  costLogs.forEach(r => (r.items || []).forEach(i => { if (i.name === oldName) i.name = newName; }));
+  saveCostItems(); saveCostLogs();
+}
+// 删除成本项：移除定义并清理所有历史记录中该名称的金额
+function removeCostItem(id) {
+  const it = costItems.find(x => x.id === id);
+  if (!it) return;
+  costItems = costItems.filter(x => x.id !== id);
+  costLogs.forEach(r => { r.items = (r.items || []).filter(i => i.name !== it.name); });
+  saveCostItems(); saveCostLogs();
+}
+
+// ---------- 渲染:超市成本核算模块 ----------
+function renderCostModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      说明：上方<b>固定成本设置</b>用于维护固定成本的明细项与<b>默认值</b>（如 房租 5000、水电 1200…），均可<b>增删改</b>，其底部会自动汇总出<b>成本合计</b>；
+      下方每月录入时，点「<b>默认值</b>」即可把该<b>成本合计</b>填入「固定成本金额」，再分别填写<b>人工成本</b>与<b>其他</b>，点「<b>记录成本</b>」生成当月记录（可随时修改）。系统自动按<b>固定成本 / 人工成本 / 其他</b>三类与<b>月份</b>汇总。
+    </div>
+
+    <div class="wt-stats" id="coStats"></div>
+
+    <div class="co-admin-card co-collapsed">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="coAdminToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>固定成本设置（全局固定，可增删改）</span>
+        </button>
+        <button class="co-add-item" id="coItemAddBtn" type="button">+ 添加成本项</button>
+      </div>
+      <div class="co-admin-list co-collapse-body" id="coItemList"></div>
+    </div>
+
+    <div class="co-entry-card">
+      <div class="co-entry-head">录入每月成本</div>
+      <div class="co-entry-grid">
+        <div class="wt-field">
+          <label>月份</label>
+          <input type="month" class="co-month" id="costMonth" value="${currentMonthStr()}" />
+        </div>
+        <div class="wt-field co-fixed-field">
+          <label>固定成本金额</label>
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="costFixed" placeholder="0" />
+            <button class="co-fill-default" id="coFillDefaultBtn" type="button" title="把上方固定成本设置的成本合计填入此处">默认值</button>
+          </div>
+        </div>
+        <div class="wt-field co-labor-field">
+          <label>人工成本</label>
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="costLabor" placeholder="0" />
+            <button class="co-fill-default" id="coGetSalaryBtn" type="button" title="从工资管理获取该月份的总工资并填入">获取工资</button>
+          </div>
+        </div>
+        <div class="wt-field">
+          <label>其他</label>
+          <input type="number" step="0.01" min="0" class="co-entry-amt" id="costOther" placeholder="0" />
+        </div>
+        <div class="wt-field co-note-field">
+          <label>备注（可选）</label>
+          <input type="text" class="co-note" id="costNote" placeholder="如 总店" />
+        </div>
+      </div>
+      <div class="co-entry-actions">
+        <button class="btn-add" id="costAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          记录成本
+        </button>
+        <span class="co-entry-total">本月合计：<b id="coEntryTotal">0 元</b></span>
+      </div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">月度总支出趋势（近两年）</div>
+      <div id="coChart"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">成本汇总 · 各成本项合计与占比</div>
+      <div id="coSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">月度明细矩阵 · 月份 × 成本项</div>
+      <div class="wt-cat-wrap"><div id="coMatrix"></div></div>
+    </div>
+
+    <div class="wt-list" id="coList"></div>
+  `;
+
+  bindCostEvents();
+  renderCostItemAdmin();
+  renderCostStats();
+  renderCostChart();
+  renderCostSummary();
+  renderCostMatrix();
+  renderCostList();
+}
+
+// 成本项管理大表单：逐项列出，可改名/删除
+function renderCostItemAdmin() {
+  const el = document.getElementById('coItemList');
+  if (!el) return;
+  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">还没有成本项，点右上角「+ 添加成本项」</div>`; return; }
+  const total = costItems.reduce((s, it) => s + (Number(it.default) || 0), 0);
+  el.innerHTML = costItems.map(it => `
+    <div class="co-admin-row" data-id="${it.id}">
+      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" placeholder="成本项名称" />
+      <input type="number" step="0.01" min="0" class="co-admin-default" data-id="${it.id}" value="${it.default != null ? it.default : 0}" placeholder="默认值" title="每月「一键填入默认值」时带入的金额" />
+      <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
+    </div>`).join('') + `
+    <div class="co-admin-total">
+      <span class="co-admin-total-label">成本合计（各默认值之和）</span>
+      <span class="co-admin-total-val">${saMoney(total)}</span>
+    </div>`;
+}
+// 录入表单已重构为「固定成本金额 / 人工成本 / 其他」三项聚合录入，见 bindCostEvents 中的 addLog()
+
+function renderCostStats() {
+  const el = document.getElementById('coStats');
+  if (!el) return;
+  const total = costAllTotal();                 // 总支出（全部月份）
+  const months = costLogs.length;               // 记录月份数
+  const itemMap = costItemTotals();
+  const kinds = Object.keys(itemMap).length;    // 成本项种类数
+  const avg = months > 0 ? total / months : 0;  // 月均支出
+  const last = costDesc()[0];
+  const lastTotal = last ? costRecTotal(last) : 0;
+  const money = v => Math.round(v).toLocaleString() + ' 元';
+  const cards = [];
+  cards.push(statCard('总支出', money(total), ''));
+  cards.push(statCard('记录月份', months + ' 个月', ''));
+  cards.push(statCard('成本项种类', kinds + ' 类', ''));
+  cards.push(statCard('月均支出', money(avg), ''));
+  cards.push(statCard('最近月支出', money(lastTotal), 'success'));
+  el.innerHTML = cards.join('');
+}
+
+function renderCostChart() {
+  const el = document.getElementById('coChart');
+  if (!el) return;
+  const logs = costWindowLogs();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有成本记录,先在上方记录月份数据吧</div>`;
+    return;
+  }
+  const lastLog = logs[logs.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
+  el.innerHTML = buildSalaryLineSVG(logs, costRecTotal, '#6366f1', '元', { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })
+    + `<div class="wt-chart-subnote">最新 <b style="color:#6366f1">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>`;
+}
+
+// 成本汇总：各成本项跨月合计、占比、条形
+function renderCostSummary() {
+  const el = document.getElementById('coSummary');
+  if (!el) return;
+  const map = costItemTotals();
+  const names = Object.keys(map).sort((a, b) => map[b] - map[a]);
+  const grand = names.reduce((s, n) => s + map[n], 0);
+  if (names.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const money = v => Math.round(v).toLocaleString();
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr><th>成本项</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
+      <tbody>
+        ${names.map(n => {
+          const v = map[n];
+          const share = grand > 0 ? v / grand * 100 : 0;
+          return `<tr>
+            <td>${escapeHtml(n)}</td>
+            <td>${money(v)} 元</td>
+            <td>${pct(v)}</td>
+            <td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#6366f1"></i></span></div></td>
+          </tr>`;
+        }).join('')}
+        <tr class="co-grand">
+          <td><b>合计</b></td>
+          <td><b>${money(grand)} 元</b></td>
+          <td>100%</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// 月度明细矩阵：月份 × 成本项
+function renderCostMatrix() {
+  const el = document.getElementById('coMatrix');
+  if (!el) return;
+  const logs = costDesc();
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const totals = costItemTotals();
+  // 列顺序优先按成本项清单顺序，历史中遗漏的项追加在末尾
+  const seen = new Set();
+  const itemNames = [];
+  costItems.forEach(it => {
+    const n = (it.name || '').trim();
+    if (n && totals[n] != null && !seen.has(n)) { itemNames.push(n); seen.add(n); }
+  });
+  Object.keys(totals).forEach(n => { if (!seen.has(n)) { itemNames.push(n); seen.add(n); } });
+  const money = v => Math.round(v).toLocaleString();
+  const sumsOf = r => {
+    const s = {};
+    (r.items || []).forEach(it => { const n = (it.name || '').trim() || '未命名'; s[n] = (s[n] || 0) + (Number(it.amount) || 0); });
+    return s;
+  };
+  el.innerHTML = `
+    <table class="wt-cat co-matrix">
+      <thead><tr>
+        <th>月份</th>
+        ${itemNames.map(n => `<th>${escapeHtml(n)}</th>`).join('')}
+        <th>合计</th>
+      </tr></thead>
+      <tbody>
+        ${logs.map(r => {
+          const sums = sumsOf(r);
+          const rowTotal = costRecTotal(r);
+          return `<tr>
+            <td>${escapeHtml(r.date)}${r.note ? ' · ' + escapeHtml(r.note) : ''}</td>
+            ${itemNames.map(n => `<td>${sums[n] ? money(sums[n]) : '—'}</td>`).join('')}
+            <td class="co-rowtotal"><b>${money(rowTotal)}</b></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderCostList() {
+  const el = document.getElementById('coList');
+  if (!el) return;
+  const logs = costDesc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">暂无记录</div>`;
+    return;
+  }
+  const money = v => Math.round(v).toLocaleString();
+  el.innerHTML = logs.map(l => {
+    const total = costRecTotal(l);
+    const itemTxt = (l.items || []).map(it => `${escapeHtml(it.name || '未命名')} ${money(it.amount)}`).join('、');
+    return `
+      <div class="wt-item" data-id="${l.id}">
+        <div class="wt-item-date">${escapeHtml(l.date)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</div>
+        <div class="wt-item-delta">共 ${(l.items || []).length} 项 · 合计 ${money(total)}元${itemTxt ? ' · ' + itemTxt : ''}</div>
+        <button class="action-btn edit" data-action="co-edit" data-id="${l.id}" title="修改">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+        <button class="action-btn delete" data-action="co-del" data-id="${l.id}" title="删除">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function bindCostEvents() {
+  const addBtn = document.getElementById('costAddBtn');
+  const monthEl = document.getElementById('costMonth');
+  const noteEl = document.getElementById('costNote');
+  const adminList = document.getElementById('coItemList');
+  const addItemBtn = document.getElementById('coItemAddBtn');
+  const fixedEl = document.getElementById('costFixed');
+  const laborEl = document.getElementById('costLabor');
+  const otherEl = document.getElementById('costOther');
+  const entryTotalEl = document.getElementById('coEntryTotal');
+  const fillBtn = document.getElementById('coFillDefaultBtn');
+  const getSalaryBtn = document.getElementById('coGetSalaryBtn');
+  const list = document.getElementById('coList');
+
+  function refreshDerived() {
+    renderCostStats(); renderCostChart(); renderCostSummary(); renderCostMatrix(); renderCostList();
+  }
+
+  // 固定成本设置：折叠/展开
+  const adminToggle = document.getElementById('coAdminToggle');
+  if (adminToggle) {
+    adminToggle.addEventListener('click', () => {
+      const card = adminToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      adminToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
+
+  // 成本项管理：添加
+  addItemBtn.addEventListener('click', () => {
+    costItems.push({ id: uid(), name: '新成本项' });
+    saveCostItems();
+    renderCostItemAdmin();
+    // 添加新项时自动展开，便于立即编辑
+    const card = addItemBtn.closest('.co-admin-card');
+    if (card && card.classList.contains('co-collapsed')) {
+      card.classList.remove('co-collapsed');
+      if (adminToggle) adminToggle.setAttribute('aria-expanded', 'true');
+    }
+    const rows = adminList.querySelectorAll('.co-admin-row');
+    const last = rows[rows.length - 1];
+    if (last) last.querySelector('.co-admin-name').focus();
+  });
+  // 成本项管理：删除（同时清理历史金额）
+  adminList.addEventListener('click', e => {
+    const del = e.target.closest('.co-admin-del');
+    if (del) {
+      const id = del.dataset.id;
+      const it = costItems.find(x => x.id === id);
+      removeCostItem(id);
+      renderCostItemAdmin();
+      refreshDerived();
+      showToast('已删除成本项' + (it ? '「' + it.name + '」' : '') + '及其历史金额');
+    }
+  });
+  // 成本项管理：改名 / 改默认值（失焦保存）
+  adminList.addEventListener('change', e => {
+    const defInp = e.target.closest('.co-admin-default');
+    if (defInp) {
+      const it = costItems.find(x => x.id === defInp.dataset.id);
+      if (it) { it.default = parseFloat(defInp.value) || 0; saveCostItems(); showToast('已更新「' + it.name + '」默认值'); }
+      return;
+    }
+    const nameInp = e.target.closest('.co-admin-name');
+    if (nameInp) {
+      const id = nameInp.dataset.id;
+      const newName = (nameInp.value || '').trim() || '未命名';
+      nameInp.value = newName;
+      renameCostItem(id, newName);
+      refreshDerived();
+    }
+  });
+
+  // 录入：读取三项聚合金额
+  function readEntryItems() {
+    const items = [];
+    const fixed = parseFloat(fixedEl.value);
+    const labor = parseFloat(laborEl.value);
+    const other = parseFloat(otherEl.value);
+    if (!isNaN(fixed) && fixed > 0) items.push({ name: '固定成本', amount: fixed });
+    if (!isNaN(labor) && labor > 0) items.push({ name: '人工成本', amount: labor });
+    if (!isNaN(other) && other > 0) items.push({ name: '其他', amount: other });
+    return items;
+  }
+
+  // 实时合计显示
+  function updateEntryTotal() {
+    if (!entryTotalEl) return;
+    const sum = ['costFixed', 'costLabor', 'costOther'].reduce((s, id) => {
+      const v = parseFloat(document.getElementById(id).value);
+      return s + (isNaN(v) ? 0 : v);
+    }, 0);
+    entryTotalEl.textContent = saMoney(sum);
+  }
+  [fixedEl, laborEl, otherEl].forEach(el => el && el.addEventListener('input', updateEntryTotal));
+
+  function addLog() {
+    const date = monthEl.value || currentMonthStr();
+    const items = readEntryItems();
+    const note = (noteEl.value || '').trim();
+    const exist = costLogs.find(l => l.date === date);
+    if (exist) { exist.items = items; exist.note = note; exist.updatedAt = Date.now(); }
+    else { costLogs.push({ id: uid(), date, items, note, createdAt: Date.now(), updatedAt: Date.now() }); }
+    costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    saveCostLogs();
+    fixedEl.value = ''; laborEl.value = ''; otherEl.value = '';
+    noteEl.value = '';
+    updateEntryTotal();
+    refreshDerived();
+    showToast(exist ? '已更新 ' + date + ' 成本' : '已记录 ' + date + ' 成本');
+  }
+
+  // 一键填入默认值：把上方固定成本设置的成本合计填入「固定成本金额」
+  fillBtn.addEventListener('click', () => {
+    const total = costItems.reduce((s, it) => s + (Number(it.default) || 0), 0);
+    if (fixedEl) { fixedEl.value = total > 0 ? total : ''; updateEntryTotal(); }
+    showToast('已填入固定成本设置的成本合计：' + saMoney(total));
+  });
+
+  // 获取工资：从工资管理读取选择月份的总工资并填入「人工成本」
+  if (getSalaryBtn) {
+    getSalaryBtn.addEventListener('click', () => {
+      const date = monthEl ? (monthEl.value || currentMonthStr()) : currentMonthStr();
+      let logs = [];
+      try { const raw = localStorage.getItem('liumo_salary_logs'); logs = raw ? JSON.parse(raw) : []; } catch (e) { logs = []; }
+      if (!Array.isArray(logs)) logs = [];
+      const rec = logs.find(l => String(l.date) === String(date));
+      if (!rec) { showToast('工资管理中未找到 ' + date + ' 的记录'); return; }
+      const total = Number(rec.total) || 0;
+      if (laborEl) { laborEl.value = total > 0 ? total : ''; updateEntryTotal(); }
+      showToast('已填入 ' + date + ' 总工资：' + saMoney(total));
+    });
+  }
+
+  addBtn.addEventListener('click', addLog);
+  noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
+
+  if (list) list.addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-action="co-del"]');
+    const editBtn = e.target.closest('[data-action="co-edit"]');
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      costLogs = costLogs.filter(l => l.id !== id);
+      saveCostLogs();
+      refreshDerived();
+      showToast('已删除该记录');
+      return;
+    }
+    if (editBtn) {
+      const rec = costLogs.find(l => l.id === editBtn.dataset.id);
+      if (rec) {
+        monthEl.value = rec.date;
+        noteEl.value = rec.note || '';
+        const sums = {};
+        (rec.items || []).forEach(it => { sums[(it.name || '').trim()] = it.amount; });
+        if (fixedEl) fixedEl.value = sums['固定成本'] != null ? sums['固定成本'] : '';
+        if (laborEl) laborEl.value = sums['人工成本'] != null ? sums['人工成本'] : '';
+        if (otherEl) otherEl.value = sums['其他'] != null ? sums['其他'] : '';
+        updateEntryTotal();
+        monthEl.focus();
+        showToast('已载入 ' + rec.date + '，修改后点「记录成本」即可更新');
+      }
+    }
+  });
+}
+
+// ==================== 成本录入模块 ====================
+let costEntryItems = [];
+let costEntryLogs = [];
+let ceEditingId = null;
+const COSTENTRY_ITEMS_KEY = 'liumo_costentry_items';
+const COSTENTRY_LOGS_KEY = 'liumo_costentry_logs';
+
+function loadCostEntry() {
+  try { const d = localStorage.getItem(COSTENTRY_ITEMS_KEY); costEntryItems = d ? JSON.parse(d) : []; if (!Array.isArray(costEntryItems)) costEntryItems = []; } catch (e) { costEntryItems = []; }
+  try { const d = localStorage.getItem(COSTENTRY_LOGS_KEY); costEntryLogs = d ? JSON.parse(d) : []; if (!Array.isArray(costEntryLogs)) costEntryLogs = []; } catch (e) { costEntryLogs = []; }
+  if (costEntryItems.length === 0) {
+    costEntryItems = ['房租', '水电', '人工成本', '其他'].map(n => ({ id: uid(), name: n }));
+    saveCostEntryItems();
+  }
+}
+function saveCostEntryItems() { localStorage.setItem(COSTENTRY_ITEMS_KEY, JSON.stringify(costEntryItems)); }
+function saveCostEntryLogs() { localStorage.setItem(COSTENTRY_LOGS_KEY, JSON.stringify(costEntryLogs)); }
+
+function ceTodayStr() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+function renderCostEntryModule(content, mod) {
+  loadCostEntry();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      说明：先维护<b>成本项</b>（如 房租、水电、人工成本、其他…，可增删改）；录入时选择<b>日期</b>与<b>成本项</b>、填写<b>金额</b>即可保存，记录可随时<b>修改 / 删除</b>。系统自动按<b>月份</b>与<b>成本项</b>分别汇总。选定工资类成本项（名称含 工资 / 人工 / 薪）时，可点「<b>获取工资</b>」从工资管理带入当月总工资。
+    </div>
+
+    <div class="wt-stats" id="ceStats"></div>
+
+    <div class="co-admin-card">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="ceAdminToggle" type="button" aria-expanded="true">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>成本项管理（可自定义，增删改）</span>
+        </button>
+        <button class="co-add-item" id="ceItemAddBtn" type="button">+ 添加成本项</button>
+      </div>
+      <div class="co-admin-list co-collapse-body" id="ceItemList"></div>
+    </div>
+
+    <div class="co-entry-card">
+      <div class="co-entry-head">录入成本</div>
+      <div class="co-entry-grid">
+        <div class="wt-field">
+          <label>日期</label>
+          <input type="date" class="ce-date" id="ceDate" value="${ceTodayStr()}" />
+        </div>
+        <div class="wt-field">
+          <label>成本项</label>
+          <select class="ce-item-select" id="ceItem"></select>
+        </div>
+        <div class="wt-field">
+          <label>金额（元）</label>
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="ceAmount" placeholder="0" />
+            <button class="co-fill-default" id="ceGetSalaryBtn" type="button" style="display:none" title="从工资管理获取该月份的总工资并填入">获取工资</button>
+          </div>
+        </div>
+        <div class="wt-field co-note-field">
+          <label>备注（可选）</label>
+          <input type="text" class="co-note" id="ceNote" placeholder="如 总店 / 采购单号" />
+        </div>
+      </div>
+      <div class="co-entry-actions">
+        <button class="btn-add" id="ceAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="ceAddBtnLabel">保存记录</span>
+        </button>
+        <span class="co-entry-total">本次金额：<b id="ceEntryTotal">0 元</b></span>
+      </div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按成本项汇总 · 各成本项合计与占比</div>
+      <div id="ceSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按月汇总 · 各月成本合计</div>
+      <div id="ceMonthSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">明细矩阵 · 月份 × 成本项</div>
+      <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
+    </div>
+
+    <div class="wt-list" id="ceList"></div>
+  `;
+
+  bindCostEntryEvents();
+  renderCeItemAdmin();
+  renderCeItemSelect();
+  renderCeStats();
+  renderCeSummary();
+  renderCeMonthSummary();
+  renderCeMatrix();
+  renderCeList();
+  updateCeSalaryBtn();
+}
+
+function renderCeItemAdmin() {
+  const el = document.getElementById('ceItemList');
+  if (!el) return;
+  if (costEntryItems.length === 0) { el.innerHTML = `<div class="wt-empty">还没有成本项，点右上角“+ 添加成本项”新增</div>`; return; }
+  el.innerHTML = costEntryItems.map(it => `
+    <div class="co-admin-row" data-id="${it.id}">
+      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" placeholder="成本项名称" />
+      <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
+    </div>`).join('');
+}
+
+function renderCeItemSelect() {
+  const sel = document.getElementById('ceItem');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = costEntryItems.map(it => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('');
+  if (prev && costEntryItems.some(it => it.id === prev)) sel.value = prev;
+  updateCeSalaryBtn();
+}
+
+function setCeAddLabel(text) {
+  const el = document.getElementById('ceAddBtnLabel');
+  if (el) el.textContent = text;
+}
+
+function updateCeSalaryBtn() {
+  const sel = document.getElementById('ceItem');
+  const btn = document.getElementById('ceGetSalaryBtn');
+  if (!sel || !btn) return;
+  const it = costEntryItems.find(x => x.id === sel.value);
+  const wage = !!(it && /工资|人工|薪|劳务/.test(it.name || ''));
+  btn.style.display = wage ? '' : 'none';
+}
+
+function renderCeStats() {
+  const el = document.getElementById('ceStats');
+  if (!el) return;
+  const grand = costEntryLogs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const months = new Set(costEntryLogs.map(l => (l.date || '').slice(0, 7))).size;
+  const cards = [
+    statCard('总成本', saMoney(grand), ''),
+    statCard('记录数', costEntryLogs.length + ' 条', ''),
+    statCard('成本项数', costEntryItems.length + ' 项', ''),
+    statCard('覆盖月份', months + ' 个', '')
+  ];
+  el.innerHTML = cards.join('');
+}
+
+function ceItemTotals() {
+  const map = {};
+  costEntryLogs.forEach(l => { const n = (l.itemName || '').trim() || '未命名'; map[n] = (map[n] || 0) + (Number(l.amount) || 0); });
+  return map;
+}
+function ceMonthTotals() {
+  const map = {};
+  costEntryLogs.forEach(l => { const m = (l.date || '').slice(0, 7); if (m) map[m] = (map[m] || 0) + (Number(l.amount) || 0); });
+  return map;
+}
+
+function renderCeSummary() {
+  const el = document.getElementById('ceSummary');
+  if (!el) return;
+  const map = ceItemTotals();
+  const names = Object.keys(map).sort((a, b) => map[b] - map[a]);
+  const grand = names.reduce((s, n) => s + map[n], 0);
+  if (names.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const money = v => Math.round(v).toLocaleString();
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr><th>成本项</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
+      <tbody>
+        ${names.map(n => {
+          const v = map[n];
+          const share = grand > 0 ? v / grand * 100 : 0;
+          return `<tr><td>${escapeHtml(n)}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#6366f1"></i></span></div></td></tr>`;
+        }).join('')}
+        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
+      </tbody>
+    </table>`;
+}
+
+function renderCeMonthSummary() {
+  const el = document.getElementById('ceMonthSummary');
+  if (!el) return;
+  const map = ceMonthTotals();
+  const months = Object.keys(map).sort((a, b) => b.localeCompare(a));
+  const grand = months.reduce((s, m) => s + map[m], 0);
+  if (months.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const money = v => Math.round(v).toLocaleString();
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr><th>月份</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
+      <tbody>
+        ${months.map(m => {
+          const v = map[m];
+          const share = grand > 0 ? v / grand * 100 : 0;
+          return `<tr><td>${m}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#10b981"></i></span></div></td></tr>`;
+        }).join('')}
+        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
+      </tbody>
+    </table>`;
+}
+
+function renderCeMatrix() {
+  const el = document.getElementById('ceMatrix');
+  if (!el) return;
+  if (costEntryLogs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const seen = new Set();
+  const itemNames = [];
+  costEntryItems.forEach(it => { const n = (it.name || '').trim(); if (n && !seen.has(n)) { itemNames.push(n); seen.add(n); } });
+  Object.keys(ceItemTotals()).forEach(n => { if (!seen.has(n)) { itemNames.push(n); seen.add(n); } });
+  const months = [...new Set(costEntryLogs.map(l => (l.date || '').slice(0, 7)))].filter(Boolean).sort((a, b) => b.localeCompare(a));
+  const cell = {};
+  costEntryLogs.forEach(l => {
+    const m = (l.date || '').slice(0, 7); const n = (l.itemName || '').trim() || '未命名';
+    if (!m) return;
+    cell[m] = cell[m] || {};
+    cell[m][n] = (cell[m][n] || 0) + (Number(l.amount) || 0);
+  });
+  const money = v => Math.round(v).toLocaleString();
+  el.innerHTML = `
+    <table class="wt-cat co-matrix">
+      <thead><tr><th>月份</th>${itemNames.map(n => `<th>${escapeHtml(n)}</th>`).join('')}<th>合计</th></tr></thead>
+      <tbody>
+        ${months.map(m => {
+          let rowTotal = 0;
+          const tds = itemNames.map(n => { const v = (cell[m] && cell[m][n]) ? cell[m][n] : 0; rowTotal += v; return `<td>${v ? money(v) : '—'}</td>`; }).join('');
+          return `<tr><td>${m}</td>${tds}<td class="co-rowtotal"><b>${money(rowTotal)}</b></td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderCeList() {
+  const el = document.getElementById('ceList');
+  if (!el) return;
+  const logs = [...costEntryLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有成本记录，先在上方录入一笔吧</div>`; return; }
+  el.innerHTML = logs.map(l => `
+    <div class="wt-item ${ceEditingId === l.id ? 'editing' : ''}" data-id="${l.id}">
+      <div class="wt-item-date">${escapeHtml(l.date)}</div>
+      <div class="wt-item-delta"><b>${escapeHtml(l.itemName || '未命名')}</b> · ${saMoney(l.amount)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</div>
+      <button class="action-btn edit" data-action="ce-edit" data-id="${l.id}" title="修改">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+      </button>
+      <button class="action-btn delete" data-action="ce-del" data-id="${l.id}" title="删除">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function bindCostEntryEvents() {
+  const addBtn = document.getElementById('ceAddBtn');
+  const dateEl = document.getElementById('ceDate');
+  const itemSel = document.getElementById('ceItem');
+  const amountEl = document.getElementById('ceAmount');
+  const noteEl = document.getElementById('ceNote');
+  const entryTotalEl = document.getElementById('ceEntryTotal');
+  const getSalaryBtn = document.getElementById('ceGetSalaryBtn');
+  const adminList = document.getElementById('ceItemList');
+  const addItemBtn = document.getElementById('ceItemAddBtn');
+  const adminToggle = document.getElementById('ceAdminToggle');
+  const list = document.getElementById('ceList');
+
+  function refreshAll() {
+    renderCeStats(); renderCeSummary(); renderCeMonthSummary(); renderCeMatrix(); renderCeList();
+  }
+  function updateTotal() {
+    if (!entryTotalEl || !amountEl) return;
+    const v = parseFloat(amountEl.value);
+    entryTotalEl.textContent = saMoney(isNaN(v) ? 0 : v);
+  }
+
+  if (adminToggle) {
+    adminToggle.addEventListener('click', () => {
+      const card = adminToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      adminToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
+
+  if (addItemBtn) {
+    addItemBtn.addEventListener('click', () => {
+      costEntryItems.push({ id: uid(), name: '新成本项' });
+      saveCostEntryItems();
+      renderCeItemAdmin();
+      renderCeItemSelect();
+      const card = addItemBtn.closest('.co-admin-card');
+      if (card && card.classList.contains('co-collapsed')) {
+        card.classList.remove('co-collapsed');
+        adminToggle.setAttribute('aria-expanded', 'true');
+      }
+      const rows = adminList.querySelectorAll('.co-admin-row');
+      const last = rows[rows.length - 1];
+      if (last) { const inp = last.querySelector('.co-admin-name'); inp.focus(); inp.select(); }
+    });
+  }
+
+  if (adminList) {
+    adminList.addEventListener('click', e => {
+      const del = e.target.closest('.co-admin-del');
+      if (del) {
+        const id = del.dataset.id;
+        const used = costEntryLogs.some(l => l.itemId === id);
+        if (used) { showToast('该成本项已有记录，请先删除相关记录'); return; }
+        const it = costEntryItems.find(x => x.id === id);
+        costEntryItems = costEntryItems.filter(x => x.id !== id);
+        saveCostEntryItems();
+        renderCeItemAdmin();
+        renderCeItemSelect();
+        refreshAll();
+        showToast('已删除成本项' + (it ? '「' + it.name + '」' : ''));
+      }
+    });
+    adminList.addEventListener('change', e => {
+      const nameInp = e.target.closest('.co-admin-name');
+      if (nameInp) {
+        const id = nameInp.dataset.id;
+        const newName = (nameInp.value || '').trim() || '未命名';
+        nameInp.value = newName;
+        const it = costEntryItems.find(x => x.id === id);
+        if (it) {
+          it.name = newName;
+          saveCostEntryItems();
+          costEntryLogs.forEach(l => { if (l.itemId === id) l.itemName = newName; });
+          saveCostEntryLogs();
+          renderCeItemSelect();
+          refreshAll();
+        }
+      }
+    });
+  }
+
+  if (itemSel) itemSel.addEventListener('change', () => { updateCeSalaryBtn(); });
+  if (amountEl) amountEl.addEventListener('input', updateTotal);
+
+  if (getSalaryBtn) {
+    getSalaryBtn.addEventListener('click', () => {
+      const date = (dateEl && dateEl.value) || ceTodayStr();
+      const month = date.slice(0, 7);
+      let logs = [];
+      try { const raw = localStorage.getItem('liumo_salary_logs'); logs = raw ? JSON.parse(raw) : []; } catch (e) { logs = []; }
+      if (!Array.isArray(logs)) logs = [];
+      const rec = logs.find(l => String(l.date) === String(month));
+      if (!rec) { showToast('工资管理中未找到 ' + month + ' 的记录'); return; }
+      const total = Number(rec.total) || 0;
+      if (amountEl) { amountEl.value = total > 0 ? total : ''; updateTotal(); }
+      showToast('已填入 ' + month + ' 总工资：' + saMoney(total));
+    });
+  }
+
+  function addLog() {
+    const date = (dateEl && dateEl.value) || ceTodayStr();
+    const itemId = itemSel ? itemSel.value : null;
+    const it = costEntryItems.find(x => x.id === itemId);
+    if (!it) { showToast('请先添加成本项'); return; }
+    const amount = parseFloat(amountEl.value);
+    if (isNaN(amount) || amount < 0) { showToast('请输入有效金额'); if (amountEl) amountEl.focus(); return; }
+    const note = (noteEl && noteEl.value || '').trim();
+    if (ceEditingId) {
+      const rec = costEntryLogs.find(l => l.id === ceEditingId);
+      if (rec) { rec.date = date; rec.itemId = itemId; rec.itemName = it.name; rec.amount = amount; rec.note = note; rec.updatedAt = Date.now(); }
+      ceEditingId = null;
+      setCeAddLabel('保存记录');
+      showToast('已更新记录');
+    } else {
+      costEntryLogs.push({ id: uid(), date, itemId, itemName: it.name, amount, note, createdAt: Date.now(), updatedAt: Date.now() });
+      showToast('已保存记录');
+    }
+    saveCostEntryLogs();
+    if (amountEl) amountEl.value = '';
+    if (noteEl) noteEl.value = '';
+    updateTotal();
+    refreshAll();
+  }
+
+  if (addBtn) addBtn.addEventListener('click', addLog);
+  if (amountEl) amountEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
+
+  if (list) {
+    list.addEventListener('click', e => {
+      const delBtn = e.target.closest('[data-action="ce-del"]');
+      const editBtn = e.target.closest('[data-action="ce-edit"]');
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        costEntryLogs = costEntryLogs.filter(l => l.id !== id);
+        if (ceEditingId === id) { ceEditingId = null; setCeAddLabel('保存记录'); }
+        saveCostEntryLogs();
+        refreshAll();
+        showToast('已删除该记录');
+        return;
+      }
+      if (editBtn) {
+        const rec = costEntryLogs.find(l => l.id === editBtn.dataset.id);
+        if (rec) {
+          ceEditingId = rec.id;
+          if (dateEl) dateEl.value = rec.date;
+          if (itemSel && costEntryItems.some(x => x.id === rec.itemId)) itemSel.value = rec.itemId;
+          if (amountEl) amountEl.value = rec.amount;
+          if (noteEl) noteEl.value = rec.note || '';
+          updateTotal();
+          updateCeSalaryBtn();
+          setCeAddLabel('更新记录');
+          if (dateEl) dateEl.focus();
+          showToast('已载入记录，修改后点「更新记录」即可保存');
+          refreshAll();
+        }
+      }
+    });
+  }
+}
+
+// ==================== 废品记录模块 ====================
+const SCRAP_LOGS_KEY = 'liumo_scrap_logs';
+const SCRAP_SETTLED_KEY = 'liumo_scrap_settled';
+
+function loadScrap() {
+  try {
+    const d = localStorage.getItem(SCRAP_LOGS_KEY);
+    scrapLogs = d ? JSON.parse(d) : [];
+    if (!Array.isArray(scrapLogs)) scrapLogs = [];
+  } catch (e) { scrapLogs = []; }
+  try {
+    const d = localStorage.getItem(SCRAP_SETTLED_KEY);
+    scrapSettled = d ? JSON.parse(d) : {};
+    if (typeof scrapSettled !== 'object' || !scrapSettled) scrapSettled = {};
+  } catch (e) { scrapSettled = {}; }
+  // 兼容旧版“整月快照”格式: 没有 date 字段的视为结算到月末(保持已结算状态)
+  let migrated = false;
+  Object.keys(scrapSettled).forEach(m => {
+    const raw = scrapSettled[m];
+    if (raw && typeof raw === 'object') {
+      if (!raw.date) { raw.date = scrapMonthEndStr(m); migrated = true; }
+      // 旧数据无 ts: 以“截止日当天 00:00”为快照(与加载时间无关, 刷新稳定),
+      // 结算后新增(createdAt 晚于该时刻)一律算未结算, 修复“刷新后未结算变已结算”
+      if (typeof raw.ts !== 'number') { raw.ts = tsForCutoffStart(raw.date); migrated = true; }
+    }
+  });
+  // 固化迁移结果(把推导出的 ts 写回), 避免每次加载重新推导造成的潜在漂移
+  if (migrated) saveScrapSettled();
+  scrapLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+function saveScrapLogs() { localStorage.setItem(SCRAP_LOGS_KEY, JSON.stringify(scrapLogs)); }
+function saveScrapSettled() { localStorage.setItem(SCRAP_SETTLED_KEY, JSON.stringify(scrapSettled)); }
+function scrapAsc() { return [...scrapLogs].sort((a, b) => (a.date || '').localeCompare(b.date || '')); }
+function scrapDesc() { return [...scrapLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+function monthOf(d) { return (d || '').slice(0, 7); }
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+
+// ---------- 渲染:废品记录模块 ----------
+function renderScrapModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      说明：登记每日废品（回收）收入，<b>按月份自动汇总统计</b>。顶部统计仅展示<b>本月金额</b>与<b>未结算金额</b>，下方「每月总金额趋势」给出近一年曲线；
+      每条记录可<b>修改 / 删除</b>；在「按月统计」中，点「结算」选择<b>截止日</b>，截止日及之前的当月记录算<b>已结算</b>、之后的留<b>未结算</b>；可随时再点「结算」改截止日，点「取消结算」清空。
+    </div>
+
+    <div class="wt-stats" id="scStats"></div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">每月总金额趋势（近两年）</div>
+      <div id="scChart"></div>
+    </div>
+
+    <div class="toolbar wt-add-bar">
+      <div class="wt-field">
+        <label>日期</label>
+        <input type="date" class="sc-date" id="scrapDate" value="${todayStr()}" />
+      </div>
+      <div class="wt-field">
+        <label>金额 (元)</label>
+        <input type="number" step="0.01" min="0" class="sc-amount" id="scrapAmount" placeholder="如 120" />
+      </div>
+      <div class="wt-field">
+        <label>备注 (选填)</label>
+        <input type="text" class="sc-note" id="scrapNote" placeholder="如 纸箱" />
+      </div>
+      <button class="btn-add" id="scrapAddBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="sc-add-label">记录废品</span>
+      </button>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按月统计（每行可「结算」当月全部 / 「取消结算」；结算后新增记录显示为「未结算」）</div>
+      <div id="scMonth"></div>
+    </div>
+
+    <div class="wt-list" id="scList"></div>
+  `;
+
+  scrapEditingId = null;
+  bindScrapEvents();
+  renderScrapStats();
+  renderScrapChart();
+  renderScrapMonth();
+  renderScrapList();
+}
+
+// 各月汇总: { 'YYYY-MM': { count, total } }
+function scrapMonthMap() {
+  const map = {};
+  scrapAsc().forEach(l => {
+    const m = monthOf(l.date);
+    if (!map[m]) map[m] = { count: 0, total: 0 };
+    map[m].count++;
+    map[m].total += (l.amount || 0);
+  });
+  return map;
+}
+// 月份最后一天, 如 '2026-02' -> '2026-02-28'
+function scrapMonthEndStr(m) {
+  const [y, mo] = m.split('-').map(Number);
+  const last = new Date(y, mo, 0).getDate();
+  return m + '-' + ('0' + last).slice(-2);
+}
+// 旧结算数据缺 ts 时, 用截止日当天 00:00:00 作为结算快照:
+// 结算发生在截止日当天或之后, 因此“结算后新增(createdAt 晚于截止日 00:00)”一律算未结算,
+// 且与加载时间无关, 刷新后稳定, 不会出现“刷新后未结算变已结算”的漂移。
+function tsForCutoffStart(cutoff) {
+  const p = (cutoff || '').split('-').map(Number);
+  if (p.length !== 3 || p.some(isNaN)) return 0;
+  return new Date(p[0], p[1] - 1, p[2], 0, 0, 0, 0).getTime();
+}
+// 结算截止日默认: 当月=今天; 过去月=月末(整月结清); 未来月=月初
+function scrapSettleDefaultDate(m) {
+  const now = new Date();
+  const cur = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+  if (m === cur) return todayStr();
+  if (m < cur) return scrapMonthEndStr(m);
+  return m + '-01';
+}
+// 某月在结算口径下的拆分: 以结算截止日(date)为准, 截止日及之前的记录算已结算;
+// 此外,结算之后新增(createdAt 晚于结算快照 ts)的记录也一律算「未结算」
+function scrapMonthSettledParts(m) {
+  const recs = scrapLogs.filter(l => monthOf(l.date) === m);
+  let total = 0, count = 0;
+  recs.forEach(l => { total += (l.amount || 0); count++; });
+  const raw = scrapSettled[m];
+  if (!raw || !raw.date) {
+    return { isSettled: false, settleDate: '', settledTotal: 0, settledCount: 0, unsettledTotal: total, unsettledCount: count };
+  }
+  const cutoff = raw.date;
+  const ts = (typeof raw.ts === 'number') ? raw.ts : null; // 旧数据无 ts 时退化为纯按日期
+  let unsettledTotal = 0, unsettledCount = 0;
+  recs.forEach(l => {
+    const afterSettle = (ts !== null && (l.createdAt || 0) > ts) || (l.date > cutoff);
+    if (afterSettle) { unsettledTotal += (l.amount || 0); unsettledCount++; }
+  });
+  return {
+    isSettled: true, settleDate: cutoff,
+    settledTotal: total - unsettledTotal, settledCount: count - unsettledCount,
+    unsettledTotal, unsettledCount
+  };
+}
+
+function renderScrapStats() {
+  const el = document.getElementById('scStats');
+  if (!el) return;
+  const all = scrapAsc();
+  const now = new Date();
+  const curMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const cutoffStr = start.getFullYear() + '-' + ('0' + (start.getMonth() + 1)).slice(-2);
+  const last12 = all.filter(l => monthOf(l.date) >= cutoffStr);
+  const curRecs = all.filter(l => monthOf(l.date) === curMonth);
+  const curSum = curRecs.reduce((s, l) => s + (l.amount || 0), 0);
+
+  // 未结算金额（按结算日期口径, 结算后新增更晚记录算未结算）
+  const monthSet = {};
+  last12.forEach(l => { monthSet[monthOf(l.date)] = true; });
+  let unsettledSum = 0;
+  Object.keys(monthSet).forEach(m => {
+    const p = scrapMonthSettledParts(m);
+    unsettledSum += p.unsettledTotal;
+  });
+
+  const money = v => Math.round(v).toLocaleString() + ' 元';
+  const cards = [];
+  cards.push(statCard('本月金额', money(curSum), 'success'));
+  cards.push(statCard('未结算金额', money(unsettledSum), unsettledSum > 0 ? 'warning' : 'success'));
+  el.innerHTML = cards.join('');
+}
+
+function renderScrapChart() {
+  const el = document.getElementById('scChart');
+  if (!el) return;
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - 23, 1); // 近两年 = 24 个月
+  const map = scrapMonthMap();
+  // 构造连续 24 个月序列（缺月补 0）, 便于看趋势
+  const series = [];
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const key = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+    const rec = map[key];
+    series.push({ date: key, total: rec ? rec.total : 0 });
+  }
+  series.sort((a, b) => a.date.localeCompare(b.date));
+  if (series.every(s => s.total === 0)) {
+    el.innerHTML = `<div class="wt-empty">还没有废品记录,先在上方登记一笔吧</div>`;
+    return;
+  }
+  const lastLog = series[series.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = series.findIndex(l => l.date === yoyStr);
+  el.innerHTML = buildSalaryLineSVG(series, l => l.total, '#f59e0b', '元', { last: series.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })
+    + `<div class="wt-chart-subnote">最新 <b style="color:#f59e0b">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>`;
+}
+
+function renderScrapMonth() {
+  const el = document.getElementById('scMonth');
+  if (!el) return;
+  const map = scrapMonthMap();
+  const months = Object.keys(map).sort((a, b) => b.localeCompare(a));
+  if (months.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有废品记录,先在上方登记一笔吧</div>`;
+    return;
+  }
+  const money = v => Math.round(v).toLocaleString();
+  const rows = months.map(m => {
+    const p = scrapMonthSettledParts(m);
+    const settledTxt = p.settledTotal > 0 ? money(p.settledTotal) : (p.isSettled ? '0' : '—');
+    const unsettledTxt = p.unsettledTotal > 0 ? money(p.unsettledTotal) : '—';
+    const editing = scrapSettleMonth === m;
+    if (editing) {
+      const def = scrapSettleDefaultDate(m);
+      const min = m + '-01', max = scrapMonthEndStr(m);
+      return `<tr>
+        <td>${m}</td>
+        <td>${p.settledCount + p.unsettledCount}</td>
+        <td class="sc-amt settled">${settledTxt}</td>
+        <td class="sc-amt unsettled">${unsettledTxt}</td>
+        <td class="sc-actions" colspan="2">
+          <input type="date" class="sc-settle-date" data-month="${m}" value="${def}" min="${min}" max="${max}">
+          <button class="wt-settle on" data-action="sc-settle-confirm" data-month="${m}">确认</button>
+          <button class="wt-settle" data-action="sc-settle-cancel" data-month="${m}">取消</button>
+        </td>
+      </tr>`;
+    }
+    const settleDateTxt = p.isSettled ? p.settleDate.slice(5) : '—';
+    return `<tr>
+      <td>${m}</td>
+      <td>${p.settledCount + p.unsettledCount}</td>
+      <td class="sc-amt settled">${settledTxt}</td>
+      <td class="sc-amt unsettled">${unsettledTxt}</td>
+      <td class="sc-settle-date-col"${p.isSettled ? ' title="' + p.settleDate + '"' : ''}>${settleDateTxt}</td>
+      <td class="sc-actions">
+        <button class="wt-settle ${p.isSettled ? '' : 'on'}" data-action="sc-settle" data-month="${m}">结算</button>
+        <button class="wt-settle ${p.isSettled ? 'on' : ''}" data-action="sc-unsettle" data-month="${m}" ${p.isSettled ? '' : 'disabled'}>取消结算</button>
+      </td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<div class="wt-cat-wrap"><table class="wt-cat">
+      <thead><tr><th>月份</th><th>笔数</th><th>已结算</th><th>未结算</th><th>结算日</th><th>操作</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+function renderScrapList() {
+  const el = document.getElementById('scList');
+  if (!el) return;
+  const logs = scrapDesc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">暂无记录</div>`;
+    return;
+  }
+  const money = v => Math.round(v).toLocaleString();
+  el.innerHTML = logs.map(l => {
+    return `
+      <div class="wt-item" data-id="${l.id}">
+        <div class="wt-item-date">${escapeHtml(l.date)}</div>
+        <div class="wt-item-delta">${money(l.amount)}元${l.note ? ' · ' + escapeHtml(l.note) : ''}</div>
+        <button class="action-btn edit" data-action="sc-edit" data-id="${l.id}" title="修改">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+        <button class="action-btn delete" data-action="sc-del" data-id="${l.id}" title="删除">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function bindScrapEvents() {
+  const addBtn = document.getElementById('scrapAddBtn');
+  const dateEl = document.getElementById('scrapDate');
+  const amountEl = document.getElementById('scrapAmount');
+  const noteEl = document.getElementById('scrapNote');
+  const list = document.getElementById('scList');
+  const monthEl = document.getElementById('scMonth');
+
+  const ADD_LABEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="sc-add-label">记录废品</span>';
+  const EDIT_LABEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="sc-add-label">更新记录</span>';
+
+  function refreshAll() {
+    renderScrapStats();
+    renderScrapChart();
+    renderScrapMonth();
+    renderScrapList();
+  }
+
+  function addLog() {
+    const date = dateEl.value || todayStr();
+    const amount = parseFloat(amountEl.value);
+    const note = (noteEl.value || '').trim();
+    if (isNaN(amount) || amount < 0) { showToast('请输入有效金额'); amountEl.focus(); return; }
+    // 去重时排除正在编辑的记录本身
+    const dup = scrapLogs.find(l => l.id !== scrapEditingId && l.date === date && l.amount === amount && ((l.note || '') === note));
+    if (dup) { showToast('该日期已存在相同记录'); return; }
+
+    if (scrapEditingId) {
+      const rec = scrapLogs.find(l => l.id === scrapEditingId);
+      if (rec) {
+        rec.date = date; rec.amount = amount; rec.note = note; rec.updatedAt = Date.now();
+        saveScrapLogs();
+        showToast('已更新该记录');
+      }
+      scrapEditingId = null;
+      addBtn.innerHTML = ADD_LABEL;
+    } else {
+      scrapLogs.push({ id: uid(), date, amount, note, createdAt: Date.now(), updatedAt: Date.now() });
+      saveScrapLogs();
+      showToast('已记录废品');
+    }
+    scrapLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    amountEl.value = ''; noteEl.value = '';
+    refreshAll();
+  }
+
+  addBtn.addEventListener('click', addLog);
+  amountEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
+
+  if (list) {
+    list.addEventListener('click', e => {
+      const delBtn = e.target.closest('[data-action="sc-del"]');
+      const editBtn = e.target.closest('[data-action="sc-edit"]');
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        scrapLogs = scrapLogs.filter(l => l.id !== id);
+        saveScrapLogs();
+        refreshAll();
+        showToast('已删除该记录');
+        return;
+      }
+      if (editBtn) {
+        const rec = scrapLogs.find(l => l.id === editBtn.dataset.id);
+        if (rec) {
+          scrapEditingId = rec.id;
+          dateEl.value = rec.date;
+          amountEl.value = rec.amount;
+          noteEl.value = rec.note || '';
+          addBtn.innerHTML = EDIT_LABEL;
+          amountEl.focus();
+          showToast('已载入该记录,修改后点「更新记录」即可');
+        }
+      }
+    });
+  }
+
+  if (monthEl) {
+    monthEl.addEventListener('click', e => {
+      // 开始结算: 进入该月截止日选择(结算始终可点, 用于设置/修改截止日)
+      const settleBtn = e.target.closest('[data-action="sc-settle"]');
+      if (settleBtn && !settleBtn.disabled) {
+        scrapSettleMonth = settleBtn.dataset.month;
+        renderScrapMonth();
+        return;
+      }
+      // 取消选择截止日
+      const cancelBtn = e.target.closest('[data-action="sc-settle-cancel"]');
+      if (cancelBtn) {
+        scrapSettleMonth = null;
+        renderScrapMonth();
+        return;
+      }
+      // 确认结算: 以所选截止日结算(截止日及之前的当月记录算已结算)
+      const confirmBtn = e.target.closest('[data-action="sc-settle-confirm"]');
+      if (confirmBtn && !confirmBtn.disabled) {
+        const m = confirmBtn.dataset.month;
+        const input = monthEl.querySelector('.sc-settle-date[data-month="' + m + '"]');
+        const d = input ? input.value : '';
+        if (!d || !d.startsWith(m)) { showToast('结算日期需在 ' + m + ' 当月内'); return; }
+        // 记录结算快照时间戳:此后新增的记录算「未结算」
+        scrapSettled[m] = { date: d, ts: Date.now() };
+        scrapSettleMonth = null;
+        saveScrapSettled();
+        refreshAll();
+        showToast('已结算 ' + m + ' 截止 ' + d);
+        return;
+      }
+      // 取消结算: 清除该月结算状态
+      const unsettleBtn = e.target.closest('[data-action="sc-unsettle"]');
+      if (unsettleBtn && !unsettleBtn.disabled) {
+        const m = unsettleBtn.dataset.month;
+        delete scrapSettled[m];
+        scrapSettleMonth = null;
+        saveScrapSettled();
+        refreshAll();
+        showToast('已取消结算 ' + m);
+        return;
       }
     });
   }
@@ -7078,6 +8835,1185 @@ function bindRopeEvents() {
     });
   }
 }
+
+// ==================== 去哪儿玩模块 ====================
+const PLACES_KEY = 'liumo_places';
+const PLACE_CATS_KEY = 'liumo_place_cats';
+
+let places = [];
+let placeCats = [];   // 用户自定义分类清单(初始为空,完全由用户定义)
+let placeSortMode = localStorage.getItem('liumo_place_sort') || 'custom'; // custom | name | category | time
+let placeCatFilter = 'all'; // all | <category>  (唯一筛选维度:按分类)
+let placeEditingId = null;
+let placeDragId = null;
+
+function loadPlaces() {
+  try {
+    const d = localStorage.getItem(PLACES_KEY);
+    places = d ? JSON.parse(d) : [];
+    if (!Array.isArray(places)) places = [];
+  } catch (e) { places = []; }
+  // 归一化:visited 必须为布尔;清掉历史遗留的 priority 字段
+  places.forEach(p => {
+    if (typeof p.visited !== 'boolean') p.visited = false;
+    if ('priority' in p) delete p.priority;
+  });
+}
+function savePlaces() { localStorage.setItem(PLACES_KEY, JSON.stringify(places)); }
+
+function loadPlaceCats() {
+  try {
+    const d = localStorage.getItem(PLACE_CATS_KEY);
+    placeCats = d ? JSON.parse(d) : [];
+    if (!Array.isArray(placeCats)) placeCats = [];
+  } catch (e) { placeCats = []; }
+}
+function savePlaceCats() { localStorage.setItem(PLACE_CATS_KEY, JSON.stringify(placeCats)); }
+function addPlaceCat(name) {
+  name = (name || '').trim();
+  if (!name || placeCats.includes(name)) return false;
+  placeCats.push(name);
+  savePlaceCats();
+  return true;
+}
+// 重命名分类(同时同步已用该分类的地点);重名或空返回 false
+function renamePlaceCat(oldName, newName) {
+  oldName = (oldName || '').trim();
+  newName = (newName || '').trim();
+  if (!oldName || !newName) return false;
+  if (newName !== oldName && placeCats.includes(newName)) return false;
+  placeCats = placeCats.map(c => c === oldName ? newName : c);
+  places.forEach(p => { if ((p.category || '') === oldName) p.category = newName; });
+  savePlaceCats(); savePlaces();
+  if (placeCatFilter === oldName) placeCatFilter = newName;
+  renderCatChips(); refreshFormCatSelect(); renderPlacesList();
+  return true;
+}
+// 删除分类(使用过该分类的地点降级为未分类);返回受影响的地点数
+function deletePlaceCat(name) {
+  name = (name || '').trim();
+  if (!name || !placeCats.includes(name)) return 0;
+  placeCats = placeCats.filter(c => c !== name);
+  let n = 0;
+  places.forEach(p => { if ((p.category || '') === name) { p.category = ''; n++; } });
+  savePlaceCats(); savePlaces();
+  if (placeCatFilter === name) placeCatFilter = 'all';
+  renderCatChips(); refreshFormCatSelect(); renderPlacesList();
+  return n;
+}
+
+// 按当前「筛选 + 排序」返回展示用列表(不改变 underlying 数组顺序)
+function placesSorted() {
+  let list = [...places];
+  if (placeCatFilter !== 'all') list = list.filter(p => (p.category || '未分类') === placeCatFilter);
+  if (placeSortMode === 'name') {
+    list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'));
+  } else if (placeSortMode === 'category') {
+    list.sort((a, b) => (a.category || '未分类').localeCompare(b.category || '未分类', 'zh') || (a.name || '').localeCompare(b.name || '', 'zh'));
+  } else if (placeSortMode === 'time') {
+    list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  }
+  // 'custom' 保持数组原顺序
+  return list;
+}
+
+// 分类选择框(表单)的 option HTML
+function catSelectOptionsHtml(sel) {
+  const opts = placeCats.map(c => `<option value="${escapeHtml(c)}"${c === sel ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  return `<option value=""${sel === '' ? ' selected' : ''}>未分类</option>` + opts;
+}
+// 分类筛选 chips HTML(全部 + 每个自定义分类)
+function placeCatChipsHtml() {
+  const chips = placeCats.map(c => `<button type="button" class="filter-btn ${placeCatFilter === c ? 'active' : ''}" data-pcat="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+  return `<button type="button" class="filter-btn ${placeCatFilter === 'all' ? 'active' : ''}" data-pcat="all">全部</button>` + chips;
+}
+// 重新渲染分类筛选 chips
+function renderCatChips() {
+  const el = document.getElementById('plCatChips');
+  if (el) el.innerHTML = placeCatChipsHtml();
+}
+// 重新渲染「管理分类」面板
+function renderCatManage() {
+  const box = document.getElementById('plCatManage');
+  if (!box) return;
+  if (placeCats.length === 0) {
+    box.innerHTML = `<div class="pl-cat-manage-empty">还没有分类,在下方添加一个属于你自己的分类吧。</div>
+      <div class="pl-cat-manage-add">
+        <input type="text" id="plNewCatInputM" placeholder="如 省内自驾" />
+        <button type="button" id="plNewCatAddM" class="pl-cat-ok">添加分类</button>
+      </div>`;
+  } else {
+    box.innerHTML = `<div class="pl-cat-manage-title">我的分类 (${placeCats.length})</div>
+      <div class="pl-cat-manage-list">
+        ${placeCats.map(c => `<div class="pl-cat-manage-row" data-cat="${escapeHtml(c)}">
+          <input type="text" class="pl-cat-rename" value="${escapeHtml(c)}" />
+          <button type="button" class="pl-cat-del" data-action="pl-cat-del">删除</button>
+        </div>`).join('')}
+      </div>
+      <div class="pl-cat-manage-add">
+        <input type="text" id="plNewCatInputM" placeholder="新分类名称" />
+        <button type="button" id="plNewCatAddM" class="pl-cat-ok">添加</button>
+      </div>`;
+  }
+  // 绑定面板内事件
+  const addM = document.getElementById('plNewCatAddM');
+  const inputM = document.getElementById('plNewCatInputM');
+  if (addM) addM.addEventListener('click', () => addCatFromInput(inputM));
+  if (inputM) inputM.addEventListener('keydown', e => { if (e.key === 'Enter') addCatFromInput(inputM); });
+  box.querySelectorAll('.pl-cat-rename').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const oldName = inp.closest('.pl-cat-manage-row').dataset.cat;
+      const nv = inp.value.trim();
+      if (!nv) { inp.value = oldName; return; }
+      if (nv === oldName) return;
+      const ok = renamePlaceCat(oldName, nv);
+      if (!ok) { showToast('分类已存在或无效'); inp.value = oldName; return; }
+      if (placeCatFilter === oldName) placeCatFilter = nv;
+      renderCatChips(); renderCatManage(); renderPlacesList(); refreshFormCatSelect();
+    });
+  });
+  box.querySelectorAll('[data-action="pl-cat-del"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.closest('.pl-cat-manage-row').dataset.cat;
+      const n = deletePlaceCat(name);
+      if (placeCatFilter === name) placeCatFilter = 'all';
+      showToast(n > 0 ? `已删除分类「${name}」,${n} 个地点改为未分类` : `已删除分类「${name}」`);
+      renderCatChips(); renderCatManage(); renderPlacesList(); refreshFormCatSelect();
+    });
+  });
+}
+// 从输入框新增分类(通用:表单内/管理面板都可用)
+function addCatFromInput(input) {
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) { showToast('请输入分类名称'); input.focus(); return; }
+  const added = addPlaceCat(name);
+  showToast(added ? '已新增分类：' + name : '该分类已存在');
+  input.value = '';
+  refreshFormCatSelect(name);
+  renderCatChips();
+  renderCatManage();
+  renderPlacesList();
+}
+// 重建表单里的分类下拉(新增分类后调用;newSel 为要选中的新分类)
+function refreshFormCatSelect(newSel) {
+  const el = document.getElementById('plCat');
+  if (el) el.innerHTML = catSelectOptionsHtml(newSel !== undefined ? newSel : el.value);
+}
+function refreshCatSelects(newSel) {
+  refreshFormCatSelect(newSel);
+  renderCatChips();
+  renderCatManage();
+}
+
+// ---------- 渲染:去哪儿玩模块 ----------
+function renderPlacesModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      把想去的地点收藏下来,下次直接看。可<b>添加 / 修改 / 删除</b>;分类完全由你<b>自定义</b>(点表单里的 ＋ 或在「管理分类」里增删改);顶部<b>按分类筛选</b>只看某一类;选「自定义顺序」后用左侧手柄<b>拖拽排序</b>;点「标记去过」记录已打卡的地点。
+    </div>
+
+    <div class="pl-stats" id="plStats"></div>
+
+    <div class="pl-form">
+      <div class="pl-form-row">
+        <div class="wt-field" style="flex:2 1 240px;">
+          <label>地点名称</label>
+          <input type="text" id="plName" placeholder="如 重庆洪崖洞" />
+        </div>
+        <div class="wt-field">
+          <label>分类 (选填)</label>
+          <div class="pl-cat-field">
+            <select id="plCat">${catSelectOptionsHtml('')}</select>
+            <button type="button" class="pl-add-cat" id="plAddCatBtn" title="新建分类">＋</button>
+          </div>
+          <div class="pl-new-cat" id="plNewCatRow" style="display:none;">
+            <input type="text" id="plNewCatInput" placeholder="新分类名称" />
+            <button type="button" class="pl-cat-ok" id="plNewCatOk">确定</button>
+            <button type="button" class="pl-cat-cancel" id="plNewCatCancel">取消</button>
+          </div>
+        </div>
+      </div>
+      <div class="pl-form-row" style="margin-top:10px;">
+        <div class="wt-field" style="flex:1 1 100%;">
+          <label>备注 (选填)</label>
+          <input type="text" id="plNote" placeholder="如 夏天去比较凉快" />
+        </div>
+        <div class="pl-form-actions">
+          <button class="btn-add" id="plAddBtn">添加地点</button>
+          <button class="btn-cancel" id="plCancelBtn" style="display:none;">取消编辑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pl-filter-bar">
+      <div class="filter-group" id="plCatChips">
+        ${placeCatChipsHtml()}
+      </div>
+      <button type="button" class="pl-manage-cats" id="plManageCatsBtn">管理分类</button>
+      <div class="filter-group sort-group">
+        <button class="filter-btn ${placeSortMode==='custom'?'active':''}" data-psort="custom" title="可拖动自定义顺序">自定义顺序</button>
+        <button class="filter-btn ${placeSortMode==='name'?'active':''}" data-psort="name" title="按名称">按名称</button>
+        <button class="filter-btn ${placeSortMode==='category'?'active':''}" data-psort="category" title="按分类">按分类</button>
+        <button class="filter-btn ${placeSortMode==='time'?'active':''}" data-psort="time" title="最近添加排前面">按添加时间</button>
+      </div>
+    </div>
+
+    <div class="pl-cat-manage" id="plCatManage" style="display:none;"></div>
+
+    <div class="pl-list" id="plList"></div>
+  `;
+  placeEditingId = null;
+  bindPlacesEvents();
+  renderPlacesStats();
+  renderPlacesList();
+}
+
+function renderPlacesStats() {
+  const el = document.getElementById('plStats');
+  if (!el) return;
+  const total = places.length;
+  const done = places.filter(p => p.visited).length;
+  const todo = total - done;
+  const cats = new Set(places.map(p => (p.category || '').trim()).filter(Boolean));
+  const cards = [];
+  cards.push(statCard('收集地点', total + ' 个', 'primary'));
+  cards.push(statCard('还想去', todo + ' 个', todo > 0 ? 'warning' : 'success'));
+  cards.push(statCard('已去过', done + ' 个', done > 0 ? 'success' : ''));
+  cards.push(statCard('分类数', cats.size + ' 类', ''));
+  el.innerHTML = cards.join('');
+}
+
+function renderPlacesList() {
+  const el = document.getElementById('plList');
+  if (!el) return;
+  const list = placesSorted();
+  if (places.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有收藏任何地点,先在上方加一个想去的地方吧 🧭</div>`;
+    return;
+  }
+  if (list.length === 0) {
+    el.innerHTML = `<div class="wt-empty">当前筛选下没有地点</div>`;
+    return;
+  }
+  const draggable = placeSortMode === 'custom';
+  el.innerHTML = list.map(p => `
+      <div class="pl-item ${p.visited ? 'visited' : ''}" data-id="${p.id}" ${draggable ? 'draggable="true"' : ''}>
+        <div class="drag-handle" title="拖动排序">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+        </div>
+        <div class="pl-body">
+          <div class="pl-top">
+            <span class="pl-name">${escapeHtml(p.name)}</span>
+            ${p.category ? `<span class="pl-cat">${escapeHtml(p.category)}</span>` : ''}
+            ${p.visited ? '<span class="pl-done-badge">已去过</span>' : ''}
+          </div>
+          ${p.note ? `<div class="pl-note">${escapeHtml(p.note)}</div>` : ''}
+        </div>
+        <div class="pl-actions">
+          <button class="pl-done-btn ${p.visited ? 'on' : ''}" data-action="pl-done" data-id="${p.id}">${p.visited ? '去过 ✓' : '标记去过'}</button>
+          <button class="action-btn edit" data-action="pl-edit" data-id="${p.id}" title="修改">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </button>
+          <button class="action-btn delete" data-action="pl-del" data-id="${p.id}" title="删除">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+}
+
+function bindPlacesEvents() {
+  const nameEl = document.getElementById('plName');
+  const catEl = document.getElementById('plCat');
+  const noteEl = document.getElementById('plNote');
+  const addBtn = document.getElementById('plAddBtn');
+  const cancelBtn = document.getElementById('plCancelBtn');
+  const listEl = document.getElementById('plList');
+  const addCatBtn = document.getElementById('plAddCatBtn');
+  const newCatRow = document.getElementById('plNewCatRow');
+  const newCatInput = document.getElementById('plNewCatInput');
+  const newCatOk = document.getElementById('plNewCatOk');
+  const newCatCancel = document.getElementById('plNewCatCancel');
+
+  function refreshAll() { renderPlacesStats(); renderPlacesList(); }
+
+  function openNewCat() {
+    if (!newCatRow) return;
+    newCatRow.style.display = '';
+    if (newCatInput) { newCatInput.value = ''; newCatInput.focus(); }
+  }
+  function closeNewCat() { if (newCatRow) newCatRow.style.display = 'none'; if (newCatInput) newCatInput.value = ''; }
+  function confirmNewCat() {
+    if (!newCatInput) return;
+    addCatFromInput(newCatInput);
+    closeNewCat();
+  }
+
+  function loadForm(p) {
+    nameEl.value = p.name || '';
+    catEl.value = p.category || '';
+    noteEl.value = p.note || '';
+  }
+  function clearForm() {
+    nameEl.value = ''; catEl.value = ''; noteEl.value = '';
+    placeEditingId = null;
+    addBtn.textContent = '添加地点';
+    cancelBtn.style.display = 'none';
+  }
+
+  function save() {
+    const name = (nameEl.value || '').trim();
+    if (!name) { showToast('请输入地点名称'); nameEl.focus(); return; }
+    const data = {
+      name,
+      category: (catEl.value || '').trim(),
+      note: (noteEl.value || '').trim()
+    };
+    if (placeEditingId) {
+      const rec = places.find(p => p.id === placeEditingId);
+      if (rec) {
+        rec.name = data.name; rec.category = data.category; rec.note = data.note; rec.updatedAt = Date.now();
+        savePlaces();
+        showToast('已更新地点');
+      }
+      clearForm();
+      refreshAll();
+    } else {
+      const dup = places.find(p => (p.name || '').trim() === name && ((p.category || '') === data.category));
+      if (dup) { showToast('该地点已存在'); return; }
+      places.push({ id: uid(), name: data.name, category: data.category, note: data.note, visited: false, createdAt: Date.now(), updatedAt: Date.now() });
+      savePlaces();
+      clearForm();
+      refreshAll();
+      showToast('已添加地点');
+    }
+  }
+
+  addBtn.textContent = placeEditingId ? '更新地点' : '添加地点';
+  addBtn.addEventListener('click', save);
+  cancelBtn.addEventListener('click', clearForm);
+  nameEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+  noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+
+  // 自定义分类
+  if (addCatBtn) addCatBtn.addEventListener('click', openNewCat);
+  if (newCatOk) newCatOk.addEventListener('click', confirmNewCat);
+  if (newCatCancel) newCatCancel.addEventListener('click', closeNewCat);
+  if (newCatInput) newCatInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmNewCat(); else if (e.key === 'Escape') closeNewCat(); });
+
+  // 按分类筛选 + 排序
+  const filterBar = document.querySelector('.pl-filter-bar');
+  if (filterBar) {
+    filterBar.addEventListener('click', e => {
+      const cb = e.target.closest('[data-pcat]');
+      if (cb) {
+        placeCatFilter = cb.dataset.pcat;
+        renderCatChips();
+        renderPlacesList();
+        return;
+      }
+      const sb = e.target.closest('[data-psort]');
+      if (sb) {
+        placeSortMode = sb.dataset.psort;
+        localStorage.setItem('liumo_place_sort', placeSortMode);
+        filterBar.querySelectorAll('[data-psort]').forEach(b => b.classList.toggle('active', b === sb));
+        renderPlacesList();
+        return;
+      }
+    });
+  }
+  // 管理分类面板开合
+  const mgrBtn = document.getElementById('plManageCatsBtn');
+  if (mgrBtn) mgrBtn.addEventListener('click', () => {
+    const box = document.getElementById('plCatManage');
+    if (!box) return;
+    const open = box.style.display === 'none' || box.style.display === '';
+    box.style.display = open ? '' : 'none';
+    if (open) renderCatManage();
+  });
+
+  // 列表操作:删除 / 修改 / 标记去过
+  if (listEl) {
+    listEl.addEventListener('click', e => {
+      const delBtn = e.target.closest('[data-action="pl-del"]');
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        places = places.filter(p => p.id !== id);
+        savePlaces();
+        refreshAll();
+        showToast('已删除地点');
+        return;
+      }
+      const editBtn = e.target.closest('[data-action="pl-edit"]');
+      if (editBtn) {
+        const rec = places.find(p => p.id === editBtn.dataset.id);
+        if (rec) {
+          placeEditingId = rec.id;
+          loadForm(rec);
+          addBtn.textContent = '更新地点';
+          cancelBtn.style.display = '';
+          nameEl.focus();
+          showToast('已载入,修改后点「更新地点」即可');
+        }
+        return;
+      }
+      const doneBtn = e.target.closest('[data-action="pl-done"]');
+      if (doneBtn) {
+        const rec = places.find(p => p.id === doneBtn.dataset.id);
+        if (rec) {
+          rec.visited = !rec.visited;
+          rec.updatedAt = Date.now();
+          savePlaces();
+          refreshAll();
+          showToast(rec.visited ? '已标记去过 🎉' : '已取消去过标记');
+        }
+        return;
+      }
+    });
+
+    // 拖拽排序(仅「自定义顺序」生效)
+    listEl.addEventListener('dragstart', e => {
+      const item = e.target.closest('.pl-item');
+      if (!item || item.getAttribute('draggable') !== 'true') return;
+      placeDragId = item.dataset.id;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    listEl.addEventListener('dragend', e => {
+      const item = e.target.closest('.pl-item');
+      if (item) item.classList.remove('dragging');
+      listEl.querySelectorAll('.pl-item').forEach(el => el.classList.remove('drag-over'));
+      placeDragId = null;
+    });
+    listEl.addEventListener('dragover', e => {
+      if (placeSortMode !== 'custom') return;
+      e.preventDefault();
+      const item = e.target.closest('.pl-item');
+      listEl.querySelectorAll('.pl-item').forEach(el => el.classList.remove('drag-over'));
+      if (item && item.dataset.id !== placeDragId) item.classList.add('drag-over');
+    });
+    listEl.addEventListener('drop', e => {
+      if (placeSortMode !== 'custom') return;
+      e.preventDefault();
+      const target = e.target.closest('.pl-item');
+      if (!target || !placeDragId || target.dataset.id === placeDragId) return;
+      const fromIdx = places.findIndex(p => p.id === placeDragId);
+      const toIdx = places.findIndex(p => p.id === target.dataset.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const [moved] = places.splice(fromIdx, 1);
+      places.splice(toIdx, 0, moved);
+      savePlaces();
+      renderPlacesList();
+      showToast('已调整顺序');
+    });
+  }
+}
+
+// ==================== 销售数据管理模块 ====================
+const SALES_KEY = 'liumo_sales_logs';
+let salesLogs = [];   // { id, date:'YYYY-MM', retail, dailySales, dailyOrders, avgTicket, note, createdAt, updatedAt }
+
+function loadSales() {
+  try {
+    const d = localStorage.getItem(SALES_KEY);
+    salesLogs = d ? JSON.parse(d) : [];
+    if (!Array.isArray(salesLogs)) salesLogs = [];
+  } catch (e) { salesLogs = []; }
+  salesLogs.forEach(l => {
+    l.retail = Number(l.retail) || 0;
+    l.dailySales = Number(l.dailySales) || 0;
+    l.dailyOrders = Number(l.dailyOrders) || 0;
+    l.avgTicket = Number(l.avgTicket) || 0;
+    if (typeof l.note !== 'string') l.note = '';
+  });
+  salesLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+function saveSalesLogs() { localStorage.setItem(SALES_KEY, JSON.stringify(salesLogs)); }
+function salesAsc() { return [...salesLogs].sort((a, b) => (a.date || '').localeCompare(b.date || '')); }
+function salesDesc() { return [...salesLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+function daysInMonth(m) { const p = (m || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; }
+
+const saMoney = v => (Math.round(Number(v) || 0)).toLocaleString() + ' 元';
+const saNum = v => { const n = Number(v) || 0; return (Math.round(n * 100) / 100).toString(); };
+
+
+// ---------- 渲染:销售数据管理模块 ----------
+function renderSalesModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      按月录入<b>零售总额 / 日均销售额 / 日均客单量 / 日均客单价</b>四项，系统自动按<b>两项恒等式</b>做一致性校验（客单价是否自洽、天数口径是否对得上），并生成<b>趋势图与明细报表</b>。同月再录入会覆盖该月。
+    </div>
+
+    <div class="wt-stats" id="saStats"></div>
+
+    <div class="sa-form">
+      <div class="sa-form-row">
+        <div class="wt-field">
+          <label>月份</label>
+          <input type="month" id="saMonth" value="${currentMonthStr()}" />
+        </div>
+        <div class="wt-field">
+          <label>零售总额 (元)</label>
+          <input type="number" step="0.01" min="0" id="saRetail" placeholder="如 300000" />
+        </div>
+        <div class="wt-field">
+          <label>日均销售额 (元)</label>
+          <input type="number" step="0.01" min="0" id="saDailySales" placeholder="如 10000" />
+        </div>
+      </div>
+      <div class="sa-form-row" style="margin-top:12px;">
+        <div class="wt-field">
+          <label>日均客单量 (单)</label>
+          <input type="number" step="0.01" min="0" id="saDailyOrders" placeholder="如 320" />
+        </div>
+        <div class="wt-field">
+          <label>日均客单价 (元)</label>
+          <input type="number" step="0.01" min="0" id="saAvgTicket" placeholder="如 31.25" />
+        </div>
+        <div class="wt-field">
+          <label>备注 (选填)</label>
+          <input type="text" id="saNote" placeholder="如 暑期促销" />
+        </div>
+      </div>
+      <div class="sa-form-actions">
+        <button class="btn-add" id="saAddBtn">保存记录</button>
+        <button class="btn-cancel" id="saCancelBtn" style="display:none;">取消编辑</button>
+      </div>
+    </div>
+
+    <div class="wt-list" id="saList"></div>
+  `;
+
+  bindSalesEvents();
+  renderSalesStats();
+  renderSalesList();
+}
+
+function renderSalesStats() {
+  const el = document.getElementById('saStats');
+  if (!el) return;
+  const logs = salesLogs;
+  const months = logs.length;
+  const totalRetail = logs.reduce((s, l) => s + (l.retail || 0), 0);
+  const avgRetail = months ? totalRetail / months : 0;
+  const avgDaily = months ? logs.reduce((s, l) => s + (l.dailySales || 0), 0) / months : 0;
+  const avgOrders = months ? logs.reduce((s, l) => s + (l.dailyOrders || 0), 0) / months : 0;
+  const avgTicket = months ? logs.reduce((s, l) => s + (l.avgTicket || 0), 0) / months : 0;
+  const last = salesDesc()[0];
+  const lastRetail = last ? last.retail : 0;
+  const cards = [
+    statCard('累计零售额', saMoney(totalRetail), ''),
+    statCard('月均零售额', saMoney(avgRetail), ''),
+    statCard('月均日均销售额', saMoney(avgDaily), ''),
+    statCard('月均客单量', (Math.round(avgOrders * 10) / 10) + ' 单', ''),
+    statCard('月均客单价', '¥' + saNum(avgTicket), ''),
+    statCard('记录月份', months + ' 个月', 'success')
+  ];
+  el.innerHTML = cards.join('');
+}
+
+
+// 独立模块：年度增长率（日均销售额 / 月均客单量 / 月均客单价）
+function renderYearGrowthModule(content, mod) {
+  loadSales();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块中已录入的月度历史。按年对三项指标求各月均值，并计算<b>年度同比增长</b>（=(本年−上年)÷上年）。高亮行为「去年」。
+    </div>
+    <div class="wt-list" id="ygBody"></div>
+  `;
+  paintYearGrowth();
+}
+
+function paintYearGrowth() {
+  const el = document.getElementById('ygBody');
+  if (!el) return;
+  const logs = salesAsc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`;
+    return;
+  }
+  // 按年份分组
+  const groups = {};
+  logs.forEach(l => {
+    const y = (l.date || '').slice(0, 4);
+    if (!/^\d{4}$/.test(y)) return;
+    (groups[y] = groups[y] || []).push(l);
+  });
+  const years = Object.keys(groups).sort();
+  // 三个指标：均为当年各录入月份对应值的平均
+  const metrics = [
+    { t: '日均销售额', fmt: saMoney, get: l => Number(l.dailySales) || 0, note: '各月日均值平均' },
+    { t: '月均客单量', fmt: v => (Math.round(v * 10) / 10) + ' 单', get: l => Number(l.dailyOrders) || 0, note: '各月日均值平均' },
+    { t: '月均客单价', fmt: v => '¥' + (Math.round(v * 100) / 100), get: l => Number(l.avgTicket) || 0, note: '各月日均值平均' },
+  ];
+  const metricSeries = metrics.map(m => years.map(y => {
+    const a = groups[y];
+    return a.reduce((s, l) => s + m.get(l), 0) / a.length;
+  }));
+  const lastYear = new Date().getFullYear() - 1;
+  const cards = metrics.map((m, mi) => {
+    const series = metricSeries[mi];
+    const rows = years.map((y, i) => {
+      const val = series[i];
+      let g = null;
+      if (i > 0) { const p = series[i - 1]; g = p > 0 ? (val - p) / p * 100 : null; }
+      const gTxt = g === null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
+      const gCls = g === null ? '' : (g >= 0 ? 'sp-up' : 'sp-down');
+      const hi = (y === String(lastYear)) ? ' class="sp-hl"' : '';
+      return `<tr${hi}><td>${y} 年</td><td>${m.fmt(val)}</td><td class="${gCls}">${gTxt}</td></tr>`;
+    }).join('');
+    return `<div class="sp-card">
+      <div class="sp-card-t">${m.t}<span class="sp-tag">${m.note}</span></div>
+      <table class="wt-cat"><thead><tr><th>年度</th><th>数值</th><th>同比增长</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="sp-grid">${cards}</div>
+    <div class="sp-note">口径：三项指标均为当年各录入月份对应值的平均。日均销售额 = 各月日均销售额平均；月均客单量 / 客单价 = 各月日均客单量 / 客单价平均。同比增长 = (本年 − 上年) ÷ 上年。高亮行即为「去年」。</div>`;
+}
+
+/* ===== 季度增长率：年度 × 季度(Q1-Q4) 矩阵，含同季度同比 ===== */
+function renderQuarterGrowthModule(content, mod) {
+  loadSales();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块已录入的月度历史。按季度拆分（Q1=1-3月、Q2=4-6月、Q3=7-9月、Q4=10-12月），对各指标求季度内月均值，并计算<b>同季度同比增长</b>（今年当季 ÷ 去年同季 − 1）。高亮行为「去年」。
+    </div>
+    <div class="wt-list" id="qgBody"></div>
+  `;
+  paintQuarterGrowth();
+}
+
+function paintQuarterGrowth() {
+  const el = document.getElementById('qgBody');
+  if (!el) return;
+  const logs = salesAsc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`;
+    return;
+  }
+  // 按 年份 → 季度(1-4) 分组
+  const groups = {};
+  logs.forEach(l => {
+    const y = (l.date || '').slice(0, 4);
+    const m = Number((l.date || '').split('-')[1]);
+    if (!/^\d{4}$/.test(y) || !m) return;
+    const q = Math.ceil(m / 3);
+    (groups[y] = groups[y] || { 1: [], 2: [], 3: [], 4: [] });
+    groups[y][q].push(l);
+  });
+  const years = Object.keys(groups).sort();
+  const quarters = [1, 2, 3, 4];
+  const metrics = [
+    { t: '日均销售额', fmt: saMoney, get: l => Number(l.dailySales) || 0, note: '季度内各月日均值平均' },
+    { t: '月均客单量', fmt: v => (Math.round(v * 10) / 10) + ' 单', get: l => Number(l.dailyOrders) || 0, note: '季度内各月日均值平均' },
+    { t: '月均客单价', fmt: v => '¥' + (Math.round(v * 100) / 100), get: l => Number(l.avgTicket) || 0, note: '季度内各月日均值平均' },
+  ];
+  const lastYear = new Date().getFullYear() - 1;
+  const cards = metrics.map(m => {
+    // 每年每季度的值（季度内各月对应值平均；无录入则为 null）
+    const valM = years.map(y => quarters.map(q => {
+      const arr = groups[y][q];
+      if (!arr || arr.length === 0) return null;
+      return arr.reduce((s, l) => s + m.get(l), 0) / arr.length;
+    }));
+    const rows = years.map((y, i) => {
+      const cells = quarters.map((q, qi) => {
+        const v = valM[i][qi];
+        let g = null;
+        if (i > 0) {
+          const pv = valM[i - 1][qi];
+          if (pv != null && pv > 0 && v != null) g = (v - pv) / pv * 100;
+        }
+        const valTxt = v == null ? '<span class="qg-empty">—</span>' : m.fmt(v);
+        const gTxt = g == null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
+        const gCls = g == null ? 'qg-g' : (g >= 0 ? 'qg-g sp-up' : 'qg-g sp-down');
+        return `<td class="qg-cell">${valTxt}<div class="${gCls}">${gTxt}</div></td>`;
+      }).join('');
+      const hi = (y === String(lastYear)) ? ' class="sp-hl"' : '';
+      return `<tr${hi}><td>${y} 年</td>${cells}</tr>`;
+    }).join('');
+    return `<div class="sp-card">
+      <div class="sp-card-t">${m.t}<span class="sp-tag">${m.note}</span></div>
+      <table class="wt-cat"><thead><tr><th>年度</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="sp-grid">${cards}</div>
+    <div class="sp-note">口径：季度指标 = 该季度内各录入月份的对应值平均。单元格上方为季度数值，下方为<b>同季度同比</b>（今年该季度 ÷ 去年同季度 − 1）；首年或无去年同季度数据时显示「—」。某季度无录入则数值栏显示「—」。高亮行为「去年」。</div>`;
+}
+
+/* ===== 销售年度曲线：横轴=月份(1-12)，一年一条曲线 ===== */
+const YEAR_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#3b82f6', '#10b981',
+  '#ef4444', '#8b5cf6', '#f97316', '#0ea5e9', '#a855f7', '#22c55e'];
+
+// years: [{ year:'2025', data:[12 个数值或 null] }]  unit: 单位字符串
+function buildYearLineChart(years, unit) {
+  const W = 720, H = 330;
+  const padL = 56, padR = 16, padT = 30, padB = 36;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = 12;
+  const xOf = i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1));
+  let vmin = Infinity, vmax = -Infinity, any = false;
+  years.forEach(y => y.data.forEach(v => {
+    if (v != null && isFinite(v)) { any = true; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v); }
+  }));
+  if (!any) { vmin = 0; vmax = 1; }
+  const span = (vmax - vmin) || 1;
+  vmin = vmin - span * 0.08; vmax = vmax + span * 0.08;
+  if (vmin === vmax) { vmin -= 1; vmax += 1; }
+  const yOf = v => padT + plotH * (1 - (v - vmin) / (vmax - vmin));
+  const fmt = v => (Math.round(Number(v) * 100) / 100).toLocaleString() + (unit ? (' ' + unit) : '');
+  const fmtShort = v => (Math.round(Number(v) * 100) / 100).toLocaleString();
+  // 横向网格 + Y 轴刻度
+  const rows = 4;
+  let grid = '';
+  for (let r = 0; r <= rows; r++) {
+    const gy = (padT + plotH * r / rows).toFixed(1);
+    const gv = vmax - (vmax - vmin) * r / rows;
+    grid += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="#eef1f6" stroke-width="1"/>`;
+    grid += `<text x="${padL - 6}" y="${(Number(gy) + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#9aa3b2">${fmt(gv)}</text>`;
+  }
+  // 月份轴
+  let xlab = '';
+  for (let i = 0; i < n; i++) {
+    xlab += `<text x="${xOf(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9" fill="#9aa3b2">${i + 1}月</text>`;
+  }
+  // 年份曲线（分层绘制：先全部折线 → 再全部圆点 → 最后全部标签，避免后画系列遮挡先画标签）
+  let polyLayer = '', dotLayer = '', labelLayer = '';
+  const Y = years.length;
+  years.forEach((y, yi) => {
+    const color = YEAR_COLORS[yi % YEAR_COLORS.length];
+    // 按年份做轻微纵向错位，避免同月多年度数值接近时标签互相压住
+    const off = (yi - (Y - 1) / 2) * 9;
+    let seg = [];
+    const flush = () => {
+      if (seg.length) {
+        polyLayer += `<polyline points="${seg.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+        seg = [];
+      }
+    };
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const v = y.data[i];
+      if (v == null || !isFinite(v)) { flush(); continue; }
+      const x = xOf(i), yy = yOf(v);
+      seg.push([x.toFixed(1), yy.toFixed(1)]);
+      pts.push({ i, x, yy, v });
+    }
+    flush();
+    // 圆点 + 悬停提示(所有年份均可查)
+    pts.forEach(p => {
+      dotLayer += `<circle cx="${p.x.toFixed(1)}" cy="${p.yy.toFixed(1)}" r="2.8" fill="${color}"><title>${y.year}年${p.i + 1}月: ${fmt(p.v)}</title></circle>`;
+    });
+    // 各年各点都常驻标注数值；白底描边保证接近时仍可读；越界则反向避让
+    pts.forEach(p => {
+      let ty = p.yy + off;
+      if (ty - 8 < padT) ty = p.yy + 12;
+      else if (ty + 4 > H - padB) ty = p.yy - 10;
+      labelLayer += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}" paint-order="stroke" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round">${fmtShort(p.v)}</text>`;
+    });
+  });
+  // 图例
+  let legend = '';
+  years.forEach((y, yi) => {
+    const color = YEAR_COLORS[yi % YEAR_COLORS.length];
+    legend += `<span style="display:inline-flex;align-items:center;margin-right:14px;font-size:11px;color:#4b5563;"><span style="display:inline-block;width:14px;height:3px;background:${color};border-radius:2px;margin-right:5px;"></span>${y.year}年</span>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${polyLayer}${dotLayer}${labelLayer}${xlab}</svg>
+    <div class="yy-legend">${legend || '（暂无数据）'}</div>`;
+}
+
+function renderSalesYearModule(content, mod) {
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      将<b>销售数据管理</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
+      直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售数据管理，此处只读展示。
+      <b>所有年份</b>都会在图上直接标注各月数值；同月若多年度数值接近，标签会按年份轻微错位并加白底描边以保证可读，鼠标移到圆点还能看「年份+月份+数值」明细。
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按年销售曲线 · 横轴为月份，一年一条曲线</div>
+      <div class="sa-charts" id="syCharts"></div>
+    </div>`;
+  renderSalesYearCharts();
+}
+
+function renderSalesYearCharts() {
+  const el = document.getElementById('syCharts');
+  if (!el) return;
+  if (salesLogs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售数据，请先在「销售数据管理」模块录入月份数据</div>`;
+    return;
+  }
+  // 按年份分组，逐月存放记录
+  const byYear = {};
+  salesLogs.forEach(l => {
+    const p = (l.date || '').split('-');
+    const y = p[0], m = parseInt(p[1], 10);
+    if (!y || !(m >= 1 && m <= 12)) return;
+    if (!byYear[y]) byYear[y] = new Array(12).fill(null);
+    byYear[y][m - 1] = l;
+  });
+  const years = Object.keys(byYear).sort();
+  const yearObjs = years.map(y => ({ year: y, data: byYear[y] }));
+  const metrics = [
+    { title: '月度零售总额 (元)', unit: '元', get: l => l.retail || 0 },
+    { title: '日均销售额 (元)', unit: '元', get: l => l.dailySales || 0 },
+    { title: '日均客单量 (单)', unit: '单', get: l => l.dailyOrders || 0 },
+    { title: '日均客单价 (元)', unit: '元', get: l => l.avgTicket || 0 }
+  ];
+  el.innerHTML = metrics.map(c => {
+    const yr = yearObjs.map(yo => ({ year: yo.year, data: yo.data.map(rec => rec ? c.get(rec) : null) }));
+    return `<div class="wt-chart-sub">
+      <div class="wt-chart-subtitle">${c.title}</div>
+      ${buildYearLineChart(yr, c.unit)}
+    </div>`;
+  }).join('');
+}
+
+
+function renderSalesList() {
+  const el = document.getElementById('saList');
+  if (!el) return;
+  const logs = salesDesc();
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无记录</div>`; return; }
+  el.innerHTML = logs.map((l, i) => {
+    const prev = logs[i + 1];   // 降序排列, i+1 为更早一个月
+    let mom = '';
+    if (prev && prev.retail > 0) {
+      const g = (l.retail - prev.retail) / prev.retail * 100;
+      const cls = g >= 0 ? 'up' : 'down';
+      mom = `<span class="sa-mom ${cls}">${g >= 0 ? '▲' : '▼'} ${Math.abs(g).toFixed(1)}%</span>`;
+    }
+    return `
+      <div class="wt-item" data-id="${l.id}">
+        <div class="wt-item-date">${escapeHtml(l.date)}</div>
+        <div class="wt-item-delta" style="margin-left:auto;">零售 ${saMoney(l.retail)} · 日均 ${saMoney(l.dailySales)} · 客单量 ${l.dailyOrders ? l.dailyOrders + ' 单' : '—'} · 客单价 ${l.avgTicket ? '¥' + saNum(l.avgTicket) : '—'}${l.note ? ' · ' + escapeHtml(l.note) : ''}${mom}</div>
+        <button class="action-btn edit" data-action="sa-edit" data-id="${l.id}" title="修改">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+        <button class="action-btn delete" data-action="sa-del" data-id="${l.id}" title="删除">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function bindSalesEvents() {
+  const addBtn = document.getElementById('saAddBtn');
+  const cancelBtn = document.getElementById('saCancelBtn');
+  const monthEl = document.getElementById('saMonth');
+  const retailEl = document.getElementById('saRetail');
+  const dailyEl = document.getElementById('saDailySales');
+  const ordersEl = document.getElementById('saDailyOrders');
+  const ticketEl = document.getElementById('saAvgTicket');
+  const noteEl = document.getElementById('saNote');
+  const list = document.getElementById('saList');
+  let editingId = null;
+
+  function refreshAll() { renderSalesStats(); renderSalesList(); }
+
+  function clearForm() {
+    monthEl.value = currentMonthStr();
+    retailEl.value = ''; dailyEl.value = ''; ordersEl.value = ''; ticketEl.value = ''; noteEl.value = '';
+    editingId = null;
+    addBtn.textContent = '保存记录';
+    cancelBtn.style.display = 'none';
+  }
+
+  function save() {
+    const date = (monthEl.value || '').trim();
+    if (!date || !/^\d{4}-\d{2}$/.test(date)) { showToast('请选择月份'); monthEl.focus(); return; }
+    const rec = {
+      retail: parseFloat(retailEl.value) || 0,
+      dailySales: parseFloat(dailyEl.value) || 0,
+      dailyOrders: parseFloat(ordersEl.value) || 0,
+      avgTicket: parseFloat(ticketEl.value) || 0,
+      note: (noteEl.value || '').trim()
+    };
+    if (!rec.retail && !rec.dailySales && !rec.dailyOrders && !rec.avgTicket) { showToast('请至少填写一项数值'); return; }
+    const exist = salesLogs.find(l => l.date === date);
+    if (exist) {
+      Object.assign(exist, rec, { updatedAt: Date.now() });
+      showToast('已更新 ' + date);
+    } else {
+      salesLogs.push({ id: uid(), date, ...rec, createdAt: Date.now(), updatedAt: Date.now() });
+      showToast('已保存 ' + date);
+    }
+    salesLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    saveSalesLogs();
+    clearForm();
+    refreshAll();
+  }
+
+  addBtn.addEventListener('click', save);
+  cancelBtn.addEventListener('click', clearForm);
+  noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+
+  if (list) list.addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-action="sa-del"]');
+    const editBtn = e.target.closest('[data-action="sa-edit"]');
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      const rec = salesLogs.find(l => l.id === id);
+      salesLogs = salesLogs.filter(l => l.id !== id);
+      saveSalesLogs();
+      refreshAll();
+      showToast('已删除 ' + (rec ? rec.date : '记录'));
+      return;
+    }
+    if (editBtn) {
+      const rec = salesLogs.find(l => l.id === editBtn.dataset.id);
+      if (rec) {
+        monthEl.value = rec.date;
+        retailEl.value = rec.retail || '';
+        dailyEl.value = rec.dailySales || '';
+        ordersEl.value = rec.dailyOrders || '';
+        ticketEl.value = rec.avgTicket || '';
+        noteEl.value = rec.note || '';
+        editingId = rec.id;
+        addBtn.textContent = '更新记录';
+        cancelBtn.style.display = '';
+        monthEl.focus();
+        showToast('已载入 ' + rec.date + '，修改后点「更新记录」');
+      }
+    }
+  });
+}
+
+// ==================== 销售计划模块 ====================
+const SALES_PLAN_KEY = 'liumo_sales_plan';
+let salesPlan = null;
+let planStrategy = 'yoy';
+let planGrowth = 0.10;
+let planLoaded = false;
+let planCurrentBasis = { ds: 0, q: 0 };
+
+function loadSalesPlan() {
+  try {
+    const d = localStorage.getItem(SALES_PLAN_KEY);
+    const arr = d ? JSON.parse(d) : [];
+    salesPlan = (Array.isArray(arr) && arr.find(p => p.month === currentMonthStr())) || null;
+  } catch (e) { salesPlan = null; }
+}
+
+function saveSalesPlanStore() {
+  try {
+    const d = localStorage.getItem(SALES_PLAN_KEY);
+    let arr = d ? JSON.parse(d) : [];
+    if (!Array.isArray(arr)) arr = [];
+    const cur = currentMonthStr();
+    arr = arr.filter(p => p.month !== cur);
+    if (salesPlan) arr.push(salesPlan);
+    localStorage.setItem(SALES_PLAN_KEY, JSON.stringify(arr));
+  } catch (e) {}
+}
+
+function planBasis(strategy, growth) {
+  const hist = salesAsc();
+  if (hist.length === 0) return { ds: 0, q: 0 };
+  const [cy, cm] = currentMonthStr().split('-').map(Number);
+  const yoyKey = (cy - 1) + '-' + ('0' + cm).slice(-2);
+  const avg = (a, k) => a.reduce((s, r) => s + (r[k] || 0), 0) / (a.length || 1);
+  if (strategy === 'yoy') {
+    const y = hist.find(r => r.date === yoyKey) || hist[hist.length - 1];
+    return { ds: y.dailySales || 0, q: y.dailyOrders || 0 };
+  }
+  if (strategy === 'm3')  { const a = hist.slice(-3); return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'm6')  { const a = hist.slice(-6); return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'm12') { const a = hist;           return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'grow'){ const a = hist.slice(-3); return { ds: avg(a,'dailySales')*(1+growth), q: avg(a,'dailyOrders')*(1+growth) }; }
+  return { ds: 0, q: 0 };
+}
+
+const SP_STRATS = [
+  { id:'yoy',  t:'去年同月', d:'取去年同期实际值' },
+  { id:'m3',   t:'近 3 月均值', d:'最近一季度平均' },
+  { id:'m6',   t:'近 6 月均值', d:'半年度平均' },
+  { id:'m12',  t:'近 12 月均值', d:'全年平均' },
+  { id:'grow', t:'自定义增长', d:'近 3 月 ×(1+增长)' },
+];
+
+function renderSalesPlanModule(content, mod) {
+  loadSales();
+  loadSalesPlan();
+  const cur = currentMonthStr();
+  const days = daysInMonth(cur) || 30;
+  planLoaded = !!salesPlan;
+  const basis = salesPlan ? { ds: salesPlan.ds, q: salesPlan.q } : planBasis(planStrategy, planGrowth);
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块中已录入的月度历史。按所选策略推算 <b>${cur}（${days}天）</b> 的计划销售数据，四项指标自动保持内部一致。
+    </div>
+    <div id="spBody"></div>
+  `;
+  paintPlanBody(basis, cur, days);
+}
+
+function paintPlanBody(basis, cur, days) {
+  const el = document.getElementById('spBody');
+  if (!el) return;
+  const hist = salesAsc();
+  if (hist.length === 0) { el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`; return; }
+
+  const [cy, cm] = cur.split('-').map(Number);
+  const yoyKey = (cy - 1) + '-' + ('0' + cm).slice(-2);
+  const recentKeys = hist.slice(-3).map(r => r.date);
+  const rows = hist.slice(-12).map(r => {
+    const tag = r.date === yoyKey ? '<span class="sp-badge sp-yoy">同</span>'
+              : recentKeys.includes(r.date) ? '<span class="sp-badge sp-re">近</span>' : '';
+    const tick = (r.dailySales && r.dailyOrders) ? r.dailySales / r.dailyOrders : 0;
+    const ret = (r.dailySales || 0) * (daysInMonth(r.date) || days);
+    return `<tr><td>${escapeHtml(r.date)}${tag}</td><td>${saMoney(r.dailySales)}</td><td>${(r.dailyOrders||0)} 单</td><td>${tick? tick.toFixed(2):'—'}</td><td>${saMoney(ret)}</td></tr>`;
+  }).join('');
+
+  const stratHtml = SP_STRATS.map(s => `
+    <div class="sp-opt ${s.id===planStrategy?'active':''}" data-s="${s.id}">
+      <div class="sp-opt-t">${s.t}</div><div class="sp-opt-d">${s.d}</div>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="sp-card">
+      <div class="sp-card-t">② 计划生成策略</div>
+      <div class="sp-strat">${stratHtml}</div>
+      <div class="sp-growth ${planStrategy==='grow'?'show':''}" id="spGrowth">
+        <span>增长率</span>
+        <input type="range" id="spGrow" min="-20" max="50" value="${Math.round(planGrowth*100)}" step="1" />
+        <b id="spGrowVal">${planGrowth>=0?'+':''}${Math.round(planGrowth*100)}%</b>
+      </div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-card-t">③ ${cur} 计划销售数据<span class="sp-tag" id="spBasis"></span></div>
+      <div class="wt-stats" id="spStats"></div>
+      <div class="sp-note" id="spCons"></div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-card-t">④ 计划 vs 实际</div>
+      <div id="spCompare"></div>
+    </div>
+    <div style="margin-top:4px;">
+      <button class="btn-add" id="spSave">保存本月计划</button>
+    </div>
+    <div class="sp-card" style="margin-top:16px;">
+      <div class="sp-card-t">① 历史数据来源<span class="sp-tag">来自销售数据管理</span></div>
+      <table class="wt-cat"><thead><tr><th>月份</th><th>日均销售额</th><th>日均客单量</th><th>日均客单价</th><th>零售总额</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="sp-note">高亮：<span class="sp-badge sp-yoy">同</span> 去年同月；<span class="sp-badge sp-re">近</span> 近 3 月</div>
+    </div>
+  `;
+
+  el.querySelectorAll('.sp-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      planStrategy = opt.dataset.s;
+      planLoaded = false;
+      el.querySelectorAll('.sp-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      document.getElementById('spGrowth').classList.toggle('show', planStrategy === 'grow');
+      paintStats(planBasis(planStrategy, planGrowth), cur, days);
+    });
+  });
+  const growEl = document.getElementById('spGrow');
+  if (growEl) growEl.addEventListener('input', () => {
+    planGrowth = (+growEl.value) / 100;
+    document.getElementById('spGrowVal').textContent = (planGrowth>=0?'+':'') + Math.round(planGrowth*100) + '%';
+    paintStats(planBasis('grow', planGrowth), cur, days);
+  });
+  document.getElementById('spSave').addEventListener('click', () => {
+    const b = planCurrentBasis;
+    salesPlan = {
+      month: cur, ds: Math.round(b.ds), q: Math.round(b.q),
+      note: '', createdAt: salesPlan ? salesPlan.createdAt : Date.now(), updatedAt: Date.now()
+    };
+    saveSalesPlanStore();
+    showToast('已保存 ' + cur + ' 计划：零售 ' + saMoney(b.ds * days));
+  });
+
+  paintStats(basis, cur, days);
+}
+
+function paintStats(basis, cur, days) {
+  planCurrentBasis = basis;
+  const statsEl = document.getElementById('spStats');
+  if (!statsEl) return;
+  const ticket = (basis.ds && basis.q) ? basis.ds / basis.q : 0;
+  const retail = basis.ds * days;
+  const basisLabel = planLoaded ? '已保存计划' : { yoy:'去年同月', m3:'近3月均值', m6:'近6月均值', m12:'近12月均值', grow:'近3月×(1+增长)' }[planStrategy];
+  const be = document.getElementById('spBasis'); if (be) be.textContent = '基准：' + basisLabel;
+  statsEl.innerHTML = `
+    ${statCard('计划零售总额', saMoney(retail), '')}
+    ${statCard('计划日均销售额 (元/天)', `<input id="spDs" type="number" class="sp-input" value="${Math.round(basis.ds)}">`, '')}
+    ${statCard('计划日均客单量 (单/天)', `<input id="spQ" type="number" class="sp-input" value="${Math.round(basis.q)}">`, '')}
+    ${statCard('计划日均客单价 (元)', ticket.toFixed(2), '')}
+  `;
+  const dsEl = document.getElementById('spDs');
+  const qEl = document.getElementById('spQ');
+  if (dsEl) dsEl.addEventListener('input', () => { planCurrentBasis.ds = +dsEl.value || 0; paintDerived(cur, days); });
+  if (qEl) qEl.addEventListener('input', () => { planCurrentBasis.q = +qEl.value || 0; paintDerived(cur, days); });
+  paintDerived(cur, days);
+}
+
+function paintDerived(cur, days) {
+  const b = planCurrentBasis;
+  const ticket = (b.ds && b.q) ? b.ds / b.q : 0;
+  const retail = b.ds * days;
+  const statsEl = document.getElementById('spStats');
+  if (!statsEl) return;
+  const cards = statsEl.children;
+  if (cards[0] && cards[0].querySelector('.stat-value')) cards[0].querySelector('.stat-value').textContent = saMoney(retail);
+  if (cards[3] && cards[3].querySelector('.stat-value')) cards[3].querySelector('.stat-value').textContent = ticket.toFixed(2);
+  const cons = document.getElementById('spCons');
+  if (cons) cons.innerHTML = (b.ds>0 && b.q>0)
+    ? `四项指标<b class="sp-ok">自洽</b>：零售 = ${saMoney(b.ds)} × ${days}天 = ${saMoney(retail)}；客单价 = ${saMoney(b.ds)} ÷ ${Math.round(b.q)} = ${ticket.toFixed(2)} 元。`
+    : '请填写日均销售额与客单量。';
+  paintCompare(retail, cur);
+}
+
+function paintCompare(planRetail, cur) {
+  const el = document.getElementById('spCompare');
+  if (!el) return;
+  const actual = salesLogs.find(l => l.date === cur);
+  if (actual) {
+    const aRet = (actual.dailySales||0) * (daysInMonth(cur)||30);
+    const rate = planRetail ? Math.min(100, aRet / planRetail * 100) : 0;
+    const aTick = (actual.dailySales && actual.dailyOrders) ? actual.dailySales/actual.dailyOrders : 0;
+    const dsOk = (actual.dailySales||0) >= (planCurrentBasis.ds||0);
+    el.innerHTML = `
+      <div class="sp-compare-row"><span>零售总额达成率</span><span>${rate.toFixed(1)}%</span></div>
+      <div class="sp-bar"><i style="width:${rate}%"></i></div>
+      <div class="sp-compare-row" style="margin-top:12px;"><span>实际日均销售额</span><span>${saMoney(actual.dailySales)} <span class="sp-pill ${dsOk?'g':'r'}">${dsOk?'达标':'未达'}</span></span></div>
+      <div class="sp-compare-row"><span>实际日均客单量</span><span>${actual.dailyOrders||0} 单</span></div>
+      <div class="sp-compare-row"><span>实际日均客单价</span><span>${aTick? aTick.toFixed(2):'—'} 元</span></div>`;
+  } else {
+    el.innerHTML = `<div class="wt-note" style="margin:0;">本月「销售数据管理」中尚无实际录入，保存计划后可在此对比达成情况。</div>`;
+  }
+}
+
 
 function escapeHtml(s) {
   const div = document.createElement('div');
@@ -7312,7 +10248,13 @@ async function init() {
   loadWorkDone();
   loadWeight();
   loadSalary();
+  loadCost();
+  loadCostItems();
+  loadScrap();
   loadRope();
+  loadPlaces();
+  loadPlaceCats();
+  loadSales();
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
   const restored = await tryCloudRestoreFirst();
@@ -7702,7 +10644,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadRope();
+  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales();
 }
 
 function exportBackup(){
