@@ -8822,6 +8822,11 @@ function renderSalesCharts() {
   if (!el) return;
   const logs = salesAsc();
   if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有销售数据,先在上方录入月份数据</div>`; return; }
+  const lastLog = logs[logs.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
   const charts = [
     { title: '月度零售总额 (元)', color: '#6366f1', unit: '元', get: l => l.retail || 0 },
     { title: '日均销售额 (元)', color: '#14b8a6', unit: '元', get: l => l.dailySales || 0 },
@@ -8831,7 +8836,8 @@ function renderSalesCharts() {
   el.innerHTML = charts.map(c => `
     <div class="wt-chart-sub">
       <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
-      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit)}
+      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit, { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })}
+      <div class="wt-chart-subnote">最新 <b style="color:${c.color}">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>
     </div>`).join('');
 }
 
