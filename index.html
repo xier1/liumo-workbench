@@ -2929,6 +2929,9 @@
 .sp-grid .sp-card { margin-bottom: 0; }
 .sp-hl { background: #fff7ed; }
 .sp-hl td:first-child { font-weight: 700; }
+.qg-cell { text-align: center; vertical-align: middle; }
+.qg-g { font-size: 11px; margin-top: 2px; font-weight: 600; }
+.qg-empty { color: #c2c8d2; }
 .sp-ok { color: #10b981; font-weight: 600; }
 .sp-badge { font-size: 10px; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
 .sp-yoy { background: #ffedd5; color: #c2410c; }
@@ -3077,6 +3080,13 @@ const MODULES = [
     name: '年度增长率',
     desc: '基于销售数据管理，按年汇总日均销售额·月均客单量·月均客单价的同比增长',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-9"/><path d="M21 6h-5M21 6v5"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'quartergrowth',
+    name: '季度增长率',
+    desc: '基于销售数据管理，按季度(Q1-Q4)汇总日均销售额·月均客单量·月均客单价的同季度同比增长',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="4" height="16" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="11" width="4" height="9" rx="1"/></svg>',
     enabled: true
   },
   {
@@ -3495,6 +3505,12 @@ function renderContent() {
   // 年度增长率模块
   if (currentModule === 'yeargrowth') {
     renderYearGrowthModule(content, mod);
+    return;
+  }
+
+  // 季度增长率模块
+  if (currentModule === 'quartergrowth') {
+    renderQuarterGrowthModule(content, mod);
     return;
   }
 
@@ -8919,6 +8935,80 @@ function paintYearGrowth() {
   }).join('');
   el.innerHTML = `<div class="sp-grid">${cards}</div>
     <div class="sp-note">口径：三项指标均为当年各录入月份对应值的平均。日均销售额 = 各月日均销售额平均；月均客单量 / 客单价 = 各月日均客单量 / 客单价平均。同比增长 = (本年 − 上年) ÷ 上年。高亮行即为「去年」。</div>`;
+}
+
+/* ===== 季度增长率：年度 × 季度(Q1-Q4) 矩阵，含同季度同比 ===== */
+function renderQuarterGrowthModule(content, mod) {
+  loadSales();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块已录入的月度历史。按季度拆分（Q1=1-3月、Q2=4-6月、Q3=7-9月、Q4=10-12月），对各指标求季度内月均值，并计算<b>同季度同比增长</b>（今年当季 ÷ 去年同季 − 1）。高亮行为「去年」。
+    </div>
+    <div class="wt-list" id="qgBody"></div>
+  `;
+  paintQuarterGrowth();
+}
+
+function paintQuarterGrowth() {
+  const el = document.getElementById('qgBody');
+  if (!el) return;
+  const logs = salesAsc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`;
+    return;
+  }
+  // 按 年份 → 季度(1-4) 分组
+  const groups = {};
+  logs.forEach(l => {
+    const y = (l.date || '').slice(0, 4);
+    const m = Number((l.date || '').split('-')[1]);
+    if (!/^\d{4}$/.test(y) || !m) return;
+    const q = Math.ceil(m / 3);
+    (groups[y] = groups[y] || { 1: [], 2: [], 3: [], 4: [] });
+    groups[y][q].push(l);
+  });
+  const years = Object.keys(groups).sort();
+  const quarters = [1, 2, 3, 4];
+  const metrics = [
+    { t: '日均销售额', fmt: saMoney, get: l => Number(l.dailySales) || 0, note: '季度内各月日均值平均' },
+    { t: '月均客单量', fmt: v => (Math.round(v * 10) / 10) + ' 单', get: l => Number(l.dailyOrders) || 0, note: '季度内各月日均值平均' },
+    { t: '月均客单价', fmt: v => '¥' + (Math.round(v * 100) / 100), get: l => Number(l.avgTicket) || 0, note: '季度内各月日均值平均' },
+  ];
+  const lastYear = new Date().getFullYear() - 1;
+  const cards = metrics.map(m => {
+    // 每年每季度的值（季度内各月对应值平均；无录入则为 null）
+    const valM = years.map(y => quarters.map(q => {
+      const arr = groups[y][q];
+      if (!arr || arr.length === 0) return null;
+      return arr.reduce((s, l) => s + m.get(l), 0) / arr.length;
+    }));
+    const rows = years.map((y, i) => {
+      const cells = quarters.map((q, qi) => {
+        const v = valM[i][qi];
+        let g = null;
+        if (i > 0) {
+          const pv = valM[i - 1][qi];
+          if (pv != null && pv > 0 && v != null) g = (v - pv) / pv * 100;
+        }
+        const valTxt = v == null ? '<span class="qg-empty">—</span>' : m.fmt(v);
+        const gTxt = g == null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
+        const gCls = g == null ? 'qg-g' : (g >= 0 ? 'qg-g sp-up' : 'qg-g sp-down');
+        return `<td class="qg-cell">${valTxt}<div class="${gCls}">${gTxt}</div></td>`;
+      }).join('');
+      const hi = (y === String(lastYear)) ? ' class="sp-hl"' : '';
+      return `<tr${hi}><td>${y} 年</td>${cells}</tr>`;
+    }).join('');
+    return `<div class="sp-card">
+      <div class="sp-card-t">${m.t}<span class="sp-tag">${m.note}</span></div>
+      <table class="wt-cat"><thead><tr><th>年度</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="sp-grid">${cards}</div>
+    <div class="sp-note">口径：季度指标 = 该季度内各录入月份的对应值平均。单元格上方为季度数值，下方为<b>同季度同比</b>（今年该季度 ÷ 去年同季度 − 1）；首年或无去年同季度数据时显示「—」。某季度无录入则数值栏显示「—」。高亮行为「去年」。</div>`;
 }
 
 /* ===== 销售年度曲线：横轴=月份(1-12)，一年一条曲线 ===== */
