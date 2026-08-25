@@ -2923,6 +2923,12 @@
 .sp-growth b { color: var(--primary-2); min-width: 46px; text-align: right; }
 .sp-input { width: 100%; font-size: 18px; font-weight: 700; border: 1px solid var(--primary-2); border-radius: 8px; padding: 4px 6px; color: var(--text); }
 .sp-note { font-size: 12px; color: var(--text-soft); margin-top: 12px; line-height: 1.6; }
+.sp-up { color: #16a34a; font-weight: 600; }
+.sp-down { color: #dc2626; font-weight: 600; }
+.sp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; align-items: start; }
+.sp-grid .sp-card { margin-bottom: 0; }
+.sp-hl { background: #fff7ed; }
+.sp-hl td:first-child { font-weight: 700; }
 .sp-ok { color: #10b981; font-weight: 600; }
 .sp-badge { font-size: 10px; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
 .sp-yoy { background: #ffedd5; color: #c2410c; }
@@ -3064,6 +3070,13 @@ const MODULES = [
     name: '销售计划',
     desc: '基于销售数据管理历史，按策略生成本月计划销售数据，并对比实际达成',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'yeargrowth',
+    name: '年度增长率',
+    desc: '基于销售数据管理，按年汇总日均销售额·月均客单量·月均客单价的同比增长',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-9"/><path d="M21 6h-5M21 6v5"/></svg>',
     enabled: true
   },
   {
@@ -3476,6 +3489,12 @@ function renderContent() {
   // 销售计划模块
   if (currentModule === 'salesplan') {
     renderSalesPlanModule(content, mod);
+    return;
+  }
+
+  // 年度增长率模块
+  if (currentModule === 'yeargrowth') {
+    renderYearGrowthModule(content, mod);
     return;
   }
 
@@ -8838,6 +8857,69 @@ function renderSalesStats() {
   el.innerHTML = cards.join('');
 }
 
+
+// 独立模块：年度增长率（日均销售额 / 月均客单量 / 月均客单价）
+function renderYearGrowthModule(content, mod) {
+  loadSales();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块中已录入的月度历史。按年对三项指标求各月均值，并计算<b>年度同比增长</b>（=(本年−上年)÷上年）。高亮行为「去年」。
+    </div>
+    <div class="wt-list" id="ygBody"></div>
+  `;
+  paintYearGrowth();
+}
+
+function paintYearGrowth() {
+  const el = document.getElementById('ygBody');
+  if (!el) return;
+  const logs = salesAsc();
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`;
+    return;
+  }
+  // 按年份分组
+  const groups = {};
+  logs.forEach(l => {
+    const y = (l.date || '').slice(0, 4);
+    if (!/^\d{4}$/.test(y)) return;
+    (groups[y] = groups[y] || []).push(l);
+  });
+  const years = Object.keys(groups).sort();
+  // 三个指标：均为当年各录入月份对应值的平均
+  const metrics = [
+    { t: '日均销售额', fmt: saMoney, get: l => Number(l.dailySales) || 0, note: '各月日均值平均' },
+    { t: '月均客单量', fmt: v => (Math.round(v * 10) / 10) + ' 单', get: l => Number(l.dailyOrders) || 0, note: '各月日均值平均' },
+    { t: '月均客单价', fmt: v => '¥' + (Math.round(v * 100) / 100), get: l => Number(l.avgTicket) || 0, note: '各月日均值平均' },
+  ];
+  const metricSeries = metrics.map(m => years.map(y => {
+    const a = groups[y];
+    return a.reduce((s, l) => s + m.get(l), 0) / a.length;
+  }));
+  const lastYear = new Date().getFullYear() - 1;
+  const cards = metrics.map((m, mi) => {
+    const series = metricSeries[mi];
+    const rows = years.map((y, i) => {
+      const val = series[i];
+      let g = null;
+      if (i > 0) { const p = series[i - 1]; g = p > 0 ? (val - p) / p * 100 : null; }
+      const gTxt = g === null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
+      const gCls = g === null ? '' : (g >= 0 ? 'sp-up' : 'sp-down');
+      const hi = (y === String(lastYear)) ? ' class="sp-hl"' : '';
+      return `<tr${hi}><td>${y} 年</td><td>${m.fmt(val)}</td><td class="${gCls}">${gTxt}</td></tr>`;
+    }).join('');
+    return `<div class="sp-card">
+      <div class="sp-card-t">${m.t}<span class="sp-tag">${m.note}</span></div>
+      <table class="wt-cat"><thead><tr><th>年度</th><th>数值</th><th>同比增长</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="sp-grid">${cards}</div>
+    <div class="sp-note">口径：三项指标均为当年各录入月份对应值的平均。日均销售额 = 各月日均销售额平均；月均客单量 / 客单价 = 各月日均客单量 / 客单价平均。同比增长 = (本年 − 上年) ÷ 上年。高亮行即为「去年」。</div>`;
+}
 
 /* ===== 销售年度曲线：横轴=月份(1-12)，一年一条曲线 ===== */
 const YEAR_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#3b82f6', '#10b981',
