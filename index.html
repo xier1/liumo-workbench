@@ -2927,6 +2927,10 @@
 .sp-down { color: #dc2626; font-weight: 600; }
 .sp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; align-items: start; }
 .sp-grid .sp-card { margin-bottom: 0; }
+.sp-summary { background: linear-gradient(90deg, #eef2ff, #f5f3ff); border: 1px solid #c7d2fe; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; font-size: 14px; color: var(--text); }
+.sp-summary b { color: var(--primary-2); }
+.sp-hl { background: #fff7ed; }
+.sp-hl td:first-child { font-weight: 700; }
 .sp-ok { color: #10b981; font-weight: 600; }
 .sp-badge { font-size: 10px; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
 .sp-yoy { background: #ffedd5; color: #c2410c; }
@@ -8877,23 +8881,40 @@ function renderSalesYearGrowth() {
     { t: '日均客单量', fmt: v => (Math.round(v * 10) / 10) + ' 单', agg: a => a.reduce((s, l) => s + (Number(l.dailyOrders) || 0), 0) / a.length, note: '各月日均值平均' },
     { t: '日均客单价', fmt: v => '¥' + (Math.round(v * 100) / 100), agg: a => a.reduce((s, l) => s + (Number(l.avgTicket) || 0), 0) / a.length, note: '各月日均值平均' },
   ];
-  const cards = metrics.map(m => {
-    const series = years.map(y => m.agg(groups[y]));
+  // 预计算每个指标按年份的序列（与 years 对齐）
+  const metricSeries = metrics.map(m => years.map(y => m.agg(groups[y])));
+  // 去年（当前年份 - 1）的销售金额同比增长总结
+  const lastYear = new Date().getFullYear() - 1;
+  const lyPos = years.indexOf(String(lastYear));
+  let summary;
+  if (lyPos >= 0) {
+    const amt = metricSeries[0][lyPos];
+    let g = null;
+    if (lyPos > 0) { const p = metricSeries[0][lyPos - 1]; g = p > 0 ? (amt - p) / p * 100 : null; }
+    const gTxt = g === null ? '—（缺前一年数据）' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
+    const gCls = g === null ? '' : (g >= 0 ? 'sp-up' : 'sp-down');
+    summary = `<div class="sp-summary">去年（<b>${lastYear}</b> 年）销售金额 <b>${saMoney(amt)}</b>，年度同比增长 <b class="${gCls}">${gTxt}</b>（对比 ${lastYear - 1} 年）</div>`;
+  } else {
+    summary = `<div class="sp-summary">去年（<b>${lastYear}</b> 年）暂无销售数据，无法计算同比增长</div>`;
+  }
+  const cards = metrics.map((m, mi) => {
+    const series = metricSeries[mi];
     const rows = years.map((y, i) => {
       const val = series[i];
       let g = null;
       if (i > 0) { const p = series[i - 1]; g = p > 0 ? (val - p) / p * 100 : null; }
       const gTxt = g === null ? '—' : (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
       const gCls = g === null ? '' : (g >= 0 ? 'sp-up' : 'sp-down');
-      return `<tr><td>${y} 年</td><td>${m.fmt(val)}</td><td class="${gCls}">${gTxt}</td></tr>`;
+      const hi = (y === String(lastYear)) ? ' class="sp-hl"' : '';
+      return `<tr${hi}><td>${y} 年</td><td>${m.fmt(val)}</td><td class="${gCls}">${gTxt}</td></tr>`;
     }).join('');
     return `<div class="sp-card">
       <div class="sp-card-t">${m.t} · 年度与同比增长<span class="sp-tag">${m.note}</span></div>
       <table class="wt-cat"><thead><tr><th>年度</th><th>数值</th><th>同比增长</th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   }).join('');
-  el.innerHTML = `<div class="sp-grid">${cards}</div>
-    <div class="sp-note">口径：销售金额为全年各月零售总额累计求和；日均销售额 / 客单量 / 客单价为当年各录入月份日均值的平均。同比增长 = (本年 − 上年) ÷ 上年。</div>`;
+  el.innerHTML = `${summary}<div class="sp-grid">${cards}</div>
+    <div class="sp-note">口径：销售金额为全年各月零售总额累计求和；日均销售额 / 客单量 / 客单价为当年各录入月份日均值的平均。同比增长 = (本年 − 上年) ÷ 上年。高亮行即为「去年」。</div>`;
 }
 
 
