@@ -8890,6 +8890,7 @@ function buildYearLineChart(years, unit) {
   if (vmin === vmax) { vmin -= 1; vmax += 1; }
   const yOf = v => padT + plotH * (1 - (v - vmin) / (vmax - vmin));
   const fmt = v => (Math.round(Number(v) * 100) / 100).toLocaleString() + (unit ? (' ' + unit) : '');
+  const fmtShort = v => (Math.round(Number(v) * 100) / 100).toLocaleString();
   // 横向网格 + Y 轴刻度
   const rows = 4;
   let grid = '';
@@ -8915,16 +8916,19 @@ function buildYearLineChart(years, unit) {
         seg = [];
       }
     };
+    let labels = '';
     for (let i = 0; i < n; i++) {
       const v = y.data[i];
       if (v == null || !isFinite(v)) { flush(); continue; }
       const x = xOf(i), yy = yOf(v);
       seg.push([x.toFixed(1), yy.toFixed(1)]);
       dots += `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="2.6" fill="${color}"/>`;
+      const ty = (yy - 8) < padT ? yy + 12 : yy - 8;   // 贴顶则标在下方
+      labels += `<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}">${fmtShort(v)}</text>`;
       lastPt = { x, yy, v };
     }
     flush();
-    lines += dots;
+    lines += dots + labels;
     if (lastPt) {
       lines += `<text x="${lastPt.x.toFixed(1)}" y="${(lastPt.yy - 7).toFixed(1)}" text-anchor="end" font-size="9" fill="${color}" font-weight="600">${fmt(lastPt.v)}</text>`;
     }
