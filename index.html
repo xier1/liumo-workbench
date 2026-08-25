@@ -2902,6 +2902,7 @@
   .sa-mom.up { color: #ef4444; }
   .sa-mom.down { color: #10b981; }
 
+  .wt-chart-subnote { font-size: 11px; color: #64748b; margin: 2px 0 8px; padding-left: 2px; }
 </style>
 </head>
 <body>
@@ -6914,7 +6915,7 @@ function renderSalaryStats() {
   el.innerHTML = cards.join('');
 }
 
-function buildSalaryLineSVG(logs, getVal, color, unit) {
+function buildSalaryLineSVG(logs, getVal, color, unit, marks) {
   const W = 640, H = 210, padL = 54, padR = 14, padT = 12, padB = 28;
   const all = logs.map(getVal).filter(v => v != null && isFinite(v));
   if (all.length === 0) return `<div class="wt-empty" style="padding:18px 0;">暂无数据</div>`;
@@ -6947,7 +6948,28 @@ function buildSalaryLineSVG(logs, getVal, color, unit) {
       xlab += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#9ca3af">${escapeHtml(l.date.slice(5))}</text>`;
     }
   });
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}</svg>`;
+  let marksSvg = '';
+  if (marks) {
+    const markList = [];
+    if (marks.last != null) markList.push({ i: marks.last, kind: 'last' });
+    if (marks.yoy != null) markList.push({ i: marks.yoy, kind: 'yoy' });
+    markList.forEach(m => {
+      const l = logs[m.i];
+      if (!l) return;
+      const v = getVal(l);
+      if (v == null || !isFinite(v)) return;
+      const x = xOf(m.i), y = yOf(v);
+      const ring = m.kind === 'yoy' ? '#dc2626' : color;
+      const isEnd = m.i === n - 1;
+      const anchor = isEnd ? 'end' : 'middle';
+      const tx = isEnd ? x - 6 : x;
+      let ty = y - 9;
+      if (ty < 14) ty = y + 16;
+      marksSvg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" fill="none" stroke="${ring}" stroke-width="2"/>`;
+      marksSvg += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="10" font-weight="700" fill="${ring}">${Math.round(v)}${unit}</text>`;
+    });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}${marksSvg}</svg>`;
 }
 
 function renderSalaryChart() {
@@ -6966,6 +6988,11 @@ function renderSalaryChart() {
   const effOf = l => { const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
   // 平均工资 = 总工资 ÷（人数 − 2）（不含管理人员）
   const avgSalOf = l => (l.head > 2 ? l.total / (l.head - 2) : null);
+  const lastLog = logs[logs.length - 1];
+  const lastDate = lastLog.date;
+  const [ly, lm] = lastDate.split('-').map(Number);
+  const yoyStr = (ly - 1) + '-' + ('0' + lm).slice(-2);
+  const yoyIdx = logs.findIndex(l => l.date === yoyStr);
   const charts = [
     { title: '营业额 (元)', color: '#14b8a6', unit: '元', get: l => l.revenue || 0 },
     { title: '总工资 (元)', color: '#6366f1', unit: '元', get: l => l.total || 0 },
@@ -6976,7 +7003,8 @@ function renderSalaryChart() {
   el.innerHTML = charts.map(c => `
     <div class="wt-chart-sub">
       <div class="wt-chart-subtitle" style="color:${c.color}">${c.title}</div>
-      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit)}
+      ${buildSalaryLineSVG(logs, c.get, c.color, c.unit, { last: logs.length - 1, yoy: yoyIdx >= 0 ? yoyIdx : null })}
+      <div class="wt-chart-subnote">最新 <b style="color:${c.color}">${lastDate}</b> · 同比 <b style="color:#dc2626">${yoyStr}</b>${yoyIdx >= 0 ? '' : '（暂无数据）'}</div>
     </div>`).join('');
 }
 
