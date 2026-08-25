@@ -2906,6 +2906,33 @@
 .yy-legend{display:flex;flex-wrap:wrap;gap:2px 0;margin-top:6px;padding-top:7px;border-top:1px dashed #eef1f6;}
 .yy-legend span{line-height:18px;}
 
+
+/* ========== 销售计划模块 ========== */
+.sp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; }
+.sp-card-t { font-size: 14px; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.sp-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: var(--primary-2); }
+.sp-strat { display: flex; flex-wrap: wrap; gap: 10px; }
+.sp-opt { flex: 1 1 140px; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: .15s; background: #fff; }
+.sp-opt:hover { border-color: #c7d2fe; }
+.sp-opt.active { border-color: var(--primary-2); background: #eef2ff; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+.sp-opt-t { font-size: 13px; font-weight: 600; }
+.sp-opt-d { font-size: 11px; color: var(--text-soft); margin-top: 3px; }
+.sp-growth { display: none; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; background: #f8fafc; border-radius: 10px; }
+.sp-growth.show { display: flex; }
+.sp-growth input[type=range] { flex: 1; }
+.sp-growth b { color: var(--primary-2); min-width: 46px; text-align: right; }
+.sp-input { width: 100%; font-size: 18px; font-weight: 700; border: 1px solid var(--primary-2); border-radius: 8px; padding: 4px 6px; color: var(--text); }
+.sp-note { font-size: 12px; color: var(--text-soft); margin-top: 12px; line-height: 1.6; }
+.sp-ok { color: #10b981; font-weight: 600; }
+.sp-badge { font-size: 10px; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
+.sp-yoy { background: #ffedd5; color: #c2410c; }
+.sp-re { background: #cffafe; color: #0e7490; }
+.sp-bar { height: 14px; border-radius: 999px; background: #eef2f7; overflow: hidden; margin-top: 8px; }
+.sp-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #6366f1); }
+.sp-compare-row { display: flex; justify-content: space-between; font-size: 13px; margin: 10px 0 2px; }
+.sp-pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+.sp-pill.g { background: #dcfce7; color: #15803d; }
+.sp-pill.r { background: #fee2e2; color: #b91c1c; }
 </style>
 </head>
 <body>
@@ -3030,6 +3057,13 @@ const MODULES = [
     name: '销售年度曲线',
     desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 14 9 9 15 12 21 5"/><polyline points="3 18 9 15 15 17 21 11"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'salesplan',
+    name: '销售计划',
+    desc: '基于销售数据管理历史，按策略生成本月计划销售数据，并对比实际达成',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
     enabled: true
   },
   {
@@ -3436,6 +3470,12 @@ function renderContent() {
   // 销售年度曲线模块
   if (currentModule === 'salesyear') {
     renderSalesYearModule(content, mod);
+    return;
+  }
+
+  // 销售计划模块
+  if (currentModule === 'salesplan') {
+    renderSalesPlanModule(content, mod);
     return;
   }
 
@@ -9042,6 +9082,217 @@ function bindSalesEvents() {
     }
   });
 }
+
+// ==================== 销售计划模块 ====================
+const SALES_PLAN_KEY = 'liumo_sales_plan';
+let salesPlan = null;
+let planStrategy = 'yoy';
+let planGrowth = 0.10;
+let planLoaded = false;
+let planCurrentBasis = { ds: 0, q: 0 };
+
+function loadSalesPlan() {
+  try {
+    const d = localStorage.getItem(SALES_PLAN_KEY);
+    const arr = d ? JSON.parse(d) : [];
+    salesPlan = (Array.isArray(arr) && arr.find(p => p.month === currentMonthStr())) || null;
+  } catch (e) { salesPlan = null; }
+}
+
+function saveSalesPlanStore() {
+  try {
+    const d = localStorage.getItem(SALES_PLAN_KEY);
+    let arr = d ? JSON.parse(d) : [];
+    if (!Array.isArray(arr)) arr = [];
+    const cur = currentMonthStr();
+    arr = arr.filter(p => p.month !== cur);
+    if (salesPlan) arr.push(salesPlan);
+    localStorage.setItem(SALES_PLAN_KEY, JSON.stringify(arr));
+  } catch (e) {}
+}
+
+function planBasis(strategy, growth) {
+  const hist = salesAsc();
+  if (hist.length === 0) return { ds: 0, q: 0 };
+  const [cy, cm] = currentMonthStr().split('-').map(Number);
+  const yoyKey = (cy - 1) + '-' + ('0' + cm).slice(-2);
+  const avg = (a, k) => a.reduce((s, r) => s + (r[k] || 0), 0) / (a.length || 1);
+  if (strategy === 'yoy') {
+    const y = hist.find(r => r.date === yoyKey) || hist[hist.length - 1];
+    return { ds: y.dailySales || 0, q: y.dailyOrders || 0 };
+  }
+  if (strategy === 'm3')  { const a = hist.slice(-3); return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'm6')  { const a = hist.slice(-6); return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'm12') { const a = hist;           return { ds: avg(a,'dailySales'), q: avg(a,'dailyOrders') }; }
+  if (strategy === 'grow'){ const a = hist.slice(-3); return { ds: avg(a,'dailySales')*(1+growth), q: avg(a,'dailyOrders')*(1+growth) }; }
+  return { ds: 0, q: 0 };
+}
+
+const SP_STRATS = [
+  { id:'yoy',  t:'去年同月', d:'取去年同期实际值' },
+  { id:'m3',   t:'近 3 月均值', d:'最近一季度平均' },
+  { id:'m6',   t:'近 6 月均值', d:'半年度平均' },
+  { id:'m12',  t:'近 12 月均值', d:'全年平均' },
+  { id:'grow', t:'自定义增长', d:'近 3 月 ×(1+增长)' },
+];
+
+function renderSalesPlanModule(content, mod) {
+  loadSales();
+  loadSalesPlan();
+  const cur = currentMonthStr();
+  const days = daysInMonth(cur) || 30;
+  planLoaded = !!salesPlan;
+  const basis = salesPlan ? { ds: salesPlan.ds, q: salesPlan.q } : planBasis(planStrategy, planGrowth);
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      数据来源：<b>销售数据管理</b>模块中已录入的月度历史。按所选策略推算 <b>${cur}（${days}天）</b> 的计划销售数据，四项指标自动保持内部一致。
+    </div>
+    <div id="spBody"></div>
+  `;
+  paintPlanBody(basis, cur, days);
+}
+
+function paintPlanBody(basis, cur, days) {
+  const el = document.getElementById('spBody');
+  if (!el) return;
+  const hist = salesAsc();
+  if (hist.length === 0) { el.innerHTML = `<div class="wt-empty">还没有销售历史，请先在「销售数据管理」模块录入月份数据</div>`; return; }
+
+  const [cy, cm] = cur.split('-').map(Number);
+  const yoyKey = (cy - 1) + '-' + ('0' + cm).slice(-2);
+  const recentKeys = hist.slice(-3).map(r => r.date);
+  const rows = hist.slice(-12).map(r => {
+    const tag = r.date === yoyKey ? '<span class="sp-badge sp-yoy">同</span>'
+              : recentKeys.includes(r.date) ? '<span class="sp-badge sp-re">近</span>' : '';
+    const tick = (r.dailySales && r.dailyOrders) ? r.dailySales / r.dailyOrders : 0;
+    const ret = (r.dailySales || 0) * (daysInMonth(r.date) || days);
+    return `<tr><td>${escapeHtml(r.date)}${tag}</td><td>${saMoney(r.dailySales)}</td><td>${(r.dailyOrders||0)} 单</td><td>${tick? tick.toFixed(2):'—'}</td><td>${saMoney(ret)}</td></tr>`;
+  }).join('');
+
+  const stratHtml = SP_STRATS.map(s => `
+    <div class="sp-opt ${s.id===planStrategy?'active':''}" data-s="${s.id}">
+      <div class="sp-opt-t">${s.t}</div><div class="sp-opt-d">${s.d}</div>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="sp-card">
+      <div class="sp-card-t">① 历史数据来源<span class="sp-tag">来自销售数据管理</span></div>
+      <table class="wt-cat"><thead><tr><th>月份</th><th>日均销售额</th><th>日均客单量</th><th>日均客单价</th><th>零售总额</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="sp-note">高亮：<span class="sp-badge sp-yoy">同</span> 去年同月；<span class="sp-badge sp-re">近</span> 近 3 月</div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-card-t">② 计划生成策略</div>
+      <div class="sp-strat">${stratHtml}</div>
+      <div class="sp-growth ${planStrategy==='grow'?'show':''}" id="spGrowth">
+        <span>增长率</span>
+        <input type="range" id="spGrow" min="-20" max="50" value="${Math.round(planGrowth*100)}" step="1" />
+        <b id="spGrowVal">${planGrowth>=0?'+':''}${Math.round(planGrowth*100)}%</b>
+      </div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-card-t">③ ${cur} 计划销售数据<span class="sp-tag" id="spBasis"></span></div>
+      <div class="wt-stats" id="spStats"></div>
+      <div class="sp-note" id="spCons"></div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-card-t">④ 计划 vs 实际</div>
+      <div id="spCompare"></div>
+    </div>
+    <div style="margin-top:4px;">
+      <button class="btn-add" id="spSave">保存本月计划</button>
+    </div>
+  `;
+
+  el.querySelectorAll('.sp-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      planStrategy = opt.dataset.s;
+      planLoaded = false;
+      el.querySelectorAll('.sp-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      document.getElementById('spGrowth').classList.toggle('show', planStrategy === 'grow');
+      paintStats(planBasis(planStrategy, planGrowth), cur, days);
+    });
+  });
+  const growEl = document.getElementById('spGrow');
+  if (growEl) growEl.addEventListener('input', () => {
+    planGrowth = (+growEl.value) / 100;
+    document.getElementById('spGrowVal').textContent = (planGrowth>=0?'+':'') + Math.round(planGrowth*100) + '%';
+    paintStats(planBasis('grow', planGrowth), cur, days);
+  });
+  document.getElementById('spSave').addEventListener('click', () => {
+    const b = planCurrentBasis;
+    salesPlan = {
+      month: cur, ds: Math.round(b.ds), q: Math.round(b.q),
+      note: '', createdAt: salesPlan ? salesPlan.createdAt : Date.now(), updatedAt: Date.now()
+    };
+    saveSalesPlanStore();
+    showToast('已保存 ' + cur + ' 计划：零售 ' + saMoney(b.ds * days));
+  });
+
+  paintStats(basis, cur, days);
+}
+
+function paintStats(basis, cur, days) {
+  planCurrentBasis = basis;
+  const statsEl = document.getElementById('spStats');
+  if (!statsEl) return;
+  const ticket = (basis.ds && basis.q) ? basis.ds / basis.q : 0;
+  const retail = basis.ds * days;
+  const basisLabel = planLoaded ? '已保存计划' : { yoy:'去年同月', m3:'近3月均值', m6:'近6月均值', m12:'近12月均值', grow:'近3月×(1+增长)' }[planStrategy];
+  const be = document.getElementById('spBasis'); if (be) be.textContent = '基准：' + basisLabel;
+  statsEl.innerHTML = `
+    ${statCard('计划零售总额', saMoney(retail), '')}
+    ${statCard('计划日均销售额 (元/天)', `<input id="spDs" type="number" class="sp-input" value="${Math.round(basis.ds)}">`, '')}
+    ${statCard('计划日均客单量 (单/天)', `<input id="spQ" type="number" class="sp-input" value="${Math.round(basis.q)}">`, '')}
+    ${statCard('计划日均客单价 (元)', ticket.toFixed(2), '')}
+  `;
+  const dsEl = document.getElementById('spDs');
+  const qEl = document.getElementById('spQ');
+  if (dsEl) dsEl.addEventListener('input', () => { planCurrentBasis.ds = +dsEl.value || 0; paintDerived(cur, days); });
+  if (qEl) qEl.addEventListener('input', () => { planCurrentBasis.q = +qEl.value || 0; paintDerived(cur, days); });
+  paintDerived(cur, days);
+}
+
+function paintDerived(cur, days) {
+  const b = planCurrentBasis;
+  const ticket = (b.ds && b.q) ? b.ds / b.q : 0;
+  const retail = b.ds * days;
+  const statsEl = document.getElementById('spStats');
+  if (!statsEl) return;
+  const cards = statsEl.children;
+  if (cards[0] && cards[0].querySelector('.stat-value')) cards[0].querySelector('.stat-value').textContent = saMoney(retail);
+  if (cards[3] && cards[3].querySelector('.stat-value')) cards[3].querySelector('.stat-value').textContent = ticket.toFixed(2);
+  const cons = document.getElementById('spCons');
+  if (cons) cons.innerHTML = (b.ds>0 && b.q>0)
+    ? `四项指标<b class="sp-ok">自洽</b>：零售 = ${saMoney(b.ds)} × ${days}天 = ${saMoney(retail)}；客单价 = ${saMoney(b.ds)} ÷ ${Math.round(b.q)} = ${ticket.toFixed(2)} 元。`
+    : '请填写日均销售额与客单量。';
+  paintCompare(retail, cur);
+}
+
+function paintCompare(planRetail, cur) {
+  const el = document.getElementById('spCompare');
+  if (!el) return;
+  const actual = salesLogs.find(l => l.date === cur);
+  if (actual) {
+    const aRet = (actual.dailySales||0) * (daysInMonth(cur)||30);
+    const rate = planRetail ? Math.min(100, aRet / planRetail * 100) : 0;
+    const aTick = (actual.dailySales && actual.dailyOrders) ? actual.dailySales/actual.dailyOrders : 0;
+    const dsOk = (actual.dailySales||0) >= (planCurrentBasis.ds||0);
+    el.innerHTML = `
+      <div class="sp-compare-row"><span>零售总额达成率</span><span>${rate.toFixed(1)}%</span></div>
+      <div class="sp-bar"><i style="width:${rate}%"></i></div>
+      <div class="sp-compare-row" style="margin-top:12px;"><span>实际日均销售额</span><span>${saMoney(actual.dailySales)} <span class="sp-pill ${dsOk?'g':'r'}">${dsOk?'达标':'未达'}</span></span></div>
+      <div class="sp-compare-row"><span>实际日均客单量</span><span>${actual.dailyOrders||0} 单</span></div>
+      <div class="sp-compare-row"><span>实际日均客单价</span><span>${aTick? aTick.toFixed(2):'—'} 元</span></div>`;
+  } else {
+    el.innerHTML = `<div class="wt-note" style="margin:0;">本月「销售数据管理」中尚无实际录入，保存计划后可在此对比达成情况。</div>`;
+  }
+}
+
 
 function escapeHtml(s) {
   const div = document.createElement('div');
