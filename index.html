@@ -2799,6 +2799,17 @@
   .co-admin-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; padding: 8px 10px; background: var(--bg-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: 13px; }
   .co-admin-total-label { color: var(--text-soft); font-weight: 600; }
   .co-admin-total-val { color: var(--primary-2); font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* 录入：固定成本金额 / 人工成本 / 其他 三项聚合 */
+  .co-entry-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+  .co-entry-head { font-size: 13px; color: var(--text-soft); font-weight: 600; margin-bottom: 12px; }
+  .co-entry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; align-items: end; }
+  .co-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .co-entry-amt { flex: 1 1 110px; min-width: 0; width: 110px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
+  .co-entry-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .co-fixed-field .co-entry-amt { font-weight: 600; color: var(--primary-2); }
+  .co-entry-actions { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .co-entry-total { font-size: 13px; color: var(--text-soft); }
+  .co-entry-total b { color: var(--text); font-size: 15px; }
   .co-admin-row { display: flex; align-items: center; gap: 8px; }
   .co-admin-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
   .co-admin-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
@@ -7303,8 +7314,8 @@ function renderCostModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：先在下方<b>固定成本设置</b>里维护你固定的成本项和<b>默认值</b>（如 房租 5000、人工 8000…），均可<b>增删改</b>；
-      每月记录时点「<b>一键填入默认值</b>」即可把所有项的默认金额铺好，再<b>手动微调</b>或点「<b>+ 手动添加成本项</b>」追加额外项。系统自动按<b>成本项</b>和<b>月份</b>汇总，同月再记录会覆盖该月。
+      说明：上方<b>固定成本设置</b>用于维护固定成本的明细项与<b>默认值</b>（如 房租 5000、水电 1200…），均可<b>增删改</b>，其底部会自动汇总出<b>成本合计</b>；
+      下方每月录入时，点「<b>一键填入默认值</b>」即可把该<b>成本合计</b>填入「固定成本金额」，再分别填写<b>人工成本</b>与<b>其他</b>，点「<b>记录成本</b>」生成当月记录（可随时修改）。系统自动按<b>固定成本 / 人工成本 / 其他</b>三类与<b>月份</b>汇总。
     </div>
 
     <div class="wt-stats" id="coStats"></div>
@@ -7320,29 +7331,40 @@ function renderCostModule(content, mod) {
       <div class="co-admin-list co-collapse-body" id="coItemList"></div>
     </div>
 
-    <div class="toolbar wt-add-bar">
-      <div class="wt-field">
-        <label>月份</label>
-        <input type="month" class="co-month" id="costMonth" value="${currentMonthStr()}" />
+    <div class="co-entry-card">
+      <div class="co-entry-head">录入每月成本</div>
+      <div class="co-entry-grid">
+        <div class="wt-field">
+          <label>月份</label>
+          <input type="month" class="co-month" id="costMonth" value="${currentMonthStr()}" />
+        </div>
+        <div class="wt-field co-fixed-field">
+          <label>固定成本金额</label>
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="costFixed" placeholder="0" />
+            <button class="co-fill-default" id="coFillDefaultBtn" type="button" title="把上方固定成本设置的成本合计填入此处">一键填入默认值</button>
+          </div>
+        </div>
+        <div class="wt-field">
+          <label>人工成本</label>
+          <input type="number" step="0.01" min="0" class="co-entry-amt" id="costLabor" placeholder="0" />
+        </div>
+        <div class="wt-field">
+          <label>其他</label>
+          <input type="number" step="0.01" min="0" class="co-entry-amt" id="costOther" placeholder="0" />
+        </div>
+        <div class="wt-field co-note-field">
+          <label>备注（可选）</label>
+          <input type="text" class="co-note" id="costNote" placeholder="如 总店" />
+        </div>
       </div>
-      <div class="wt-field co-note-field">
-        <label>备注（可选）</label>
-        <input type="text" class="co-note" id="costNote" placeholder="如 总店" />
+      <div class="co-entry-actions">
+        <button class="btn-add" id="costAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          记录成本
+        </button>
+        <span class="co-entry-total">本月合计：<b id="coEntryTotal">0 元</b></span>
       </div>
-      <button class="btn-add" id="costAddBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        记录成本
-      </button>
-    </div>
-
-    <div class="co-form-card">
-      <div class="co-form-head">
-        <span>本月各项金额（按上方成本项逐项填写）</span>
-        <button class="co-fill-default" id="coFillDefaultBtn" type="button">一键填入默认值</button>
-      </div>
-      <div class="co-form-items" id="costFormItems"></div>
-      <button class="co-add-extra" id="coAddExtraBtn" type="button">+ 手动添加成本项</button>
-      <div class="co-extra-items" id="costExtraItems"></div>
     </div>
 
     <div class="wt-chart-card">
@@ -7365,7 +7387,6 @@ function renderCostModule(content, mod) {
 
   bindCostEvents();
   renderCostItemAdmin();
-  renderCostForm();
   renderCostStats();
   renderCostChart();
   renderCostSummary();
@@ -7391,19 +7412,7 @@ function renderCostItemAdmin() {
       <span class="co-admin-total-val">${saMoney(total)}</span>
     </div>`;
 }
-// 录入表单：按成本项清单逐项生成金额输入框
-function renderCostForm() {
-  const el = document.getElementById('costFormItems');
-  if (!el) return;
-  if (!costItems.length) { el.innerHTML = `<div class="wt-empty">请先在上方「固定成本设置」中添加成本项</div>`; return; }
-  el.innerHTML = costItems.map(it => `
-    <div class="co-form-row">
-      <label class="co-form-name" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</label>
-      <input type="number" step="0.01" min="0" class="co-form-amt" placeholder="0" />
-    </div>`).join('');
-  // 用 data-item 存名称，便于读取
-  el.querySelectorAll('.co-form-row').forEach((r, i) => { r.querySelector('.co-form-amt').dataset.item = costItems[i].name; });
-}
+// 录入表单已重构为「固定成本金额 / 人工成本 / 其他」三项聚合录入，见 bindCostEvents 中的 addLog()
 
 function renderCostStats() {
   const el = document.getElementById('coStats');
@@ -7550,10 +7559,11 @@ function bindCostEvents() {
   const noteEl = document.getElementById('costNote');
   const adminList = document.getElementById('coItemList');
   const addItemBtn = document.getElementById('coItemAddBtn');
-  const formItems = document.getElementById('costFormItems');
-  const extraWrap = document.getElementById('costExtraItems');
+  const fixedEl = document.getElementById('costFixed');
+  const laborEl = document.getElementById('costLabor');
+  const otherEl = document.getElementById('costOther');
+  const entryTotalEl = document.getElementById('coEntryTotal');
   const fillBtn = document.getElementById('coFillDefaultBtn');
-  const extraBtn = document.getElementById('coAddExtraBtn');
   const list = document.getElementById('coList');
 
   function refreshDerived() {
@@ -7575,7 +7585,6 @@ function bindCostEvents() {
     costItems.push({ id: uid(), name: '新成本项' });
     saveCostItems();
     renderCostItemAdmin();
-    renderCostForm();
     // 添加新项时自动展开，便于立即编辑
     const card = addItemBtn.closest('.co-admin-card');
     if (card && card.classList.contains('co-collapsed')) {
@@ -7594,7 +7603,6 @@ function bindCostEvents() {
       const it = costItems.find(x => x.id === id);
       removeCostItem(id);
       renderCostItemAdmin();
-      renderCostForm();
       refreshDerived();
       showToast('已删除成本项' + (it ? '「' + it.name + '」' : '') + '及其历史金额');
     }
@@ -7613,79 +7621,58 @@ function bindCostEvents() {
       const newName = (nameInp.value || '').trim() || '未命名';
       nameInp.value = newName;
       renameCostItem(id, newName);
-      renderCostForm();   // 录入表单标签同步
       refreshDerived();
     }
   });
 
-  // 录入：读取各成本项金额（固定项 + 手动追加项）
-  function readFormItems() {
+  // 录入：读取三项聚合金额
+  function readEntryItems() {
     const items = [];
-    formItems.querySelectorAll('.co-form-row').forEach(r => {
-      const name = r.querySelector('.co-form-amt').dataset.item;
-      const amt = parseFloat(r.querySelector('.co-form-amt').value);
-      if (!isNaN(amt) && amt > 0) items.push({ name, amount: amt });
-    });
-    extraWrap.querySelectorAll('.co-extra-row').forEach(r => {
-      const name = (r.querySelector('.co-extra-name').value || '').trim();
-      const amt = parseFloat(r.querySelector('.co-extra-amt').value);
-      if (name && !isNaN(amt) && amt > 0) items.push({ name, amount: amt });
-    });
+    const fixed = parseFloat(fixedEl.value);
+    const labor = parseFloat(laborEl.value);
+    const other = parseFloat(otherEl.value);
+    if (!isNaN(fixed) && fixed > 0) items.push({ name: '固定成本', amount: fixed });
+    if (!isNaN(labor) && labor > 0) items.push({ name: '人工成本', amount: labor });
+    if (!isNaN(other) && other > 0) items.push({ name: '其他', amount: other });
     return items;
   }
 
-  // 手动追加成本项一行（名称 + 金额 + 删除）
-  function appendExtraRow(name, amount) {
-    const row = document.createElement('div');
-    row.className = 'co-extra-row';
-    row.innerHTML = `<input type="text" class="co-extra-name" placeholder="成本项名称" value="${escapeHtml(name || '')}" />
-      <input type="number" step="0.01" min="0" class="co-extra-amt" placeholder="金额" />
-      <button class="co-extra-del" type="button" title="删除该项">×</button>`;
-    extraWrap.appendChild(row);
-    if (amount != null && amount !== '') row.querySelector('.co-extra-amt').value = amount;
+  // 实时合计显示
+  function updateEntryTotal() {
+    if (!entryTotalEl) return;
+    const sum = ['costFixed', 'costLabor', 'costOther'].reduce((s, id) => {
+      const v = parseFloat(document.getElementById(id).value);
+      return s + (isNaN(v) ? 0 : v);
+    }, 0);
+    entryTotalEl.textContent = saMoney(sum);
   }
+  [fixedEl, laborEl, otherEl].forEach(el => el && el.addEventListener('input', updateEntryTotal));
 
   function addLog() {
     const date = monthEl.value || currentMonthStr();
-    const items = readFormItems();
+    const items = readEntryItems();
     const note = (noteEl.value || '').trim();
     const exist = costLogs.find(l => l.date === date);
     if (exist) { exist.items = items; exist.note = note; exist.updatedAt = Date.now(); }
     else { costLogs.push({ id: uid(), date, items, note, createdAt: Date.now(), updatedAt: Date.now() }); }
     costLogs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     saveCostLogs();
+    fixedEl.value = ''; laborEl.value = ''; otherEl.value = '';
     noteEl.value = '';
-    renderCostForm();   // 清空固定项金额
-    extraWrap.innerHTML = '';   // 清空手动追加项
+    updateEntryTotal();
     refreshDerived();
     showToast(exist ? '已更新 ' + date + ' 成本' : '已记录 ' + date + ' 成本');
   }
 
-  // 一键填入默认值：把每个成本项的默认金额铺入对应输入框（默认值为 0 的不填）
+  // 一键填入默认值：把上方固定成本设置的成本合计填入「固定成本金额」
   fillBtn.addEventListener('click', () => {
-    formItems.querySelectorAll('.co-form-row').forEach((r, i) => {
-      const it = costItems[i];
-      const def = it && it.default != null ? Number(it.default) : 0;
-      r.querySelector('.co-form-amt').value = def > 0 ? def : '';
-    });
-    showToast('已填入默认值，可继续微调或手动添加成本项');
+    const total = costItems.reduce((s, it) => s + (Number(it.default) || 0), 0);
+    if (fixedEl) { fixedEl.value = total > 0 ? total : ''; updateEntryTotal(); }
+    showToast('已填入固定成本设置的成本合计：' + saMoney(total));
   });
-
-  // 手动追加成本项
-  extraBtn.addEventListener('click', () => { appendExtraRow('', ''); });
 
   addBtn.addEventListener('click', addLog);
   noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
-  formItems.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.classList.contains('co-form-amt')) { e.preventDefault(); addLog(); }
-  });
-  extraWrap.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.classList.contains('co-extra-amt')) { e.preventDefault(); addLog(); }
-  });
-  extraWrap.addEventListener('click', e => {
-    const del = e.target.closest('.co-extra-del');
-    if (del) { const row = del.closest('.co-extra-row'); if (row) row.remove(); }
-  });
 
   if (list) list.addEventListener('click', e => {
     const delBtn = e.target.closest('[data-action="co-del"]');
@@ -7703,20 +7690,12 @@ function bindCostEvents() {
       if (rec) {
         monthEl.value = rec.date;
         noteEl.value = rec.note || '';
-        renderCostForm();
-        extraWrap.innerHTML = '';
         const sums = {};
         (rec.items || []).forEach(it => { sums[(it.name || '').trim()] = it.amount; });
-        const fixedNames = new Set(costItems.map(it => (it.name || '').trim()));
-        formItems.querySelectorAll('.co-form-row').forEach(r => {
-          const name = r.querySelector('.co-form-amt').dataset.item;
-          r.querySelector('.co-form-amt').value = sums[name] != null ? sums[name] : '';
-        });
-        // 不在固定清单里的项 -> 手动追加行
-        (rec.items || []).forEach(it => {
-          const n = (it.name || '').trim();
-          if (n && !fixedNames.has(n)) appendExtraRow(n, it.amount);
-        });
+        if (fixedEl) fixedEl.value = sums['固定成本'] != null ? sums['固定成本'] : '';
+        if (laborEl) laborEl.value = sums['人工成本'] != null ? sums['人工成本'] : '';
+        if (otherEl) otherEl.value = sums['其他'] != null ? sums['其他'] : '';
+        updateEntryTotal();
         monthEl.focus();
         showToast('已载入 ' + rec.date + '，修改后点「记录成本」即可更新');
       }
