@@ -2915,10 +2915,9 @@
     .co-entry-total { text-align: center; width: 100%; }
     .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
     .co-admin-head .co-add-item { width: 100%; }
-    .co-admin-row { flex-wrap: wrap; gap: 8px; }
-    .co-admin-row .co-admin-name { flex: 1 1 100%; min-width: 0; }
-    .co-admin-row .co-admin-unit { display: none; }
-    .co-admin-row .co-admin-default { flex: 1 1 auto; min-width: 0; }
+    .co-admin-row { gap: 8px; }
+    .co-admin-row .co-admin-name { flex: 1 1 auto; min-width: 0; }
+    .co-admin-row .co-admin-default { flex: 0 0 110px; width: 110px; min-width: 0; }
     .co-matrix { min-width: 0; }
   }
 
@@ -7480,9 +7479,8 @@ function renderCostItemAdmin() {
   const total = costItems.reduce((s, it) => s + (Number(it.default) || 0), 0);
   el.innerHTML = costItems.map(it => `
     <div class="co-admin-row" data-id="${it.id}">
-      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" />
-      <span class="co-admin-unit">默认</span>
-      <input type="number" step="0.01" min="0" class="co-admin-default" data-id="${it.id}" value="${it.default != null ? it.default : 0}" title="每月「一键填入默认值」时带入的金额" />
+      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" placeholder="成本项名称" />
+      <input type="number" step="0.01" min="0" class="co-admin-default" data-id="${it.id}" value="${it.default != null ? it.default : 0}" placeholder="默认值" title="每月「一键填入默认值」时带入的金额" />
       <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
     </div>`).join('') + `
     <div class="co-admin-total">
