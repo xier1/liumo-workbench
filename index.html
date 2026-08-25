@@ -9180,11 +9180,6 @@ function paintPlanBody(basis, cur, days) {
 
   el.innerHTML = `
     <div class="sp-card">
-      <div class="sp-card-t">① 历史数据来源<span class="sp-tag">来自销售数据管理</span></div>
-      <table class="wt-cat"><thead><tr><th>月份</th><th>日均销售额</th><th>日均客单量</th><th>日均客单价</th><th>零售总额</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="sp-note">高亮：<span class="sp-badge sp-yoy">同</span> 去年同月；<span class="sp-badge sp-re">近</span> 近 3 月</div>
-    </div>
-    <div class="sp-card">
       <div class="sp-card-t">② 计划生成策略</div>
       <div class="sp-strat">${stratHtml}</div>
       <div class="sp-growth ${planStrategy==='grow'?'show':''}" id="spGrowth">
@@ -9204,6 +9199,11 @@ function paintPlanBody(basis, cur, days) {
     </div>
     <div style="margin-top:4px;">
       <button class="btn-add" id="spSave">保存本月计划</button>
+    </div>
+    <div class="sp-card" style="margin-top:16px;">
+      <div class="sp-card-t">① 历史数据来源<span class="sp-tag">来自销售数据管理</span></div>
+      <table class="wt-cat"><thead><tr><th>月份</th><th>日均销售额</th><th>日均客单量</th><th>日均客单价</th><th>零售总额</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="sp-note">高亮：<span class="sp-badge sp-yoy">同</span> 去年同月；<span class="sp-badge sp-re">近</span> 近 3 月</div>
     </div>
   `;
 
