@@ -750,6 +750,8 @@
   /* ========== 响应式 ========== */
   @media (max-width: 900px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
+    /* 成本核算录入表单在平板/小桌面上改为 2 列 */
+    .co-entry-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 768px) {
@@ -768,6 +770,17 @@
     .toolbar { flex-direction: column; align-items: stretch; }
     .input-add, .select-priority, .btn-add { width: 100%; }
     .search-box { max-width: none; margin-left: 0; }
+    /* 成本核算：录入表单移动端单列堆叠 */
+    .co-entry-grid { grid-template-columns: 1fr; gap: 12px; }
+    .co-entry-grid .co-note-field { grid-column: auto; }
+    .co-inline { flex-direction: column; align-items: stretch; gap: 8px; }
+    .co-fill-default { width: 100%; }
+    .co-entry-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+    .co-entry-total { text-align: center; }
+    .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
+    .co-admin-head .co-add-item { width: 100%; }
+    .co-admin-row { flex-wrap: wrap; }
+    .co-matrix { min-width: 0; }
   }
 
   /* ========== 心灵鸡汤模块 ========== */
@@ -2854,9 +2867,10 @@
   .co-entry-head { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .co-entry-head::before { content: ''; width: 4px; height: 16px; background: var(--brand-grad); border-radius: 2px; }
   .co-entry-grid { display: grid; grid-template-columns: 160px repeat(3, 1fr); gap: 14px 18px; align-items: end; }
-  .co-entry-grid .co-note-field { grid-column: span 2; }
-  .co-inline { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
-  .co-inline .co-entry-amt { flex: 1 1 auto; width: auto; min-width: 0; }
+  .co-entry-grid .co-note-field { grid-column: 1 / -1; }
+  .co-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .co-inline .co-entry-amt { flex: 1 1 120px; min-width: 0; }
+  .co-fill-default { flex: 0 0 auto; }
   .co-entry-amt { flex: 1 1 110px; min-width: 0; width: 110px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
   .co-entry-amt:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
   .co-fixed-field .co-entry-amt { font-weight: 600; color: var(--primary-2); }
