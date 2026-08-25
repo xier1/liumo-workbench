@@ -2795,6 +2795,10 @@
   .co-caret { transition: transform var(--transition); }
   .co-admin-card:not(.co-collapsed) .co-caret { transform: rotate(90deg); }
   .co-admin-card.co-collapsed .co-collapse-body { display: none; }
+  /* 固定成本设置：成本合计行 */
+  .co-admin-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; padding: 8px 10px; background: var(--bg-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: 13px; }
+  .co-admin-total-label { color: var(--text-soft); font-weight: 600; }
+  .co-admin-total-val { color: var(--primary-2); font-weight: 700; font-variant-numeric: tabular-nums; }
   .co-admin-row { display: flex; align-items: center; gap: 8px; }
   .co-admin-name { flex: 1 1 auto; min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 13px; transition: all var(--transition); }
   .co-admin-name:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
@@ -7374,13 +7378,18 @@ function renderCostItemAdmin() {
   const el = document.getElementById('coItemList');
   if (!el) return;
   if (!costItems.length) { el.innerHTML = `<div class="wt-empty">还没有成本项，点右上角「+ 添加成本项」</div>`; return; }
+  const total = costItems.reduce((s, it) => s + (Number(it.default) || 0), 0);
   el.innerHTML = costItems.map(it => `
     <div class="co-admin-row" data-id="${it.id}">
       <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" />
       <span class="co-admin-unit">默认</span>
       <input type="number" step="0.01" min="0" class="co-admin-default" data-id="${it.id}" value="${it.default != null ? it.default : 0}" title="每月「一键填入默认值」时带入的金额" />
       <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
-    </div>`).join('');
+    </div>`).join('') + `
+    <div class="co-admin-total">
+      <span class="co-admin-total-label">成本合计（各默认值之和）</span>
+      <span class="co-admin-total-val">${saMoney(total)}</span>
+    </div>`;
 }
 // 录入表单：按成本项清单逐项生成金额输入框
 function renderCostForm() {
