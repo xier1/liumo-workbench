@@ -2908,9 +2908,9 @@
   @media (max-width: 768px) {
     .co-entry-grid { grid-template-columns: 1fr; gap: 12px; }
     .co-entry-grid .co-note-field { grid-column: auto; }
-    .co-inline { flex-direction: column; align-items: stretch; gap: 8px; }
-    .co-inline .co-entry-amt { flex: 0 0 auto; width: 100%; }
-    .co-fill-default { width: 100%; }
+    .co-inline { flex-direction: row; align-items: center; gap: 8px; }
+    .co-inline .co-entry-amt { flex: 1 1 auto; width: auto; min-width: 0; }
+    .co-fill-default { flex: 0 0 auto; width: auto; }
     .co-entry-actions { flex-direction: column; align-items: stretch; gap: 12px; }
     .co-entry-total { text-align: center; width: 100%; }
     .co-admin-head { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -7392,7 +7392,7 @@ function renderCostModule(content, mod) {
 
     <div class="wt-note">
       说明：上方<b>固定成本设置</b>用于维护固定成本的明细项与<b>默认值</b>（如 房租 5000、水电 1200…），均可<b>增删改</b>，其底部会自动汇总出<b>成本合计</b>；
-      下方每月录入时，点「<b>一键填入默认值</b>」即可把该<b>成本合计</b>填入「固定成本金额」，再分别填写<b>人工成本</b>与<b>其他</b>，点「<b>记录成本</b>」生成当月记录（可随时修改）。系统自动按<b>固定成本 / 人工成本 / 其他</b>三类与<b>月份</b>汇总。
+      下方每月录入时，点「<b>默认值</b>」即可把该<b>成本合计</b>填入「固定成本金额」，再分别填写<b>人工成本</b>与<b>其他</b>，点「<b>记录成本</b>」生成当月记录（可随时修改）。系统自动按<b>固定成本 / 人工成本 / 其他</b>三类与<b>月份</b>汇总。
     </div>
 
     <div class="wt-stats" id="coStats"></div>
@@ -7419,7 +7419,7 @@ function renderCostModule(content, mod) {
           <label>固定成本金额</label>
           <div class="co-inline">
             <input type="number" step="0.01" min="0" class="co-entry-amt" id="costFixed" placeholder="0" />
-            <button class="co-fill-default" id="coFillDefaultBtn" type="button" title="把上方固定成本设置的成本合计填入此处">一键填入默认值</button>
+            <button class="co-fill-default" id="coFillDefaultBtn" type="button" title="把上方固定成本设置的成本合计填入此处">默认值</button>
           </div>
         </div>
         <div class="wt-field">
