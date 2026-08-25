@@ -2921,6 +2921,11 @@
     .co-matrix { min-width: 0; }
   }
 
+  /* 成本录入模块 */
+  .ce-item-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 14px; color: var(--text); transition: all var(--transition); }
+  .ce-item-select:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
+  .wt-item.editing { border-color: var(--primary-2); box-shadow: var(--ring); }
+
   /* ========== 去哪儿玩模块 ========== */
   .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .pl-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
@@ -3136,6 +3141,13 @@ const MODULES = [
     name: '超市成本核算',
     desc: '固定成本项清单（可增删改）· 按月逐项填金额 · 成本项与月度双维度汇总',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'costentry',
+    name: '成本录入',
+    desc: '按日期录入任意成本项金额 · 成本项可自定义增删改 · 按月与按成本项双维度汇总',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h11l2 3"/><circle cx="17" cy="13" r="1.5"/></svg>',
     enabled: true
   },
   {
@@ -3568,6 +3580,11 @@ function renderContent() {
 
   if (currentModule === 'cost') {
     renderCostModule(content, mod);
+    return;
+  }
+
+  if (currentModule === 'costentry') {
+    renderCostEntryModule(content, mod);
     return;
   }
 
@@ -7422,9 +7439,12 @@ function renderCostModule(content, mod) {
             <button class="co-fill-default" id="coFillDefaultBtn" type="button" title="把上方固定成本设置的成本合计填入此处">默认值</button>
           </div>
         </div>
-        <div class="wt-field">
+        <div class="wt-field co-labor-field">
           <label>人工成本</label>
-          <input type="number" step="0.01" min="0" class="co-entry-amt" id="costLabor" placeholder="0" />
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="costLabor" placeholder="0" />
+            <button class="co-fill-default" id="coGetSalaryBtn" type="button" title="从工资管理获取该月份的总工资并填入">获取工资</button>
+          </div>
         </div>
         <div class="wt-field">
           <label>其他</label>
@@ -7640,6 +7660,7 @@ function bindCostEvents() {
   const otherEl = document.getElementById('costOther');
   const entryTotalEl = document.getElementById('coEntryTotal');
   const fillBtn = document.getElementById('coFillDefaultBtn');
+  const getSalaryBtn = document.getElementById('coGetSalaryBtn');
   const list = document.getElementById('coList');
 
   function refreshDerived() {
@@ -7747,6 +7768,21 @@ function bindCostEvents() {
     showToast('已填入固定成本设置的成本合计：' + saMoney(total));
   });
 
+  // 获取工资：从工资管理读取选择月份的总工资并填入「人工成本」
+  if (getSalaryBtn) {
+    getSalaryBtn.addEventListener('click', () => {
+      const date = monthEl ? (monthEl.value || currentMonthStr()) : currentMonthStr();
+      let logs = [];
+      try { const raw = localStorage.getItem('liumo_salary_logs'); logs = raw ? JSON.parse(raw) : []; } catch (e) { logs = []; }
+      if (!Array.isArray(logs)) logs = [];
+      const rec = logs.find(l => String(l.date) === String(date));
+      if (!rec) { showToast('工资管理中未找到 ' + date + ' 的记录'); return; }
+      const total = Number(rec.total) || 0;
+      if (laborEl) { laborEl.value = total > 0 ? total : ''; updateEntryTotal(); }
+      showToast('已填入 ' + date + ' 总工资：' + saMoney(total));
+    });
+  }
+
   addBtn.addEventListener('click', addLog);
   noteEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
 
@@ -7777,6 +7813,430 @@ function bindCostEvents() {
       }
     }
   });
+}
+
+// ==================== 成本录入模块 ====================
+let costEntryItems = [];
+let costEntryLogs = [];
+let ceEditingId = null;
+const COSTENTRY_ITEMS_KEY = 'liumo_costentry_items';
+const COSTENTRY_LOGS_KEY = 'liumo_costentry_logs';
+
+function loadCostEntry() {
+  try { const d = localStorage.getItem(COSTENTRY_ITEMS_KEY); costEntryItems = d ? JSON.parse(d) : []; if (!Array.isArray(costEntryItems)) costEntryItems = []; } catch (e) { costEntryItems = []; }
+  try { const d = localStorage.getItem(COSTENTRY_LOGS_KEY); costEntryLogs = d ? JSON.parse(d) : []; if (!Array.isArray(costEntryLogs)) costEntryLogs = []; } catch (e) { costEntryLogs = []; }
+  if (costEntryItems.length === 0) {
+    costEntryItems = ['房租', '水电', '人工成本', '其他'].map(n => ({ id: uid(), name: n }));
+    saveCostEntryItems();
+  }
+}
+function saveCostEntryItems() { localStorage.setItem(COSTENTRY_ITEMS_KEY, JSON.stringify(costEntryItems)); }
+function saveCostEntryLogs() { localStorage.setItem(COSTENTRY_LOGS_KEY, JSON.stringify(costEntryLogs)); }
+
+function ceTodayStr() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+function renderCostEntryModule(content, mod) {
+  loadCostEntry();
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+
+    <div class="wt-note">
+      说明：先维护<b>成本项</b>（如 房租、水电、人工成本、其他…，可增删改）；录入时选择<b>日期</b>与<b>成本项</b>、填写<b>金额</b>即可保存，记录可随时<b>修改 / 删除</b>。系统自动按<b>月份</b>与<b>成本项</b>分别汇总。选定工资类成本项（名称含 工资 / 人工 / 薪）时，可点「<b>获取工资</b>」从工资管理带入当月总工资。
+    </div>
+
+    <div class="wt-stats" id="ceStats"></div>
+
+    <div class="co-admin-card">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="ceAdminToggle" type="button" aria-expanded="true">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>成本项管理（可自定义，增删改）</span>
+        </button>
+        <button class="co-add-item" id="ceItemAddBtn" type="button">+ 添加成本项</button>
+      </div>
+      <div class="co-admin-list co-collapse-body" id="ceItemList"></div>
+    </div>
+
+    <div class="co-entry-card">
+      <div class="co-entry-head">录入成本</div>
+      <div class="co-entry-grid">
+        <div class="wt-field">
+          <label>日期</label>
+          <input type="date" class="ce-date" id="ceDate" value="${ceTodayStr()}" />
+        </div>
+        <div class="wt-field">
+          <label>成本项</label>
+          <select class="ce-item-select" id="ceItem"></select>
+        </div>
+        <div class="wt-field">
+          <label>金额（元）</label>
+          <div class="co-inline">
+            <input type="number" step="0.01" min="0" class="co-entry-amt" id="ceAmount" placeholder="0" />
+            <button class="co-fill-default" id="ceGetSalaryBtn" type="button" style="display:none" title="从工资管理获取该月份的总工资并填入">获取工资</button>
+          </div>
+        </div>
+        <div class="wt-field co-note-field">
+          <label>备注（可选）</label>
+          <input type="text" class="co-note" id="ceNote" placeholder="如 总店 / 采购单号" />
+        </div>
+      </div>
+      <div class="co-entry-actions">
+        <button class="btn-add" id="ceAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="ceAddBtnLabel">保存记录</span>
+        </button>
+        <span class="co-entry-total">本次金额：<b id="ceEntryTotal">0 元</b></span>
+      </div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按成本项汇总 · 各成本项合计与占比</div>
+      <div id="ceSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">按月汇总 · 各月成本合计</div>
+      <div id="ceMonthSummary"></div>
+    </div>
+
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">明细矩阵 · 月份 × 成本项</div>
+      <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
+    </div>
+
+    <div class="wt-list" id="ceList"></div>
+  `;
+
+  bindCostEntryEvents();
+  renderCeItemAdmin();
+  renderCeItemSelect();
+  renderCeStats();
+  renderCeSummary();
+  renderCeMonthSummary();
+  renderCeMatrix();
+  renderCeList();
+  updateCeSalaryBtn();
+}
+
+function renderCeItemAdmin() {
+  const el = document.getElementById('ceItemList');
+  if (!el) return;
+  if (costEntryItems.length === 0) { el.innerHTML = `<div class="wt-empty">还没有成本项，点右上角“+ 添加成本项”新增</div>`; return; }
+  el.innerHTML = costEntryItems.map(it => `
+    <div class="co-admin-row" data-id="${it.id}">
+      <input type="text" class="co-admin-name" data-id="${it.id}" value="${escapeHtml(it.name)}" placeholder="成本项名称" />
+      <button class="co-admin-del" data-id="${it.id}" type="button" title="删除该成本项">×</button>
+    </div>`).join('');
+}
+
+function renderCeItemSelect() {
+  const sel = document.getElementById('ceItem');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = costEntryItems.map(it => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('');
+  if (prev && costEntryItems.some(it => it.id === prev)) sel.value = prev;
+  updateCeSalaryBtn();
+}
+
+function setCeAddLabel(text) {
+  const el = document.getElementById('ceAddBtnLabel');
+  if (el) el.textContent = text;
+}
+
+function updateCeSalaryBtn() {
+  const sel = document.getElementById('ceItem');
+  const btn = document.getElementById('ceGetSalaryBtn');
+  if (!sel || !btn) return;
+  const it = costEntryItems.find(x => x.id === sel.value);
+  const wage = !!(it && /工资|人工|薪|劳务/.test(it.name || ''));
+  btn.style.display = wage ? '' : 'none';
+}
+
+function renderCeStats() {
+  const el = document.getElementById('ceStats');
+  if (!el) return;
+  const grand = costEntryLogs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const months = new Set(costEntryLogs.map(l => (l.date || '').slice(0, 7))).size;
+  const cards = [
+    statCard('总成本', saMoney(grand), ''),
+    statCard('记录数', costEntryLogs.length + ' 条', ''),
+    statCard('成本项数', costEntryItems.length + ' 项', ''),
+    statCard('覆盖月份', months + ' 个', '')
+  ];
+  el.innerHTML = cards.join('');
+}
+
+function ceItemTotals() {
+  const map = {};
+  costEntryLogs.forEach(l => { const n = (l.itemName || '').trim() || '未命名'; map[n] = (map[n] || 0) + (Number(l.amount) || 0); });
+  return map;
+}
+function ceMonthTotals() {
+  const map = {};
+  costEntryLogs.forEach(l => { const m = (l.date || '').slice(0, 7); if (m) map[m] = (map[m] || 0) + (Number(l.amount) || 0); });
+  return map;
+}
+
+function renderCeSummary() {
+  const el = document.getElementById('ceSummary');
+  if (!el) return;
+  const map = ceItemTotals();
+  const names = Object.keys(map).sort((a, b) => map[b] - map[a]);
+  const grand = names.reduce((s, n) => s + map[n], 0);
+  if (names.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const money = v => Math.round(v).toLocaleString();
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr><th>成本项</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
+      <tbody>
+        ${names.map(n => {
+          const v = map[n];
+          const share = grand > 0 ? v / grand * 100 : 0;
+          return `<tr><td>${escapeHtml(n)}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#6366f1"></i></span></div></td></tr>`;
+        }).join('')}
+        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
+      </tbody>
+    </table>`;
+}
+
+function renderCeMonthSummary() {
+  const el = document.getElementById('ceMonthSummary');
+  if (!el) return;
+  const map = ceMonthTotals();
+  const months = Object.keys(map).sort((a, b) => b.localeCompare(a));
+  const grand = months.reduce((s, m) => s + map[m], 0);
+  if (months.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const money = v => Math.round(v).toLocaleString();
+  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
+  el.innerHTML = `
+    <table class="wt-cat">
+      <thead><tr><th>月份</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
+      <tbody>
+        ${months.map(m => {
+          const v = map[m];
+          const share = grand > 0 ? v / grand * 100 : 0;
+          return `<tr><td>${m}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#10b981"></i></span></div></td></tr>`;
+        }).join('')}
+        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
+      </tbody>
+    </table>`;
+}
+
+function renderCeMatrix() {
+  const el = document.getElementById('ceMatrix');
+  if (!el) return;
+  if (costEntryLogs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
+  const seen = new Set();
+  const itemNames = [];
+  costEntryItems.forEach(it => { const n = (it.name || '').trim(); if (n && !seen.has(n)) { itemNames.push(n); seen.add(n); } });
+  Object.keys(ceItemTotals()).forEach(n => { if (!seen.has(n)) { itemNames.push(n); seen.add(n); } });
+  const months = [...new Set(costEntryLogs.map(l => (l.date || '').slice(0, 7)))].filter(Boolean).sort((a, b) => b.localeCompare(a));
+  const cell = {};
+  costEntryLogs.forEach(l => {
+    const m = (l.date || '').slice(0, 7); const n = (l.itemName || '').trim() || '未命名';
+    if (!m) return;
+    cell[m] = cell[m] || {};
+    cell[m][n] = (cell[m][n] || 0) + (Number(l.amount) || 0);
+  });
+  const money = v => Math.round(v).toLocaleString();
+  el.innerHTML = `
+    <table class="wt-cat co-matrix">
+      <thead><tr><th>月份</th>${itemNames.map(n => `<th>${escapeHtml(n)}</th>`).join('')}<th>合计</th></tr></thead>
+      <tbody>
+        ${months.map(m => {
+          let rowTotal = 0;
+          const tds = itemNames.map(n => { const v = (cell[m] && cell[m][n]) ? cell[m][n] : 0; rowTotal += v; return `<td>${v ? money(v) : '—'}</td>`; }).join('');
+          return `<tr><td>${m}</td>${tds}<td class="co-rowtotal"><b>${money(rowTotal)}</b></td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderCeList() {
+  const el = document.getElementById('ceList');
+  if (!el) return;
+  const logs = [...costEntryLogs].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+  if (logs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有成本记录，先在上方录入一笔吧</div>`; return; }
+  el.innerHTML = logs.map(l => `
+    <div class="wt-item ${ceEditingId === l.id ? 'editing' : ''}" data-id="${l.id}">
+      <div class="wt-item-date">${escapeHtml(l.date)}</div>
+      <div class="wt-item-delta"><b>${escapeHtml(l.itemName || '未命名')}</b> · ${saMoney(l.amount)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</div>
+      <button class="action-btn edit" data-action="ce-edit" data-id="${l.id}" title="修改">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+      </button>
+      <button class="action-btn delete" data-action="ce-del" data-id="${l.id}" title="删除">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function bindCostEntryEvents() {
+  const addBtn = document.getElementById('ceAddBtn');
+  const dateEl = document.getElementById('ceDate');
+  const itemSel = document.getElementById('ceItem');
+  const amountEl = document.getElementById('ceAmount');
+  const noteEl = document.getElementById('ceNote');
+  const entryTotalEl = document.getElementById('ceEntryTotal');
+  const getSalaryBtn = document.getElementById('ceGetSalaryBtn');
+  const adminList = document.getElementById('ceItemList');
+  const addItemBtn = document.getElementById('ceItemAddBtn');
+  const adminToggle = document.getElementById('ceAdminToggle');
+  const list = document.getElementById('ceList');
+
+  function refreshAll() {
+    renderCeStats(); renderCeSummary(); renderCeMonthSummary(); renderCeMatrix(); renderCeList();
+  }
+  function updateTotal() {
+    if (!entryTotalEl || !amountEl) return;
+    const v = parseFloat(amountEl.value);
+    entryTotalEl.textContent = saMoney(isNaN(v) ? 0 : v);
+  }
+
+  if (adminToggle) {
+    adminToggle.addEventListener('click', () => {
+      const card = adminToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      adminToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
+
+  if (addItemBtn) {
+    addItemBtn.addEventListener('click', () => {
+      costEntryItems.push({ id: uid(), name: '新成本项' });
+      saveCostEntryItems();
+      renderCeItemAdmin();
+      renderCeItemSelect();
+      const card = addItemBtn.closest('.co-admin-card');
+      if (card && card.classList.contains('co-collapsed')) {
+        card.classList.remove('co-collapsed');
+        adminToggle.setAttribute('aria-expanded', 'true');
+      }
+      const rows = adminList.querySelectorAll('.co-admin-row');
+      const last = rows[rows.length - 1];
+      if (last) { const inp = last.querySelector('.co-admin-name'); inp.focus(); inp.select(); }
+    });
+  }
+
+  if (adminList) {
+    adminList.addEventListener('click', e => {
+      const del = e.target.closest('.co-admin-del');
+      if (del) {
+        const id = del.dataset.id;
+        const used = costEntryLogs.some(l => l.itemId === id);
+        if (used) { showToast('该成本项已有记录，请先删除相关记录'); return; }
+        const it = costEntryItems.find(x => x.id === id);
+        costEntryItems = costEntryItems.filter(x => x.id !== id);
+        saveCostEntryItems();
+        renderCeItemAdmin();
+        renderCeItemSelect();
+        refreshAll();
+        showToast('已删除成本项' + (it ? '「' + it.name + '」' : ''));
+      }
+    });
+    adminList.addEventListener('change', e => {
+      const nameInp = e.target.closest('.co-admin-name');
+      if (nameInp) {
+        const id = nameInp.dataset.id;
+        const newName = (nameInp.value || '').trim() || '未命名';
+        nameInp.value = newName;
+        const it = costEntryItems.find(x => x.id === id);
+        if (it) {
+          it.name = newName;
+          saveCostEntryItems();
+          costEntryLogs.forEach(l => { if (l.itemId === id) l.itemName = newName; });
+          saveCostEntryLogs();
+          renderCeItemSelect();
+          refreshAll();
+        }
+      }
+    });
+  }
+
+  if (itemSel) itemSel.addEventListener('change', () => { updateCeSalaryBtn(); });
+  if (amountEl) amountEl.addEventListener('input', updateTotal);
+
+  if (getSalaryBtn) {
+    getSalaryBtn.addEventListener('click', () => {
+      const date = (dateEl && dateEl.value) || ceTodayStr();
+      const month = date.slice(0, 7);
+      let logs = [];
+      try { const raw = localStorage.getItem('liumo_salary_logs'); logs = raw ? JSON.parse(raw) : []; } catch (e) { logs = []; }
+      if (!Array.isArray(logs)) logs = [];
+      const rec = logs.find(l => String(l.date) === String(month));
+      if (!rec) { showToast('工资管理中未找到 ' + month + ' 的记录'); return; }
+      const total = Number(rec.total) || 0;
+      if (amountEl) { amountEl.value = total > 0 ? total : ''; updateTotal(); }
+      showToast('已填入 ' + month + ' 总工资：' + saMoney(total));
+    });
+  }
+
+  function addLog() {
+    const date = (dateEl && dateEl.value) || ceTodayStr();
+    const itemId = itemSel ? itemSel.value : null;
+    const it = costEntryItems.find(x => x.id === itemId);
+    if (!it) { showToast('请先添加成本项'); return; }
+    const amount = parseFloat(amountEl.value);
+    if (isNaN(amount) || amount < 0) { showToast('请输入有效金额'); if (amountEl) amountEl.focus(); return; }
+    const note = (noteEl && noteEl.value || '').trim();
+    if (ceEditingId) {
+      const rec = costEntryLogs.find(l => l.id === ceEditingId);
+      if (rec) { rec.date = date; rec.itemId = itemId; rec.itemName = it.name; rec.amount = amount; rec.note = note; rec.updatedAt = Date.now(); }
+      ceEditingId = null;
+      setCeAddLabel('保存记录');
+      showToast('已更新记录');
+    } else {
+      costEntryLogs.push({ id: uid(), date, itemId, itemName: it.name, amount, note, createdAt: Date.now(), updatedAt: Date.now() });
+      showToast('已保存记录');
+    }
+    saveCostEntryLogs();
+    if (amountEl) amountEl.value = '';
+    if (noteEl) noteEl.value = '';
+    updateTotal();
+    refreshAll();
+  }
+
+  if (addBtn) addBtn.addEventListener('click', addLog);
+  if (amountEl) amountEl.addEventListener('keydown', e => { if (e.key === 'Enter') addLog(); });
+
+  if (list) {
+    list.addEventListener('click', e => {
+      const delBtn = e.target.closest('[data-action="ce-del"]');
+      const editBtn = e.target.closest('[data-action="ce-edit"]');
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        costEntryLogs = costEntryLogs.filter(l => l.id !== id);
+        if (ceEditingId === id) { ceEditingId = null; setCeAddLabel('保存记录'); }
+        saveCostEntryLogs();
+        refreshAll();
+        showToast('已删除该记录');
+        return;
+      }
+      if (editBtn) {
+        const rec = costEntryLogs.find(l => l.id === editBtn.dataset.id);
+        if (rec) {
+          ceEditingId = rec.id;
+          if (dateEl) dateEl.value = rec.date;
+          if (itemSel && costEntryItems.some(x => x.id === rec.itemId)) itemSel.value = rec.itemId;
+          if (amountEl) amountEl.value = rec.amount;
+          if (noteEl) noteEl.value = rec.note || '';
+          updateTotal();
+          updateCeSalaryBtn();
+          setCeAddLabel('更新记录');
+          if (dateEl) dateEl.focus();
+          showToast('已载入记录，修改后点「更新记录」即可保存');
+          refreshAll();
+        }
+      }
+    });
+  }
 }
 
 // ==================== 废品记录模块 ====================
