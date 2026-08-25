@@ -8717,35 +8717,6 @@ function daysInMonth(m) { const p = (m || '').split('-').map(Number); return (p[
 const saMoney = v => (Math.round(Number(v) || 0)).toLocaleString() + ' 元';
 const saNum = v => { const n = Number(v) || 0; return (Math.round(n * 100) / 100).toString(); };
 
-// 一致性分析：基于两条恒等式
-//  ① 日均销售额 = 日均客单量 × 日均客单价   → 推算客单价 = 日均销售额 ÷ 日均客单量
-//  ② 零售总额   = 日均销售额 × 天数口径      → 推算天数   = 零售总额 ÷ 日均销售额
-function analyzeSales(rec) {
-  const retail = rec.retail, D = rec.dailySales, Q = rec.dailyOrders, A = rec.avgTicket;
-  const impliedTicket = (Q > 0) ? D / Q : null;
-  const impliedDays = (D > 0) ? retail / D : null;
-  const actualDays = daysInMonth(rec.date);
-  let ticketDev = null, ticketFlag = false;
-  if (impliedTicket != null && A > 0 && impliedTicket > 0) {
-    const mid = (A + impliedTicket) / 2;
-    ticketDev = Math.abs(A - impliedTicket) / mid * 100;   // 对称相对偏差%
-    ticketFlag = ticketDev > 5;
-  }
-  let daysDev = null, daysFlag = false, businessLike = false;
-  if (impliedDays != null && actualDays) {
-    daysDev = (impliedDays - actualDays) / actualDays * 100;
-    businessLike = impliedDays >= actualDays * 0.55 && impliedDays <= actualDays * 0.9; // 近似工作日口径
-    daysFlag = impliedDays < actualDays * 0.5 || impliedDays > actualDays * 1.15;         // 明显异常
-  }
-  let status, statusClass;
-  if (ticketFlag && daysFlag) status = '客单价+天数异常';
-  else if (ticketFlag) status = '客单价偏差';
-  else if (daysFlag) status = '天数异常';
-  else if (businessLike && daysDev != null && Math.abs(daysDev) > 10) status = '按工作日口径';
-  else status = '一致';
-  statusClass = (ticketFlag || daysFlag) ? 'warn' : 'ok';
-  return { impliedTicket, impliedDays, actualDays, ticketDev, ticketFlag, daysDev, daysFlag, businessLike, status, statusClass };
-}
 
 // ---------- 渲染:销售分析报表模块 ----------
 function renderSalesModule(content, mod) {
@@ -8801,24 +8772,12 @@ function renderSalesModule(content, mod) {
       <div class="sa-charts" id="saCharts"></div>
     </div>
 
-    <div class="sa-analysis">
-      <div class="sa-analysis-title">数据一致性分析</div>
-      <div class="sa-hint">
-        系统按两条恒等式自动校验每月数据：
-        ① <code>日均销售额 = 日均客单量 × 日均客单价</code>，据此推算客单价并与你录入的「日均客单价」对比（偏差 &gt; 5% 提示）；
-        ② <code>零售总额 = 日均销售额 × 天数口径</code>，据此推算天数并与当月实际天数对比（推算天数落在工作日区间则标注「按工作日口径」，明显不符则提示异常）。
-      </div>
-      <div class="sa-summary" id="saAnalysisSummary"></div>
-      <div class="wt-cat-wrap" id="saAnalysisTable"></div>
-    </div>
-
     <div class="wt-list" id="saList"></div>
   `;
 
   bindSalesEvents();
   renderSalesStats();
   renderSalesCharts();
-  renderSalesAnalysis();
   renderSalesList();
 }
 
@@ -9003,55 +8962,6 @@ function renderSalesYearCharts() {
   }).join('');
 }
 
-function renderSalesAnalysis() {
-  const el = document.getElementById('saAnalysisTable');
-  const sumEl = document.getElementById('saAnalysisSummary');
-  if (!el) return;
-  const logs = salesDesc();
-  if (logs.length === 0) {
-    el.innerHTML = `<div class="wt-empty">暂无数据，先在上方录入月份数据</div>`;
-    if (sumEl) sumEl.innerHTML = '';
-    return;
-  }
-  let warn = 0;
-  const rows = logs.map(l => {
-    const a = analyzeSales(l);
-    if (a.statusClass === 'warn') warn++;
-    const ticketTxt = a.impliedTicket != null ? saNum(a.impliedTicket) + ' 元' : '—';
-    const devTxt = a.ticketDev != null ? (a.ticketDev > 0 ? '+' : '') + a.ticketDev.toFixed(1) + '%' : '—';
-    const daysTxt = a.impliedDays != null ? a.impliedDays.toFixed(1) + ' 天' : '—';
-    const daysDevTxt = a.daysDev != null ? (a.daysDev > 0 ? '+' : '') + a.daysDev.toFixed(0) + '%' : '—';
-    const statusCls = a.statusClass === 'warn' ? 'sa-check-warn' : 'sa-check-ok';
-    return `<tr class="${a.statusClass === 'warn' ? 'sa-row-warn' : ''}">
-      <td>${escapeHtml(l.date)}${l.note ? ' · ' + escapeHtml(l.note) : ''}</td>
-      <td>${saMoney(l.retail)}</td>
-      <td>${saMoney(l.dailySales)}</td>
-      <td>${l.dailyOrders ? l.dailyOrders + ' 单' : '—'}</td>
-      <td>${l.avgTicket ? '¥' + saNum(l.avgTicket) : '—'}</td>
-      <td>${ticketTxt}</td>
-      <td class="${a.ticketFlag ? 'sa-check-warn' : ''}">${devTxt}</td>
-      <td>${daysTxt}</td>
-      <td>${a.actualDays != null ? a.actualDays + ' 天' : '—'}</td>
-      <td>${daysDevTxt}</td>
-      <td class="${statusCls}">${a.statusClass === 'warn' ? '⚠ ' : '✓ '}${escapeHtml(a.status)}</td>
-    </tr>`;
-  }).join('');
-  el.innerHTML = `
-    <table class="wt-cat">
-      <thead><tr>
-        <th>月份</th><th>零售总额</th><th>日均销售额</th><th>日均客单量</th>
-        <th>录入客单价</th><th>推算客单价</th><th>客单价偏差</th>
-        <th>推算天数</th><th>实际天数</th><th>天数偏差</th><th>校验</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  if (sumEl) {
-    const total = logs.length;
-    sumEl.innerHTML = `
-      <span class="sa-pill ok">${total - warn} 条自洽</span>
-      <span class="sa-pill warn">${warn} 条需核对</span>`;
-  }
-}
 
 function renderSalesList() {
   const el = document.getElementById('saList');
@@ -9092,7 +9002,7 @@ function bindSalesEvents() {
   const list = document.getElementById('saList');
   let editingId = null;
 
-  function refreshAll() { renderSalesStats(); renderSalesCharts(); renderSalesAnalysis(); renderSalesList(); }
+  function refreshAll() { renderSalesStats(); renderSalesCharts(); renderSalesList(); }
 
   function clearForm() {
     monthEl.value = currentMonthStr();
