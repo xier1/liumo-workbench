@@ -8909,29 +8909,42 @@ function buildYearLineChart(years, unit) {
   let lines = '';
   years.forEach((y, yi) => {
     const color = YEAR_COLORS[yi % YEAR_COLORS.length];
-    let seg = [], dots = '', lastPt = null;
+    const isLatest = yi === years.length - 1;   // 仅最新年份常驻标注，避免跨年文字重叠
+    let seg = [], lastPt = null;
     const flush = () => {
       if (seg.length) {
         lines += `<polyline points="${seg.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
         seg = [];
       }
     };
-    let labels = '';
+    const pts = [];
     for (let i = 0; i < n; i++) {
       const v = y.data[i];
       if (v == null || !isFinite(v)) { flush(); continue; }
       const x = xOf(i), yy = yOf(v);
       seg.push([x.toFixed(1), yy.toFixed(1)]);
-      dots += `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="2.6" fill="${color}"/>`;
-      const ty = (yy - 8) < padT ? yy + 12 : yy - 8;   // 贴顶则标在下方
-      labels += `<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}">${fmtShort(v)}</text>`;
+      pts.push({ i, x, yy, v });
       lastPt = { x, yy, v };
     }
     flush();
-    lines += dots + labels;
-    if (lastPt) {
-      lines += `<text x="${lastPt.x.toFixed(1)}" y="${(lastPt.yy - 7).toFixed(1)}" text-anchor="end" font-size="9" fill="${color}" font-weight="600">${fmt(lastPt.v)}</text>`;
+    // 圆点 + 悬停提示(所有年份均可查,无重叠)
+    let dots = '';
+    pts.forEach(p => {
+      dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.yy.toFixed(1)}" r="2.8" fill="${color}"><title>${y.year}年${p.i + 1}月: ${fmt(p.v)}</title></circle>`;
+    });
+    // 最新年份: 逐点标注(末点除外,由末端汇总标签承担,避免重复)
+    let labels = '';
+    if (isLatest) {
+      pts.forEach((p, idx) => {
+        if (idx === pts.length - 1) return;
+        const ty = (p.yy - 8) < padT ? p.yy + 12 : p.yy - 8;   // 贴顶则标在下方
+        labels += `<text x="${p.x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="8" fill="${color}">${fmtShort(p.v)}</text>`;
+      });
+      if (lastPt) {
+        lines += `<text x="${lastPt.x.toFixed(1)}" y="${(lastPt.yy - 7).toFixed(1)}" text-anchor="end" font-size="9" fill="${color}" font-weight="600">${fmt(lastPt.v)}</text>`;
+      }
     }
+    lines += dots + labels;
   });
   // 图例
   let legend = '';
@@ -8953,6 +8966,7 @@ function renderSalesYearModule(content, mod) {
     <div class="wt-note">
       将<b>销售分析报表</b>模块录入的数据，以<b>月份为横坐标、年份为曲线</b>重新绘制：<b>同一个月的不同年份并排对比</b>，
       直观看<b>同比变化与季节性</b>。一年一条曲线，颜色对应图例年份。数据来自销售分析报表，此处只读展示。
+      <b>最新年份</b>在图上直接标注各月数值；<b>其余年份把鼠标移到圆点上</b>即可查看「年份+月份+数值」，避免多年度标签互相重叠。
     </div>
 
     <div class="wt-chart-card">
