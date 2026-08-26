@@ -34,7 +34,7 @@ check('商品列表卡片默认折叠', $('#ivListCard').classList.contains('co-
 check('存在搜索框', !!$('#ivSearch'));
 check('存在分类筛选下拉', !!$('#ivCatFilter'));
 check('分类下拉含 3 个选项', $('#ivCatFilter').options.length === 3);
-check('库存预警标签单独存在', !!$('.iv-filter-warn'));
+check('库存预警统计卡可点击', !!$('.iv-warn-card'));
 
 // 2) 列表两条 + 不显示分类/进价 + 预警标红
 const items = $all('#ivList .iv-item');
@@ -54,11 +54,12 @@ catSel.value = 'all';
 catSel.dispatchEvent(new window.Event('change', { bubbles: true }));
 check('回到全部为 2 个', $all('#ivList .iv-item').length === 2);
 
-// 3.1) 库存预警快捷筛选
-check('存在库存预警快捷筛选标签', !!$('.iv-filter-warn'));
-check('预警数量徽标为 1', $('#ivWarnCount').textContent === '1'); // 芙蓉王 5<=10
-$('.iv-filter-warn').click();
-check('点击库存预警后只剩预警商品', $all('#ivList .iv-item').length === 1);
+// 3.1) 库存预警快捷筛选（点击顶部统计卡）
+check('存在库存预警统计卡', !!$('.iv-warn-card'));
+check('预警统计卡显示 1 种', $('#ivStats').textContent.includes('库存预警') && $('#ivStats').textContent.includes('1 种'));
+$('.iv-warn-card').click();
+check('点击顶部预警卡后自动展开商品列表', !$('#ivListCard').classList.contains('co-collapsed'));
+check('点击顶部预警卡后只剩预警商品', $all('#ivList .iv-item').length === 1);
 check('预警筛选结果含芙蓉王', $('#ivList').textContent.includes('芙蓉王'));
 check('预警筛选不含茅台', !$('#ivList').textContent.includes('茅台'));
 catSel.value = 'all';
