@@ -8854,7 +8854,7 @@ function renderInventoryStats() {
   const liqAmount = sumAmount(liqItems);
   const warn = inventoryItems.filter(i => isItemWarned(i)).length;
   el.innerHTML = [
-    statCard('香烟库存数', cigStock + ' 件', ''),
+    statCard('香烟库存数', cigStock + ' 条', ''),
     statCard('香烟库存金额', saMoney(cigAmount), ''),
     statCard('酒水库存数', liqStock + ' 件', ''),
     statCard('酒水库存金额', saMoney(liqAmount), ''),
