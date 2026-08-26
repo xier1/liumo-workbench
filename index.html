@@ -8427,7 +8427,7 @@ function gpMonthRows() {
   const revMap = {}, costMap = {};
   (salaryLogs || []).forEach(l => { const m = l.date; if (m) revMap[m] = (Number(l.revenue) || 0); });
   (monthlyCostLogs || []).forEach(r => { const m = r.month; if (m) costMap[m] = (Number(r.total) || 0); });
-  const months = Array.from(new Set([...Object.keys(revMap), ...Object.keys(costMap)])).sort();
+  const months = Array.from(new Set([...Object.keys(revMap), ...Object.keys(costMap)])).sort().reverse();
   return months.map(m => {
     const revenue = revMap[m] || 0;
     const cost = costMap[m] || 0;
