@@ -8742,7 +8742,7 @@ function renderInventoryModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：管理<b>香烟</b>与<b>酒水</b>的库存。先添加商品（名称、分类、规格、单位、当前库存、预警阈值），
+      说明：管理<b>香烟</b>与<b>酒水</b>的库存。先添加商品（名称、分类、进价、当前库存、预警阈值），
       日常通过<b>入库 / 出库</b>增减库存并自动记录流水；库存 ≤ 预警阈值时<b>标红预警</b>。列表可<b>修改 / 删除</b>，下方「出入库流水」默认折叠。
     </div>
 
@@ -8769,12 +8769,8 @@ function renderInventoryModule(content, mod) {
           </select>
         </div>
         <div class="wt-field">
-          <label>规格</label>
-          <input type="text" id="ivSpec" placeholder="如 硬盒 / 500ml" />
-        </div>
-        <div class="wt-field">
-          <label>单位</label>
-          <input type="text" id="ivUnit" placeholder="包 / 条 / 瓶" />
+          <label>进价</label>
+          <input type="number" step="any" min="0" id="ivPrice" placeholder="如 220" />
         </div>
         <div class="wt-field">
           <label>当前库存</label>
@@ -8854,8 +8850,8 @@ function renderInventoryList() {
     const stock = Number(it.stock) || 0;
     const warn = Number(it.warn) || 0;
     const isWarn = stock <= warn;
-    const unit = it.unit || '';
-    const sub = [it.spec ? '规格 ' + escapeHtml(it.spec) : '', unit ? '单位 ' + escapeHtml(unit) : '', '预警 ≤ ' + warn].filter(Boolean).join(' · ');
+    const price = Number(it.price) || 0;
+    const sub = ['进价 ' + saMoney(price), '预警 ≤ ' + warn].join(' · ');
     return `<div class="iv-item ${cat.cls}">
       <div class="iv-item-main">
         <div class="iv-item-name">${escapeHtml(it.name)} <span class="iv-tag ${cat.cls}">${cat.name}</span></div>
@@ -8863,7 +8859,7 @@ function renderInventoryList() {
       </div>
       <div class="iv-item-stock ${isWarn ? 'iv-warn' : ''}">
         <div class="iv-stock-num">${stock}</div>
-        <div class="iv-stock-unit">${unit}${isWarn ? ' · 预警' : ''}</div>
+        <div class="iv-stock-unit">${isWarn ? '预警' : ''}</div>
       </div>
       <div class="iv-item-actions">
         <button class="iv-btn iv-in" data-id="${it.id}" data-act="in">入库</button>
@@ -8901,8 +8897,7 @@ function renderInventoryLogs() {
 function bindInventoryEvents() {
   const nameEl = document.getElementById('ivName');
   const catEl = document.getElementById('ivCat');
-  const specEl = document.getElementById('ivSpec');
-  const unitEl = document.getElementById('ivUnit');
+  const priceEl = document.getElementById('ivPrice');
   const stockEl = document.getElementById('ivStock');
   const warnEl = document.getElementById('ivWarn');
   const saveBtn = document.getElementById('ivSaveBtn');
@@ -8912,15 +8907,13 @@ function bindInventoryEvents() {
 
   function resetForm() {
     inventoryEditingId = null;
-    nameEl.value = ''; specEl.value = ''; unitEl.value = '';
+    nameEl.value = ''; priceEl.value = '';
     stockEl.value = ''; warnEl.value = ''; catEl.value = 'cigarette';
     saveLabel.textContent = '添加商品';
     cancelBtn.style.display = 'none';
   }
 
-  catEl.addEventListener('change', () => {
-    if (!unitEl.value.trim()) unitEl.value = (IV_CAT[catEl.value] || {}).defUnit || '';
-  });
+  catEl.addEventListener('change', () => { /* 进价与库存与分类无关，无需联动 */ });
 
   document.querySelectorAll('.iv-filter').forEach(f => {
     f.addEventListener('click', () => {
@@ -8935,12 +8928,12 @@ function bindInventoryEvents() {
     const name = nameEl.value.trim();
     if (!name) { showToast('请填写商品名称'); nameEl.focus(); return; }
     const category = catEl.value;
-    const spec = specEl.value.trim();
-    const unit = unitEl.value.trim() || (IV_CAT[category] || {}).defUnit || '';
+    const price = parseFloat(priceEl.value);
     const stock = parseFloat(stockEl.value);
     const warn = parseFloat(warnEl.value);
     const rec = {
-      name, category, spec, unit,
+      name, category,
+      price: isNaN(price) ? 0 : price,
       stock: isNaN(stock) ? 0 : stock,
       warn: isNaN(warn) ? 0 : warn,
       updatedAt: Date.now()
@@ -8969,7 +8962,7 @@ function bindInventoryEvents() {
     if (!btn) return;
     const id = btn.dataset.id;
     const act = btn.dataset.act;
-    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, specEl, unitEl, stockEl, warnEl, saveLabel, cancelBtn });
+    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, priceEl, stockEl, warnEl, saveLabel, cancelBtn });
     else if (act === 'del') deleteInventoryItem(id);
     else openInventoryModal(id, act);   // in / out
   });
@@ -8992,8 +8985,7 @@ function startInventoryEdit(id, refs) {
   inventoryEditingId = id;
   refs.nameEl.value = it.name;
   refs.catEl.value = it.category;
-  refs.specEl.value = it.spec || '';
-  refs.unitEl.value = it.unit || '';
+  refs.priceEl.value = it.price || '';
   refs.stockEl.value = it.stock;
   refs.warnEl.value = it.warn;
   refs.saveLabel.textContent = '保存修改';
@@ -9025,7 +9017,7 @@ function openInventoryModal(id, type) {
   const title = document.getElementById('ivModalTitle');
   const qty = document.getElementById('ivModalQty');
   const note = document.getElementById('ivModalNote');
-  title.textContent = (type === 'in' ? '入库 · ' : '出库 · ') + it.name + '（' + it.unit + '）';
+  title.textContent = (type === 'in' ? '入库 · ' : '出库 · ') + it.name;
   qty.value = ''; note.value = '';
   mask.style.display = 'flex';
   setTimeout(() => qty.focus(), 50);
@@ -9049,7 +9041,7 @@ function bindInventoryModal() {
     it.updatedAt = Date.now();
     inventoryLogs.push({
       id: uid(), itemId: it.id, itemName: it.name, category: it.category,
-      unit: it.unit, type: ivModalType, qty: v, note: note.value.trim(),
+      type: ivModalType, qty: v, note: note.value.trim(),
       createdAt: Date.now()
     });
     saveInventory();
@@ -9058,7 +9050,7 @@ function bindInventoryModal() {
     renderInventoryStats();
     renderInventoryList();
     renderInventoryLogs();
-    showToast((ivModalType === 'in' ? '已入库 ' : '已出库 ') + v + ' ' + it.unit + ' · 余 ' + newStock);
+    showToast((ivModalType === 'in' ? '已入库 ' : '已出库 ') + v + ' · 余 ' + newStock);
   });
 }
 
