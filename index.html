@@ -244,7 +244,8 @@
   .iv-search:focus { border-color: var(--primary-2); }
   .iv-cat-filter { flex: 0 0 auto; height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text); font-size: 13px; cursor: pointer; outline: none; }
   .iv-cat-filter:focus { border-color: var(--primary-2); }
-  .iv-warn-only { margin-bottom: 14px; }
+  .iv-warn-card { cursor: pointer; }
+  .iv-warn-card:active { transform: scale(0.98); }
   .toolbar.iv-search-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
   .toolbar.iv-search-bar .iv-search { flex: 1 1 auto; min-width: 0; }
   .toolbar.iv-search-bar .iv-cat-filter { flex: 0 0 auto; min-width: 84px; }
@@ -8831,10 +8832,6 @@ function renderInventoryModule(content, mod) {
         <option value="liquor"${inventoryFilter === 'liquor' ? ' selected' : ''}>酒水</option>
       </select>
     </div>
-    <!-- 库存预警单独显示 -->
-    <div class="iv-warn-only">
-      <span class="iv-filter iv-filter-warn ${inventoryFilter === 'warn' ? 'active' : ''}" data-cat="warn">库存预警 <span class="iv-warn-count" id="ivWarnCount">0</span></span>
-    </div>
 
     <!-- 商品列表：默认折叠 -->
     <div class="co-admin-card co-collapsed" id="ivListCard" style="margin-bottom:18px;">
@@ -8899,7 +8896,7 @@ function renderInventoryStats() {
     statCard('香烟库存金额', saMoney(cigAmount), ''),
     statCard('酒水库存数', liqStock + ' 件', ''),
     statCard('酒水库存金额', saMoney(liqAmount), ''),
-    statCard('库存预警', warn + ' 种', warn ? 'warning' : 'success')
+    `<div class="stat-card iv-warn-card ${warn ? 'iv-warn-active' : ''}"><div class="stat-label">库存预警</div><div class="stat-value ${warn ? 'warning' : 'success'}">${warn} 种</div></div>`
   ].join('');
   const wc = document.getElementById('ivWarnCount');
   if (wc) wc.textContent = warn;
@@ -9032,12 +9029,20 @@ function bindInventoryEvents() {
     renderInventoryList();
   });
 
-  const warnTag = document.querySelector('.iv-filter-warn');
-  if (warnTag) warnTag.addEventListener('click', () => {
+  const statsEl = document.getElementById('ivStats');
+  if (statsEl) statsEl.addEventListener('click', e => {
+    const card = e.target.closest('.iv-warn-card');
+    if (!card) return;
     inventoryFilter = 'warn';
+    inventorySearch = '';
+    if (searchEl) searchEl.value = '';
     if (catFilterEl) catFilterEl.value = 'all';
-    document.querySelectorAll('.iv-filter').forEach(x => x.classList.remove('active'));
-    warnTag.classList.add('active');
+    const listCard = document.getElementById('ivListCard');
+    if (listCard && listCard.classList.contains('co-collapsed')) {
+      listCard.classList.remove('co-collapsed');
+      const listToggle = document.getElementById('ivListToggle');
+      if (listToggle) listToggle.setAttribute('aria-expanded', 'true');
+    }
     renderInventoryList();
   });
 
