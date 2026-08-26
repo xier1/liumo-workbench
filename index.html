@@ -187,6 +187,51 @@
     border-radius: 6px;
   }
 
+  /* 侧边栏菜单拖拽排序 */
+  .nav-entry { position: relative; }
+  .nav-entry[draggable="true"] { cursor: grab; }
+  .nav-entry[draggable="true"]:active { cursor: grabbing; }
+  .nav-entry.dragging { opacity: 0.4; }
+  .nav-entry.drag-over { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7); border-radius: 10px; }
+  .nav-move {
+    display: none;
+    margin-left: auto;
+    gap: 4px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .nav-entry { display: flex; }   /* 确保 move 按钮可推到右侧 */
+  .nav-group.nav-entry { display: block; }
+  .sidebar.reorder-on .nav-move { display: inline-flex; }
+  .nav-move-btn {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.16);
+    color: #fff; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; line-height: 1; user-select: none;
+  }
+  .nav-move-btn:hover { background: rgba(255,255,255,0.34); }
+  .nav-move-btn[data-disabled] { opacity: 0.3; cursor: default; pointer-events: none; }
+  .sidebar.reorder-on .nav-item.nav-entry { background: rgba(255,255,255,0.06); }
+  .sidebar.reorder-on .nav-entry { cursor: grab; }
+  .nav-reorder-btn {
+    margin-top: 10px;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .nav-reorder-btn:hover { background: rgba(255,255,255,0.16); }
+  .nav-reorder-btn.active { background: #4338ca; border-color: #4338ca; }
+  .nav-reorder-tip { display: none; margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.55); }
+  .sidebar.reorder-on .nav-reorder-tip { display: block; }
+
   .sidebar-footer {
     margin-top: auto;
     padding-top: 14px;
@@ -3115,6 +3160,8 @@
           <div class="sync-tip">数据存于你的 GitHub 私密 Gist，清缓存/换设备可恢复</div>
         </div>
       </div>
+      <button id="navReorderBtn" class="nav-reorder-btn" type="button">⇅ 调整菜单顺序</button>
+      <div class="nav-reorder-tip">开启后可拖拽或点 ↑↓ 调整顺序，自动保存</div>
     </div>
   </aside>
 
@@ -3313,6 +3360,8 @@ const MODULES = [
 let currentModule = 'todo';
 let currentSub = null;        // 当前二级类目 id（仅对带 children 的模块有效）
 const expandedModules = {};   // moduleId -> 侧边栏是否展开其子分类
+let navReorder = false;        // 是否处于菜单排序模式
+const NAV_ORDER_KEY = 'liumo_nav_order';
 let todos = [];
 let filter = 'all';        // all | active | done
 let search = '';
@@ -3442,24 +3491,116 @@ function showToast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 2000);
 }
 
+// ---------- 侧边栏菜单顺序 ----------
+function getNavOrder() {
+  try {
+    const v = JSON.parse(localStorage.getItem(NAV_ORDER_KEY) || 'null');
+    return Array.isArray(v) ? v : null;
+  } catch (e) { return null; }
+}
+function saveNavOrder() {
+  const nav = document.getElementById('navList');
+  if (!nav) return;
+  const ids = Array.from(nav.querySelectorAll('.nav-entry')).map(e => e.dataset.module).filter(Boolean);
+  localStorage.setItem(NAV_ORDER_KEY, JSON.stringify(ids));
+}
+function orderedModules() {
+  const order = getNavOrder();
+  if (!order || !order.length) return MODULES.slice();
+  const pos = {}; order.forEach((id, i) => { pos[id] = i; });
+  const known = MODULES.filter(m => pos[m.id] !== undefined);
+  const unknown = MODULES.filter(m => pos[m.id] === undefined);
+  known.sort((a, b) => pos[a.id] - pos[b.id]);
+  return known.concat(unknown);
+}
+function navMoveHtml() {
+  return `<span class="nav-move">
+      <span class="nav-move-btn" data-move="up" title="上移">↑</span>
+      <span class="nav-move-btn" data-move="down" title="下移">↓</span>
+    </span>`;
+}
+function moveNavEntry(el, dir) {
+  const parent = el.parentNode;
+  if (!parent) return;
+  if (dir < 0) {
+    const prev = el.previousElementSibling;
+    if (prev) parent.insertBefore(el, prev);
+  } else {
+    const next = el.nextElementSibling;
+    if (next) parent.insertBefore(next, el);
+  }
+  saveNavOrder();
+}
+function attachNavReorder(nav) {
+  const entries = Array.from(nav.querySelectorAll('.nav-entry'));
+  entries.forEach((el, i) => {
+    const up = el.querySelector('[data-move="up"]');
+    const down = el.querySelector('[data-move="down"]');
+    if (up) { if (i === 0) up.dataset.disabled = '1'; else delete up.dataset.disabled; }
+    if (down) { if (i === entries.length - 1) down.dataset.disabled = '1'; else delete down.dataset.disabled; }
+  });
+  nav.querySelectorAll('.nav-move .nav-move-btn').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (b.dataset.disabled) return;
+      const entry = b.closest('.nav-entry');
+      if (!entry) return;
+      moveNavEntry(entry, b.dataset.move === 'up' ? -1 : 1);
+      renderNav();
+    });
+  });
+  let dragEl = null;
+  entries.forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragEl = el;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', el.dataset.module); } catch (_) {}
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      nav.querySelectorAll('.nav-entry').forEach(x => x.classList.remove('drag-over'));
+      dragEl = null;
+      saveNavOrder();
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragEl || dragEl === el) return;
+      el.classList.add('drag-over');
+      const rect = el.getBoundingClientRect();
+      const after = (e.clientY - rect.top) > rect.height / 2;
+      if (after) {
+        if (el.nextSibling !== dragEl) nav.insertBefore(dragEl, el.nextSibling);
+      } else {
+        if (el.previousSibling !== dragEl) nav.insertBefore(dragEl, el);
+      }
+    });
+    el.addEventListener('dragleave', () => { el.classList.remove('drag-over'); });
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag-over'); });
+  });
+}
+
 // ---------- 渲染:侧边栏 ----------
 function renderNav() {
   const nav = document.getElementById('navList');
   const chevron = '<svg class="nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg>';
+  const dragAttr = navReorder ? 'true' : 'false';
 
   let html = '';
-  MODULES.forEach(m => {
+  orderedModules().forEach(m => {
     if (m.hidden) return;
     const isActive = (m.id === currentModule);
     const hasChildren = !!(m.children && m.children.length);
 
     if (!hasChildren) {
       html += `
-        <button class="nav-item ${isActive ? 'active' : ''} ${m.enabled ? '' : 'disabled'}"
-                data-module="${m.id}" ${m.enabled ? '' : 'disabled'}>
+        <button class="nav-item nav-entry ${isActive ? 'active' : ''} ${m.enabled ? '' : 'disabled'}"
+                data-module="${m.id}" ${m.enabled ? '' : 'disabled'} draggable="${dragAttr}">
           <span class="nav-icon">${m.icon}</span>
           <span>${m.name}</span>
           ${!m.enabled ? '<span class="nav-badge">即将上线</span>' : ''}
+          ${navMoveHtml()}
         </button>`;
       return;
     }
@@ -3467,11 +3608,12 @@ function renderNav() {
     // 带二级类目的模块：在侧边栏内可展开
     const expanded = !!expandedModules[m.id];
     html += `
-      <div class="nav-group ${expanded ? 'expanded' : ''}">
+      <div class="nav-group nav-entry ${expanded ? 'expanded' : ''}" data-module="${m.id}" draggable="${dragAttr}">
         <button class="nav-item nav-parent ${isActive ? 'active' : ''} ${m.enabled ? '' : 'disabled'}"
                 data-module="${m.id}" data-parent="1" ${m.enabled ? '' : 'disabled'}>
           <span class="nav-icon">${m.icon}</span>
           <span>${m.name}</span>
+          ${navMoveHtml()}
           ${chevron}
         </button>
         <div class="nav-children" ${expanded ? '' : 'style="display:none;"'}>
@@ -3489,6 +3631,7 @@ function renderNav() {
   // 普通模块 / 父级（展开）点击
   nav.querySelectorAll('.nav-item[data-module]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (navReorder) return;   // 排序模式下不导航
       const id = btn.dataset.module;
       const mod = MODULES.find(m => m.id === id);
       if (!mod || !mod.enabled) { showToast('该模块正在开发中,敬请期待'); return; }
@@ -3522,6 +3665,7 @@ function renderNav() {
   // 二级类目点击：导航 + 移动端关闭侧边栏
   nav.querySelectorAll('.nav-child').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (navReorder) return;   // 排序模式下不导航
       const id = btn.dataset.module;
       const sub = btn.dataset.sub;
       currentModule = id;
@@ -3532,6 +3676,26 @@ function renderNav() {
       document.getElementById('sidebar').classList.remove('open');
     });
   });
+
+  // 排序模式：绑定 ↑↓ 与拖拽
+  if (navReorder) attachNavReorder(nav);
+}
+
+// 侧边栏「调整菜单顺序」开关
+function bindNavReorder() {
+  const btn = document.getElementById('navReorderBtn');
+  const sidebar = document.getElementById('sidebar');
+  if (!btn || !sidebar) return;
+  const syncRefresh = () => { renderNav(); };
+  btn.addEventListener('click', () => {
+    navReorder = !navReorder;
+    sidebar.classList.toggle('reorder-on', navReorder);
+    btn.classList.toggle('active', navReorder);
+    btn.textContent = navReorder ? '✓ 完成排序' : '⇅ 调整菜单顺序';
+    renderNav();
+  });
+  // 若已存在自定义顺序，提示用户可调整（无需强制开启）
+  syncRefresh();
 }
 
 // ---------- 渲染:主内容 ----------
@@ -10795,6 +10959,7 @@ async function init() {
 
   updateTodayDate();
   renderNav();
+  bindNavReorder();
   renderContent();
   bindWorkListEvents();
   wlCheckReminderOnLoad();
