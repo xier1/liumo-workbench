@@ -8205,9 +8205,14 @@ function renderMonthCostModule(content, mod) {
       <div class="co-admin-head"><span>已生成月度成本记录</span></div>
       <div class="wt-list" id="mcList"></div>
     </div>
+    <div class="wt-chart-card" style="margin-top:18px;">
+      <div class="wt-chart-title">月度总成本趋势 · 一年一条曲线</div>
+      <div id="mcChart"></div>
+    </div>
   `;
   bindMonthCostEvents();
   renderMcList();
+  renderMcChart();
 }
 
 function mcFixedTotal() {
@@ -8219,6 +8224,24 @@ function mcEntryMonthTotal(month) {
 function mcSalaryMonthTotal(month) {
   const rec = (salaryLogs || []).find(l => (l.date || '') === month);
   return rec ? (Number(rec.total) || 0) : 0;
+}
+function renderMcChart() {
+  const el = document.getElementById('mcChart');
+  if (!el) return;
+  if (monthlyCostLogs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有生成月度成本记录，先生成后这里会显示各年度的月度总成本趋势</div>`; return; }
+  const byYear = {};
+  monthlyCostLogs.forEach(r => {
+    const p = (r.month || '').split('-').map(Number);
+    const y = p[0], m = p[1];
+    if (!y || !m) return;
+    byYear[y] = byYear[y] || {};
+    byYear[y][m] = (byYear[y][m] || 0) + (Number(r.total) || 0);
+  });
+  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+  const YEAR_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6', '#84cc16'];
+  const series = years.map((y, i) => ({ year: y, color: YEAR_COLORS[i % YEAR_COLORS.length], vals: byYear[y] }));
+  const legend = years.map((y, i) => `<span class="ce-legend-item"><i style="background:${YEAR_COLORS[i % YEAR_COLORS.length]}"></i>${y}年</span>`).join('');
+  el.innerHTML = `<div class="ce-chart-legend">${legend}</div>` + buildYearLinesSVG(series);
 }
 
 function bindMonthCostEvents() {
@@ -8289,6 +8312,7 @@ function bindMonthCostEvents() {
     saveMonthlyCost();
     showToast('已生成 ' + m + ' 月度成本记录');
     renderMcList();
+    renderMcChart();
   });
 }
 
@@ -8309,6 +8333,7 @@ function renderMcList() {
     monthlyCostLogs = monthlyCostLogs.filter(r => r.id !== id);
     saveMonthlyCost();
     renderMcList();
+    renderMcChart();
     showToast('已删除该月度成本记录');
   }));
 }
