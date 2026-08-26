@@ -20,12 +20,13 @@ window.localStorage.setItem('liumo_inventory_logs', JSON.stringify([
 
 window.eval("currentModule='inventory'; renderContent();");
 
-// 1) 模块与统计卡（旧数据：芙蓉王 5<=10 预警，茅台 20>3 不预警）
+// 1) 模块与统计卡（旧数据：芙蓉王香烟 5件*220=1100 预警，茅台酒水 20件*1499=29980 不预警）
 check('模块标题', $('.page-title') && $('.page-title').textContent.includes('库存管理'));
-check('统计卡含商品总数', $('#ivStats').textContent.includes('商品总数'));
-check('统计卡含香烟', $('#ivStats').textContent.includes('香烟'));
-check('统计卡含酒水', $('#ivStats').textContent.includes('酒水'));
-check('统计卡含库存预警 1 种', $('#ivStats').textContent.includes('1 种'));
+check('统计卡含香烟库存数 5 件', $('#ivStats').textContent.includes('香烟库存数') && $('#ivStats').textContent.includes('5 件'));
+check('统计卡含香烟库存金额 1,100 元', $('#ivStats').textContent.includes('香烟库存金额') && $('#ivStats').textContent.includes('1,100 元'));
+check('统计卡含酒水库存数 20 件', $('#ivStats').textContent.includes('酒水库存数') && $('#ivStats').textContent.includes('20 件'));
+check('统计卡含酒水库存金额 29,980 元', $('#ivStats').textContent.includes('酒水库存金额') && $('#ivStats').textContent.includes('29,980 元'));
+check('统计卡含库存预警 1 种', $('#ivStats').textContent.includes('库存预警') && $('#ivStats').textContent.includes('1 种'));
 
 // 2) 列表两条 + 分类标签 + 预警标红
 const items = $all('#ivList .iv-item');
