@@ -253,21 +253,21 @@
   .toolbar.iv-search-bar .iv-cat-filter { flex: 0 0 auto; min-width: 84px; }
   .iv-group-title { margin: 14px 2px 8px; font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
   .iv-group-title::before { content: ''; width: 3px; height: 13px; border-radius: 2px; background: var(--primary-2); }
-  .iv-item { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
+  .iv-item { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
   .iv-item-main { flex: 1 1 0%; min-width: 0; overflow: hidden; }
-  .iv-item-name { font-weight: 600; font-size: 14px; word-break: break-all; line-height: 1.35; }
-  .iv-item-sub { font-size: 12px; color: var(--text-soft); margin-top: 3px; }
+  .iv-item-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
+  .iv-item-sub { font-size: 12px; color: var(--text-soft); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .iv-tag { font-size: 11px; padding: 1px 8px; border-radius: 10px; color: #fff; }
   .iv-tag.iv-cat-cig { background: #b45309; }
   .iv-tag.iv-cat-liq { background: #6d28d9; }
-  .iv-item-stock { text-align: right; flex: 0 0 56px; }
+  .iv-item-stock { text-align: right; flex: 0 0 44px; }
   .iv-stock-num { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .iv-stock-unit { font-size: 11px; color: var(--text-soft); }
   .iv-item-stock.iv-warn .iv-stock-num, .iv-item-stock.iv-warn .iv-stock-unit { color: var(--danger); }
-  .iv-item-actions { flex: 0 0 100%; display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
-  .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; transition: background var(--transition); }
+  .iv-item-actions { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 5px; flex-shrink: 0; }
+  .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; transition: background var(--transition); white-space: nowrap; }
   .iv-btn:hover { background: #f8fafc; }
   .iv-in { color: #15803d; border-color: #bbf7d0; }
   .iv-out { color: #b45309; border-color: #fde68a; }
