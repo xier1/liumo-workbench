@@ -8843,14 +8843,21 @@ function renderInventoryModule(content, mod) {
 function renderInventoryStats() {
   const el = document.getElementById('ivStats');
   if (!el) return;
-  const total = inventoryItems.length;
-  const cig = inventoryItems.filter(i => i.category === 'cigarette').length;
-  const liq = inventoryItems.filter(i => i.category === 'liquor').length;
+  const catItems = cat => inventoryItems.filter(i => i.category === cat);
+  const sumStock = arr => arr.reduce((s, i) => s + (Number(i.stock) || 0), 0);
+  const sumAmount = arr => arr.reduce((s, i) => s + ((Number(i.stock) || 0) * (Number(i.price) || 0)), 0);
+  const cigItems = catItems('cigarette');
+  const liqItems = catItems('liquor');
+  const cigStock = sumStock(cigItems);
+  const cigAmount = sumAmount(cigItems);
+  const liqStock = sumStock(liqItems);
+  const liqAmount = sumAmount(liqItems);
   const warn = inventoryItems.filter(i => isItemWarned(i)).length;
   el.innerHTML = [
-    statCard('商品总数', total + ' 种', ''),
-    statCard('香烟', cig + ' 种', ''),
-    statCard('酒水', liq + ' 种', ''),
+    statCard('香烟库存数', cigStock + ' 件', ''),
+    statCard('香烟库存金额', saMoney(cigAmount), ''),
+    statCard('酒水库存数', liqStock + ' 件', ''),
+    statCard('酒水库存金额', saMoney(liqAmount), ''),
     statCard('库存预警', warn + ' 种', warn ? 'warning' : 'success')
   ].join('');
   const wc = document.getElementById('ivWarnCount');
