@@ -2849,6 +2849,14 @@
   .co-admin-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 10px 12px; background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%); border: 1px solid #e0e7ff; border-radius: var(--radius-sm); font-size: 13px; }
   .co-admin-total-label { color: var(--text-soft); font-weight: 600; }
   .co-admin-total-val { color: var(--primary-2); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  /* 成本录入：各成本项趋势图（一项一图，每年一条曲线） */
+  .ce-charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 4px; }
+  .ce-chart-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px 6px; background: var(--bg-soft); }
+  .ce-chart-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ce-chart-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .ce-chart-legend { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ce-legend-item { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-soft); }
+  .ce-legend-item i { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
   /* 录入：固定成本金额 / 人工成本 / 其他 三项聚合 */
   .co-entry-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
   .co-entry-head { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
@@ -2919,6 +2927,7 @@
     .co-admin-row .co-admin-name { flex: 1 1 auto; min-width: 0; }
     .co-admin-row .co-admin-default { flex: 0 0 110px; width: 110px; min-width: 0; }
     .co-matrix { min-width: 0; }
+    .ce-charts { grid-template-columns: 1fr; }
   }
 
   /* 成本录入模块 */
@@ -7178,6 +7187,51 @@ function buildSalaryLineSVG(logs, getVal, color, unit, marks) {
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}${marksSvg}</svg>`;
 }
 
+// 多项成本年度曲线：x 轴为 1-12 月，每个 series 代表一年（一条曲线），点上标记数值
+function buildYearLinesSVG(series) {
+  const W = 660, H = 240, padL = 56, padR = 16, padT = 18, padB = 34;
+  const allVals = [];
+  series.forEach(s => Object.values(s.vals).forEach(v => { if (isFinite(v)) allVals.push(v); }));
+  if (allVals.length === 0) return `<div class="wt-empty" style="padding:18px 0;">暂无数据</div>`;
+  let vMax = Math.max.apply(null, allVals);
+  const vMin = 0;
+  if (vMax <= 0) vMax = 1;
+  const vRange = vMax - vMin;
+  const months = 12;
+  const xOf = m => padL + (m - 1) * (W - padL - padR) / (months - 1);
+  const yOf = v => H - padB - (v - vMin) / vRange * (H - padT - padB);
+  let grid = '';
+  for (let k = 0; k <= 4; k++) {
+    const gy = padT + k * (H - padT - padB) / 4;
+    const val = vMax - (k / 4) * vRange;
+    grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="#eef0f3"/><text x="${padL - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#9ca3af">${Math.round(val)}</text>`;
+  }
+  let xlab = '';
+  for (let m = 1; m <= 12; m++) {
+    if (m % 2 === 1 || m === 12) {
+      const x = xOf(m);
+      xlab += `<text x="${x.toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="9" fill="#9ca3af">${m}月</text>`;
+    }
+  }
+  let lines = '', dots = '', labels = '';
+  series.forEach(s => {
+    const pts = Object.keys(s.vals).map(Number).sort((a, b) => a - b);
+    if (pts.length === 0) return;
+    let poly = '', prev = false;
+    pts.forEach(m => {
+      const v = s.vals[m];
+      const x = xOf(m), y = yOf(v);
+      poly += (prev ? ' ' : '') + x.toFixed(1) + ',' + y.toFixed(1);
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${s.color}" stroke="#fff" stroke-width="1.4"><title>${s.year}年${m}月 ${Math.round(v)}元</title></circle>`;
+      let ty = y - 8; if (ty < 12) ty = y + 14;
+      labels += `<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="${s.color}">${Math.round(v)}</text>`;
+      prev = true;
+    });
+    lines += `<polyline points="${poly}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${lines}${dots}${xlab}${labels}</svg>`;
+}
+
 function renderSalaryChart() {
   const el = document.getElementById('saChart');
   if (!el) return;
@@ -7901,6 +7955,11 @@ function renderCostEntryModule(content, mod) {
       <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
     </div>
 
+    <div class="wt-chart-card">
+      <div class="wt-chart-title">各成本项趋势 · 一项一图，每个图每年一条曲线</div>
+      <div id="ceCharts" class="ce-charts"></div>
+    </div>
+
     <div class="co-admin-card co-collapsed" style="margin-top:18px;">
       <div class="co-admin-head">
         <button class="co-toggle" id="ceListToggle" type="button" aria-expanded="false">
@@ -7917,6 +7976,7 @@ function renderCostEntryModule(content, mod) {
   renderCeItemSelect();
   renderCeStats();
   renderCeMatrix();
+  renderCeCharts();
   renderCeList();
   updateCeSalaryBtn();
 }
@@ -8005,6 +8065,36 @@ function renderCeMatrix() {
     </table>`;
 }
 
+function renderCeCharts() {
+  const el = document.getElementById('ceCharts');
+  if (!el) return;
+  if (costEntryLogs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据，先录入成本记录后这里会显示各成本项的月度趋势</div>`; return; }
+  const YEAR_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6', '#84cc16'];
+  const items = costEntryItems.filter(it => costEntryLogs.some(l => l.itemId === it.id));
+  if (items.length === 0) { el.innerHTML = `<div class="wt-empty">暂无可绘制的成本项</div>`; return; }
+  el.innerHTML = items.map(it => {
+    const byYear = {};
+    costEntryLogs.filter(l => l.itemId === it.id).forEach(l => {
+      const p = (l.date || '').split('-').map(Number);
+      const y = p[0], m = p[1];
+      if (!y || !m) return;
+      byYear[y] = byYear[y] || {};
+      byYear[y][m] = (byYear[y][m] || 0) + (Number(l.amount) || 0);
+    });
+    const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+    const series = years.map((y, i) => ({ year: y, color: YEAR_COLORS[i % YEAR_COLORS.length], vals: byYear[y] }));
+    const legend = years.map((y, i) => `<span class="ce-legend-item"><i style="background:${YEAR_COLORS[i % YEAR_COLORS.length]}"></i>${y}年</span>`).join('');
+    return `
+      <div class="ce-chart-box">
+        <div class="ce-chart-head">
+          <span class="ce-chart-name">${escapeHtml(it.name)}</span>
+          <span class="ce-chart-legend">${legend}</span>
+        </div>
+        ${buildYearLinesSVG(series)}
+      </div>`;
+  }).join('');
+}
+
 function renderCeList() {
   const el = document.getElementById('ceList');
   if (!el) return;
@@ -8037,7 +8127,7 @@ function bindCostEntryEvents() {
   const list = document.getElementById('ceList');
 
   function refreshAll() {
-    renderCeStats(); renderCeMatrix(); renderCeList();
+    renderCeStats(); renderCeMatrix(); renderCeCharts(); renderCeList();
   }
   function updateTotal() {
     if (!entryTotalEl || !amountEl) return;
