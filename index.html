@@ -257,6 +257,12 @@
   .iv-out { color: #b45309; border-color: #fde68a; }
   .iv-edit { color: var(--primary-2); border-color: #c7d2fe; }
   .iv-del { color: #dc2626; border-color: #fecaca; }
+  .iv-check { width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; accent-color: var(--primary-2); }
+  .iv-batch-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .iv-batch-all { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-soft); cursor: pointer; user-select: none; }
+  .iv-batch-bar input[type="number"] { width: 130px; }
+  .iv-batch-hint { font-size: 12px; color: var(--text-soft); }
+  .iv-batch-count { color: var(--primary-2); font-weight: 600; }
   .iv-log-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; flex-wrap: wrap; }
   .iv-log-tag { font-size: 11px; padding: 1px 8px; border-radius: 10px; color: #fff; }
   .iv-log-in { background: #15803d; }
@@ -8705,6 +8711,7 @@ let inventoryItems = [];
 let inventoryLogs = [];
 let inventoryEditingId = null;
 let inventoryFilter = 'all';     // all | cigarette | liquor
+let inventorySelected = new Set();   // 批量修改时选中的商品 id
 let ivModalItemId = null;
 let ivModalType = null;          // in | out
 
@@ -8734,6 +8741,7 @@ function renderInventoryModule(content, mod) {
   loadInventory();
   loadInventoryLogs();
   inventoryEditingId = null;
+  inventorySelected = new Set();
   inventoryFilter = inventoryFilter || 'all';
   content.innerHTML = `
     <div class="page-header">
@@ -8786,6 +8794,13 @@ function renderInventoryModule(content, mod) {
         </button>
         <button class="btn-ghost" id="ivCancelBtn" style="display:none;">取消</button>
       </div>
+    </div>
+
+    <div class="iv-batch-bar">
+      <label class="iv-batch-all"><input type="checkbox" id="ivSelectAll" /> 全选</label>
+      <input type="number" step="any" min="0" id="ivBatchWarn" placeholder="新预警值" />
+      <button class="btn-add" id="ivBatchBtn" type="button">批量修改预警值</button>
+      <span class="iv-batch-hint" id="ivBatchHint">已选 <span class="iv-batch-count">0</span> 项</span>
     </div>
 
     <div class="wt-list" id="ivList"></div>
@@ -8853,6 +8868,7 @@ function renderInventoryList() {
     const price = Number(it.price) || 0;
     const sub = ['进价 ' + saMoney(price), '预警 ≤ ' + warn].join(' · ');
     return `<div class="iv-item ${cat.cls}">
+      <input type="checkbox" class="iv-check" data-id="${it.id}" ${inventorySelected.has(it.id) ? 'checked' : ''} title="选择此项" />
       <div class="iv-item-main">
         <div class="iv-item-name">${escapeHtml(it.name)} <span class="iv-tag ${cat.cls}">${cat.name}</span></div>
         <div class="iv-item-sub">${sub}</div>
@@ -8869,6 +8885,16 @@ function renderInventoryList() {
       </div>
     </div>`;
   }).join('');
+  const sa = document.getElementById('ivSelectAll');
+  if (sa) sa.checked = items.length > 0 && items.every(it => inventorySelected.has(it.id));
+  updateBatchHint();
+}
+
+function updateBatchHint() {
+  const el = document.getElementById('ivBatchHint');
+  if (!el) return;
+  const c = el.querySelector('.iv-batch-count');
+  if (c) c.textContent = inventorySelected.size;
 }
 
 function renderInventoryLogs() {
@@ -8923,6 +8949,50 @@ function bindInventoryEvents() {
       renderInventoryList();
     });
   });
+
+  // 批量修改预警值：勾选框、全选、批量应用
+  const selectAll = document.getElementById('ivSelectAll');
+  const batchWarn = document.getElementById('ivBatchWarn');
+  const batchBtn = document.getElementById('ivBatchBtn');
+
+  const listEl = document.getElementById('ivList');
+  listEl.addEventListener('change', e => {
+    const cb = e.target.closest('.iv-check');
+    if (!cb) return;
+    const id = cb.dataset.id;
+    if (cb.checked) inventorySelected.add(id); else inventorySelected.delete(id);
+    const sa = document.getElementById('ivSelectAll');
+    const items = inventoryItems.filter(i => inventoryFilter === 'all' || i.category === inventoryFilter);
+    if (sa) sa.checked = items.length > 0 && items.every(it => inventorySelected.has(it.id));
+    updateBatchHint();
+  });
+
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      const items = inventoryItems.filter(i => inventoryFilter === 'all' || i.category === inventoryFilter);
+      if (selectAll.checked) items.forEach(it => inventorySelected.add(it.id));
+      else items.forEach(it => inventorySelected.delete(it.id));
+      renderInventoryList();
+    });
+  }
+
+  if (batchBtn) {
+    batchBtn.addEventListener('click', () => {
+      if (inventorySelected.size === 0) { showToast('请先勾选要修改的商品'); return; }
+      const v = parseFloat(batchWarn.value);
+      if (isNaN(v) || v < 0) { showToast('请输入有效的预警值'); batchWarn.focus(); return; }
+      const ok = window.confirm('确定将已勾选的 ' + inventorySelected.size + ' 个商品的预警值统一改为 ' + v + '？');
+      if (!ok) return;
+      let n = 0;
+      inventoryItems.forEach(it => {
+        if (inventorySelected.has(it.id)) { it.warn = v; it.updatedAt = Date.now(); n++; }
+      });
+      saveInventory();
+      renderInventoryStats();
+      renderInventoryList();
+      showToast('已修改 ' + n + ' 个商品的预警值为 ' + v);
+    });
+  }
 
   saveBtn.addEventListener('click', () => {
     const name = nameEl.value.trim();
