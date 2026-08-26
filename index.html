@@ -2934,6 +2934,11 @@
   .ce-item-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 14px; color: var(--text); transition: all var(--transition); }
   .ce-item-select:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
   .wt-item.editing { border-color: var(--primary-2); box-shadow: var(--ring); }
+  /* 成本录入 / 固定成本设置 页签 */
+  .ce-tabs { display: flex; gap: 4px; margin: 6px 0 18px; border-bottom: 1px solid var(--border); }
+  .ce-tab { flex: 0 0 auto; padding: 11px 20px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-soft); border-bottom: 3px solid transparent; margin-bottom: -1px; transition: color var(--transition), border-color var(--transition); border-radius: 6px 6px 0 0; }
+  .ce-tab:hover { color: var(--text); background: var(--bg-soft); }
+  .ce-tab.active { color: var(--primary-2); border-bottom-color: var(--primary-2); }
 
   /* ========== 去哪儿玩模块 ========== */
   .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -3150,7 +3155,8 @@ const MODULES = [
     name: '超市成本核算',
     desc: '固定成本项清单（可增删改）· 按月逐项填金额 · 成本项与月度双维度汇总',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>',
-    enabled: true
+    enabled: true,
+    hidden: true
   },
   {
     id: 'costentry',
@@ -3424,6 +3430,7 @@ function renderNav() {
 
   let html = '';
   MODULES.forEach(m => {
+    if (m.hidden) return;
     const isActive = (m.id === currentModule);
     const hasChildren = !!(m.children && m.children.length);
 
@@ -7454,12 +7461,14 @@ function removeCostItem(id) {
 }
 
 // ---------- 渲染:超市成本核算模块 ----------
-function renderCostModule(content, mod) {
+function renderCostModule(content, mod, opts) {
+  opts = opts || {};
   content.innerHTML = `
+    ${opts.noHeader ? '' : `
     <div class="page-header">
       <div class="page-title">${mod.name}</div>
       <div class="page-desc">${mod.desc}</div>
-    </div>
+    </div>`}
 
     <div class="wt-note">
       说明：上方<b>固定成本设置</b>用于维护固定成本的明细项与<b>默认值</b>（如 房租 5000、水电 1200…），均可<b>增删改</b>，其底部会自动汇总出<b>成本合计</b>；
@@ -7901,8 +7910,15 @@ function renderCostEntryModule(content, mod) {
       <div class="page-desc">${mod.desc}</div>
     </div>
 
+    <div class="ce-tabs">
+      <button class="ce-tab active" data-tab="entry" type="button">成本录入</button>
+      <button class="ce-tab" data-tab="cost" type="button">固定成本设置</button>
+    </div>
+
+    <div id="ceTabEntry">
+
     <div class="wt-note">
-      说明：先维护<b>成本项</b>（如 塑料袋、电费、人工成本、其他…，可增删改）；录入时选择<b>日期</b>与<b>成本项</b>、填写<b>金额</b>即可保存，记录可随时<b>修改 / 删除</b>。顶部自动统计<b>本月塑料袋成本</b>、<b>近一年平均每月塑料袋成本</b>、<b>本月电费</b>、<b>去年同月份电费</b>。选定工资类成本项（名称含 工资 / 人工 / 薪）时，可点「<b>获取工资</b>」从工资管理带入当月总工资。
+      说明：先维护<b>成本项</b>；录入时选择<b>日期</b>与<b>成本项</b>、填写<b>金额</b>即可保存，记录可随时<b>修改 / 删除</b>。顶部自动统计<b>本月塑料袋成本</b>、<b>近一年平均每月塑料袋成本</b>、<b>本月电费</b>、<b>去年同月份电费</b>。选定工资类成本项（名称含 工资 / 人工 / 薪）时，可点「<b>获取工资</b>」从工资管理带入当月总工资。
     </div>
 
     <div class="wt-stats" id="ceStats"></div>
@@ -7964,6 +7980,9 @@ function renderCostEntryModule(content, mod) {
       </div>
       <div class="wt-list co-collapse-body" id="ceList"></div>
     </div>
+    </div>
+
+    <div id="ceTabCost" style="display:none"></div>
   `;
 
   bindCostEntryEvents();
@@ -8267,6 +8286,25 @@ function bindCostEntryEvents() {
       }
     });
   }
+
+  // 页签切换：成本录入 / 固定成本设置（挪入的超市成本核算页面）
+  const tabBtns = document.querySelectorAll('.ce-tab');
+  const panelEntry = document.getElementById('ceTabEntry');
+  const panelCost = document.getElementById('ceTabCost');
+  const costMod = MODULES.find(m => m.id === 'cost');
+  let costRendered = false;
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+      if (panelEntry) panelEntry.style.display = (tab === 'entry') ? '' : 'none';
+      if (panelCost) panelCost.style.display = (tab === 'cost') ? '' : 'none';
+      if (tab === 'cost' && panelCost && costMod && !costRendered) {
+        renderCostModule(panelCost, costMod, { noHeader: true });
+        costRendered = true;
+      }
+    });
+  });
 }
 
 // ==================== 废品记录模块 ====================
