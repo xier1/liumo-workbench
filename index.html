@@ -8201,9 +8201,14 @@ function renderMonthCostModule(content, mod) {
         </button>
       </div>
     </div>
-    <div class="co-admin-card" style="margin-top:18px;">
-      <div class="co-admin-head"><span>已生成月度成本记录</span></div>
-      <div class="wt-list" id="mcList"></div>
+    <div class="co-admin-card co-collapsed" style="margin-top:18px;">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="mcListToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>已生成月度成本记录</span>
+        </button>
+      </div>
+      <div class="wt-list co-collapse-body" id="mcList"></div>
     </div>
     <div class="wt-chart-card" style="margin-top:18px;">
       <div class="wt-chart-title">月度总成本趋势 · 一年一条曲线</div>
@@ -8252,6 +8257,15 @@ function bindMonthCostEvents() {
   const totalEl = document.getElementById('mcTotal');
   const genBtn = document.getElementById('mcGenBtn');
   if (!monthEl || !fixedEl || !entryEl || !salaryEl || !totalEl || !genBtn) return;
+
+  const listToggle = document.getElementById('mcListToggle');
+  if (listToggle) {
+    listToggle.addEventListener('click', () => {
+      const card = listToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      listToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
 
   function refreshTotal() {
     const f = Number(fixedEl.dataset.val || 0);
