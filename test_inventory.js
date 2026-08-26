@@ -62,9 +62,10 @@ check('点击顶部预警卡后自动展开商品列表', !$('#ivListCard').clas
 check('点击顶部预警卡后只剩预警商品', $all('#ivList .iv-item').length === 1);
 check('预警筛选结果含芙蓉王', $('#ivList').textContent.includes('芙蓉王'));
 check('预警筛选不含茅台', !$('#ivList').textContent.includes('茅台'));
-catSel.value = 'all';
-catSel.dispatchEvent(new window.Event('change', { bubbles: true }));
-check('回到全部恢复 2 个', $all('#ivList .iv-item').length === 2);
+check('预警视图下显示全部商品按钮', $('#ivBackAll').style.display !== 'none');
+$('#ivBackAll').click();
+check('点击全部商品按钮后恢复 2 个', $all('#ivList .iv-item').length === 2);
+check('全部商品按钮在普通视图下隐藏', $('#ivBackAll').style.display === 'none');
 
 // 3.2) 按名称搜索 + 分组显示
 check('存在按名称搜索框', !!$('#ivSearch'));
