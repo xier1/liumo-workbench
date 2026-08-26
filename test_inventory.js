@@ -86,6 +86,8 @@ check('清空搜索后恢复 2 个', $all('#ivList .iv-item').length === 2);
 // 4) 新增商品（勾选需要预警，阈值默认 2）
 check('新增表单默认勾选需要预警', $('#ivNeedWarn').checked === true);
 check('勾选时阈值输入框可填', $('#ivWarn').disabled === false);
+// 模拟用户填写：先展开商品信息卡片
+$('#ivFormCard').classList.remove('co-collapsed');
 $('#ivName').value = '五粮液';
 $('#ivCat').value = 'liquor';
 $('#ivPrice').value = '900';
@@ -93,6 +95,9 @@ $('#ivStock').value = '8';
 $('#ivWarn').value = '2';
 $('#ivSaveBtn').click();
 check('新增后列表 3 个', $all('#ivList .iv-item').length === 3);
+check('新增后商品信息卡片保持展开(不自动折叠)', !$('#ivFormCard').classList.contains('co-collapsed'));
+check('列表项含库存金额字段', $all('#ivList .iv-item-amount').length === 3);
+check('库存金额=进价×库存(五粮液 7,200 元)', $('#ivList').textContent.includes('7,200 元'));
 check('新增商品已保存', window.eval("inventoryItems.length") === 3);
 check('新增商品进价已保存', window.eval("inventoryItems.find(i=>i.name==='五粮液').price") === 900);
 check('新增商品 needWarn=true', window.eval("inventoryItems.find(i=>i.name==='五粮液').needWarn") === true);

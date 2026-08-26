@@ -266,6 +266,9 @@
   .iv-stock-num { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .iv-stock-unit { font-size: 11px; color: var(--text-soft); }
   .iv-item-stock.iv-warn .iv-stock-num, .iv-item-stock.iv-warn .iv-stock-unit { color: var(--danger); }
+  .iv-item-amount { text-align: right; flex: 0 0 84px; }
+  .iv-amount-label { font-size: 11px; color: var(--text-soft); }
+  .iv-amount-val { font-size: 14px; font-weight: 700; color: var(--primary-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .iv-item-actions { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 5px; flex-shrink: 0; }
   .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; transition: background var(--transition); white-space: nowrap; }
   .iv-btn:hover { background: #f8fafc; }
@@ -3041,6 +3044,9 @@
     .co-admin-row .co-admin-default { flex: 0 0 110px; width: 110px; min-width: 0; }
     .co-matrix { min-width: 0; }
     .ce-charts { grid-template-columns: 1fr; }
+    .iv-item-amount { flex-basis: 70px; }
+    .iv-amount-val { font-size: 13px; }
+    .iv-btn { padding: 4px 6px; font-size: 11px; }
   }
 
   /* 成本录入模块 */
@@ -8921,6 +8927,10 @@ function ivItemRow(it) {
       <div class="iv-stock-num">${stock}</div>
       <div class="iv-stock-unit">${isWarn ? '预警' : ''}</div>
     </div>
+    <div class="iv-item-amount">
+      <div class="iv-amount-label">库存金额</div>
+      <div class="iv-amount-val">${saMoney(stock * (Number(it.price) || 0))}</div>
+    </div>
     <div class="iv-item-actions">
       <button class="iv-btn iv-in" data-id="${it.id}" data-act="in">入库</button>
       <button class="iv-btn iv-out" data-id="${it.id}" data-act="out">出库</button>
@@ -9089,8 +9099,6 @@ function bindInventoryEvents() {
     resetForm();
     renderInventoryStats();
     renderInventoryList();
-    const fc = document.getElementById('ivFormCard');
-    if (fc) { fc.classList.add('co-collapsed'); const ft = document.getElementById('ivFormToggle'); if (ft) ft.setAttribute('aria-expanded', 'false'); }
   });
 
   cancelBtn.addEventListener('click', resetForm);
