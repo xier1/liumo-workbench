@@ -7901,7 +7901,15 @@ function renderCostEntryModule(content, mod) {
       <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
     </div>
 
-    <div class="wt-list" id="ceList"></div>
+    <div class="co-admin-card co-collapsed" style="margin-top:18px;">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="ceListToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>明细列表（已录入的成本记录）</span>
+        </button>
+      </div>
+      <div class="wt-list co-collapse-body" id="ceList"></div>
+    </div>
   `;
 
   bindCostEntryEvents();
@@ -8042,6 +8050,15 @@ function bindCostEntryEvents() {
       const card = adminToggle.closest('.co-admin-card');
       const collapsed = card.classList.toggle('co-collapsed');
       adminToggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  }
+
+  const listToggle = document.getElementById('ceListToggle');
+  if (listToggle) {
+    listToggle.addEventListener('click', () => {
+      const card = listToggle.closest('.co-admin-card');
+      const collapsed = card.classList.toggle('co-collapsed');
+      listToggle.setAttribute('aria-expanded', String(!collapsed));
     });
   }
 
