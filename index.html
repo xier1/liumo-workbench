@@ -2876,9 +2876,10 @@
   .wt-field label { font-size: 12px; color: var(--text-muted); text-align: left; }
   .wt-field input, .wt-field select { width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); transition: all var(--transition); }
   .wt-field input:focus, .wt-field select:focus { outline: none; border-color: var(--primary-2); background: #fff; box-shadow: var(--ring); }
-  .iv-form { align-items: flex-start; }
-  .iv-form .wt-field { flex: 1 1 100%; min-width: 0; }
-  .iv-form .wt-field .iv-checkbox-label { justify-content: flex-start; height: auto; padding: 9px 0; }
+  .toolbar.iv-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; align-items: start; }
+  .toolbar.iv-form .wt-field { flex: none; width: 100%; min-width: 0; }
+  .toolbar.iv-form .wt-field .iv-checkbox-label { justify-content: flex-start; height: auto; padding: 9px 0; }
+  .toolbar.iv-form .btn-add, .toolbar.iv-form .btn-ghost { width: 100%; margin: 0; align-self: end; }
   .wt-settings { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; background: var(--bg-soft); padding: 12px 14px; border-radius: var(--radius); }
   .wt-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); transition: box-shadow var(--transition); }
   .wt-chart-card:hover { box-shadow: var(--shadow-md); }
@@ -8797,6 +8798,7 @@ function renderInventoryModule(content, mod) {
           <input type="number" step="any" min="0" id="ivStock" placeholder="0" />
         </div>
         <div class="wt-field">
+          <label>是否需要预警</label>
           <label class="iv-checkbox-label">
             <input type="checkbox" id="ivNeedWarn" checked />
             需要库存预警
