@@ -2849,6 +2849,9 @@
   .co-admin-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 10px 12px; background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%); border: 1px solid #e0e7ff; border-radius: var(--radius-sm); font-size: 13px; }
   .co-admin-total-label { color: var(--text-soft); font-weight: 600; }
   .co-admin-total-val { color: var(--primary-2); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  /* 月度成本管理 */
+  .mc-rows { margin-top: 12px; display: grid; gap: 12px; }
+  .mc-rows .co-entry-amt { flex: 1 1 auto; background: var(--bg-soft); }
   /* 成本录入：各成本项趋势图（一项一图，每年一条曲线） */
   .ce-charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 4px; }
   .ce-chart-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px 6px; background: var(--bg-soft); }
@@ -3163,6 +3166,13 @@ const MODULES = [
     name: '成本录入',
     desc: '按日期录入任意成本项金额 · 成本项可自定义增删改 · 自动统计本月/去年/近一年关键指标',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h11l2 3"/><circle cx="17" cy="13" r="1.5"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'monthcost',
+    name: '月度成本管理',
+    desc: '固定成本设置合计 + 成本录入当月合计 → 该月总成本 · 确认后生成月度成本记录',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 14h8M8 17h5"/></svg>',
     enabled: true
   },
   {
@@ -3601,6 +3611,11 @@ function renderContent() {
 
   if (currentModule === 'costentry') {
     renderCostEntryModule(content, mod);
+    return;
+  }
+
+  if (currentModule === 'monthcost') {
+    renderMonthCostModule(content, mod);
     return;
   }
 
@@ -8118,6 +8133,158 @@ function renderCeList() {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
       </button>
     </div>`).join('');
+}
+
+// ---------- 月度成本管理 ----------
+let monthlyCostLogs = [];
+const MONTHLY_COST_KEY = 'liumo_monthly_cost_logs';
+function loadMonthlyCost() {
+  try { const d = localStorage.getItem(MONTHLY_COST_KEY); monthlyCostLogs = d ? JSON.parse(d) : []; if (!Array.isArray(monthlyCostLogs)) monthlyCostLogs = []; } catch (e) { monthlyCostLogs = []; }
+}
+function saveMonthlyCost() { localStorage.setItem(MONTHLY_COST_KEY, JSON.stringify(monthlyCostLogs)); }
+
+function renderMonthCostModule(content, mod) {
+  loadCost();        // 确保 costLogs 已加载
+  loadCostItems();   // 确保 costItems 已加载（固定成本设置各默认值）
+  loadCostEntry();   // 确保 costEntryItems / costEntryLogs 已加载
+  loadMonthlyCost();
+  const now = new Date();
+  const curMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      说明：先选择<b>月份</b>，再分别点击「<b>获取固定成本</b>」（带入固定成本设置中各默认值合计）与「<b>获取成本录入</b>」（带入成本录入中该月的各成本项合计），系统自动算出<b>该月成本</b>。核对无误后点「<b>生成成本记录</b>」保存，<b>同一月份再次生成将覆盖</b>原记录。
+    </div>
+    <div class="co-admin-card">
+      <div class="co-admin-head"><span>月度成本管理</span></div>
+      <div class="co-entry-grid">
+        <div class="wt-field">
+          <label>月份</label>
+          <input type="month" id="mcMonth" value="${curMonth}" />
+        </div>
+      </div>
+      <div class="mc-rows">
+        <div class="wt-field">
+          <label>固定成本设置成本合计</label>
+          <div class="co-inline">
+            <input type="text" id="mcFixed" class="co-entry-amt" readonly placeholder="点击右侧获取" />
+            <button class="co-fill-default" id="mcFetchFixed" type="button">获取固定成本</button>
+          </div>
+        </div>
+        <div class="wt-field">
+          <label>成本录入（该月）成本合计</label>
+          <div class="co-inline">
+            <input type="text" id="mcEntry" class="co-entry-amt" readonly placeholder="点击右侧获取" />
+            <button class="co-fill-default" id="mcFetchEntry" type="button">获取成本录入</button>
+          </div>
+        </div>
+        <div class="co-admin-total">
+          <span class="co-admin-total-label">该月成本（固定成本设置合计 ＋ 成本录入当月合计）</span>
+          <span class="co-admin-total-val" id="mcTotal">0 元</span>
+        </div>
+      </div>
+      <div class="co-entry-actions" style="margin-top:12px">
+        <button class="btn-add" id="mcGenBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>生成成本记录</span>
+        </button>
+      </div>
+    </div>
+    <div class="co-admin-card" style="margin-top:18px;">
+      <div class="co-admin-head"><span>已生成月度成本记录</span></div>
+      <div class="wt-list" id="mcList"></div>
+    </div>
+  `;
+  bindMonthCostEvents();
+  renderMcList();
+}
+
+function mcFixedTotal() {
+  return (costItems || []).reduce((s, it) => s + (Number(it.default) || 0), 0);
+}
+function mcEntryMonthTotal(month) {
+  return (costEntryLogs || []).reduce((s, l) => s + ((l.date || '').startsWith(month) ? (Number(l.amount) || 0) : 0), 0);
+}
+
+function bindMonthCostEvents() {
+  const monthEl = document.getElementById('mcMonth');
+  const fixedEl = document.getElementById('mcFixed');
+  const entryEl = document.getElementById('mcEntry');
+  const totalEl = document.getElementById('mcTotal');
+  const genBtn = document.getElementById('mcGenBtn');
+  if (!monthEl || !fixedEl || !entryEl || !totalEl || !genBtn) return;
+
+  function refreshTotal() {
+    const f = Number(fixedEl.dataset.val || 0);
+    const e = Number(entryEl.dataset.val || 0);
+    totalEl.textContent = saMoney(f + e);
+  }
+
+  document.getElementById('mcFetchFixed').addEventListener('click', () => {
+    const v = mcFixedTotal();
+    fixedEl.value = saMoney(v);
+    fixedEl.dataset.val = v;
+    refreshTotal();
+  });
+
+  document.getElementById('mcFetchEntry').addEventListener('click', () => {
+    const m = monthEl.value;
+    if (!m) { showToast('请先选择月份'); return; }
+    const v = mcEntryMonthTotal(m);
+    entryEl.value = saMoney(v);
+    entryEl.dataset.val = v;
+    refreshTotal();
+  });
+
+  genBtn.addEventListener('click', () => {
+    const m = monthEl.value;
+    if (!m) { showToast('请先选择月份'); return; }
+    const f = Number(fixedEl.dataset.val || 0);
+    const e = Number(entryEl.dataset.val || 0);
+    const gotFixed = fixedEl.dataset.val !== undefined && fixedEl.dataset.val !== '';
+    const gotEntry = entryEl.dataset.val !== undefined && entryEl.dataset.val !== '';
+    if (!gotFixed || !gotEntry) { showToast('请先分别获取「固定成本」与「成本录入」两项金额'); return; }
+    const total = f + e;
+    const ok = window.confirm(
+      m + ' 月度成本\n' +
+      '固定成本设置合计：' + saMoney(f) + '\n' +
+      '成本录入当月合计：' + saMoney(e) + '\n' +
+      '该月成本：' + saMoney(total) + '\n\n' +
+      '确认生成 / 覆盖该月成本记录？'
+    );
+    if (!ok) return;
+    const existIdx = monthlyCostLogs.findIndex(r => r.month === m);
+    const rec = { id: uid(), month: m, fixedTotal: f, entryTotal: e, total: total, createdAt: Date.now() };
+    if (existIdx >= 0) monthlyCostLogs[existIdx] = rec; else monthlyCostLogs.push(rec);
+    monthlyCostLogs.sort((a, b) => (a.month || '').localeCompare(b.month || ''));
+    saveMonthlyCost();
+    showToast('已生成 ' + m + ' 月度成本记录');
+    renderMcList();
+  });
+}
+
+function renderMcList() {
+  const el = document.getElementById('mcList');
+  if (!el) return;
+  if (monthlyCostLogs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有生成月度成本记录</div>`; return; }
+  el.innerHTML = monthlyCostLogs.slice().reverse().map(r => `
+    <div class="wt-item" data-id="${r.id}">
+      <div class="wt-item-date">${r.month}</div>
+      <div class="wt-item-delta"><b>该月成本 ${saMoney(r.total)}</b> · 固定 ${saMoney(r.fixedTotal)} · 录入 ${saMoney(r.entryTotal)}</div>
+      <button class="action-btn delete" data-action="mc-del" data-id="${r.id}" title="删除">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>`).join('');
+  el.querySelectorAll('[data-action="mc-del"]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    monthlyCostLogs = monthlyCostLogs.filter(r => r.id !== id);
+    saveMonthlyCost();
+    renderMcList();
+    showToast('已删除该月度成本记录');
+  }));
 }
 
 function bindCostEntryEvents() {
