@@ -244,6 +244,8 @@
   .iv-search:focus { border-color: var(--primary-2); }
   .iv-cat-filter { flex: 0 0 auto; height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text); font-size: 13px; cursor: pointer; outline: none; }
   .iv-cat-filter:focus { border-color: var(--primary-2); }
+  .iv-back-all { flex: 0 0 auto; height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .iv-back-all:hover { background: #f8fafc; }
   .iv-warn-card { cursor: pointer; }
   .iv-warn-card:active { transform: scale(0.98); }
   .toolbar.iv-search-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
@@ -251,20 +253,20 @@
   .toolbar.iv-search-bar .iv-cat-filter { flex: 0 0 auto; min-width: 84px; }
   .iv-group-title { margin: 14px 2px 8px; font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
   .iv-group-title::before { content: ''; width: 3px; height: 13px; border-radius: 2px; background: var(--primary-2); }
-  .iv-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
+  .iv-item { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
-  .iv-item-main { flex: 1; min-width: 0; }
-  .iv-item-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .iv-item-main { flex: 1 1 0%; min-width: 0; overflow: hidden; }
+  .iv-item-name { font-weight: 600; font-size: 14px; word-break: break-all; line-height: 1.35; }
   .iv-item-sub { font-size: 12px; color: var(--text-soft); margin-top: 3px; }
   .iv-tag { font-size: 11px; padding: 1px 8px; border-radius: 10px; color: #fff; }
   .iv-tag.iv-cat-cig { background: #b45309; }
   .iv-tag.iv-cat-liq { background: #6d28d9; }
-  .iv-item-stock { text-align: right; min-width: 84px; flex-shrink: 0; }
+  .iv-item-stock { text-align: right; flex: 0 0 56px; }
   .iv-stock-num { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .iv-stock-unit { font-size: 11px; color: var(--text-soft); }
   .iv-item-stock.iv-warn .iv-stock-num, .iv-item-stock.iv-warn .iv-stock-unit { color: var(--danger); }
-  .iv-item-actions { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+  .iv-item-actions { flex: 0 0 100%; display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
   .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; transition: background var(--transition); }
   .iv-btn:hover { background: #f8fafc; }
   .iv-in { color: #15803d; border-color: #bbf7d0; }
@@ -8831,6 +8833,7 @@ function renderInventoryModule(content, mod) {
         <option value="cigarette"${inventoryFilter === 'cigarette' ? ' selected' : ''}>香烟</option>
         <option value="liquor"${inventoryFilter === 'liquor' ? ' selected' : ''}>酒水</option>
       </select>
+      <button class="iv-back-all" id="ivBackAll" type="button" style="${inventoryFilter === 'warn' ? '' : 'display:none;'}">全部商品</button>
     </div>
 
     <!-- 商品列表：默认折叠 -->
@@ -8930,6 +8933,8 @@ function ivItemRow(it) {
 function renderInventoryList() {
   const el = document.getElementById('ivList');
   if (!el) return;
+  const backAllBtn = document.getElementById('ivBackAll');
+  if (backAllBtn) backAllBtn.style.display = inventoryFilter === 'warn' ? '' : 'none';
   const lc = document.getElementById('ivListCount');
   if (lc) lc.textContent = inventoryItems.length;
   const kw = (inventorySearch || '').trim().toLowerCase();
@@ -9025,7 +9030,15 @@ function bindInventoryEvents() {
   const catFilterEl = document.getElementById('ivCatFilter');
   if (catFilterEl) catFilterEl.addEventListener('change', () => {
     inventoryFilter = catFilterEl.value;
-    document.querySelectorAll('.iv-filter').forEach(x => x.classList.remove('active'));
+    renderInventoryList();
+  });
+
+  const backAllBtn = document.getElementById('ivBackAll');
+  if (backAllBtn) backAllBtn.addEventListener('click', () => {
+    inventoryFilter = 'all';
+    inventorySearch = '';
+    if (searchEl) searchEl.value = '';
+    if (catFilterEl) catFilterEl.value = 'all';
     renderInventoryList();
   });
 
