@@ -28,19 +28,30 @@ check('统计卡含酒水库存数 20 件', $('#ivStats').textContent.includes('
 check('统计卡含酒水库存金额 29,980 元', $('#ivStats').textContent.includes('酒水库存金额') && $('#ivStats').textContent.includes('29,980 元'));
 check('统计卡含库存预警 1 种', $('#ivStats').textContent.includes('库存预警') && $('#ivStats').textContent.includes('1 种'));
 
-// 2) 列表两条 + 分类标签 + 预警标红
+// 1.x) 默认折叠 + 新 UI 结构
+check('商品信息卡片默认折叠', $('#ivFormCard').classList.contains('co-collapsed'));
+check('商品列表卡片默认折叠', $('#ivListCard').classList.contains('co-collapsed'));
+check('存在搜索框', !!$('#ivSearch'));
+check('存在分类筛选下拉', !!$('#ivCatFilter'));
+check('分类下拉含 3 个选项', $('#ivCatFilter').options.length === 3);
+check('库存预警标签单独存在', !!$('.iv-filter-warn'));
+
+// 2) 列表两条 + 不显示分类/进价 + 预警标红
 const items = $all('#ivList .iv-item');
 check('列表渲染 2 个商品', items.length === 2);
-check('芙蓉王标签为香烟', items[0].textContent.includes('香烟'));
-check('茅台标签为酒水', items[1].textContent.includes('酒水'));
+check('列表项不显示分类标签(iv-tag)', $all('#ivList .iv-item .iv-tag').length === 0);
+check('列表项不显示进价文案', !$('#ivList').textContent.includes('进价'));
 check('芙蓉王库存预警标红', items[0].querySelector('.iv-item-stock.iv-warn'));
 check('芙蓉王副文案含预警阈值', items[0].textContent.includes('预警 ≤ 10'));
 
-// 3) 筛选：点“酒水”只剩茅台
-$('.iv-filter-liq').click();
+// 3) 筛选：下拉选“酒水”只剩茅台
+const catSel = $('#ivCatFilter');
+catSel.value = 'liquor';
+catSel.dispatchEvent(new window.Event('change', { bubbles: true }));
 check('筛选酒水后只剩 1 个', $all('#ivList .iv-item').length === 1);
 check('筛选结果含茅台', $('#ivList').textContent.includes('茅台'));
-$('.iv-filter[data-cat="all"]').click();
+catSel.value = 'all';
+catSel.dispatchEvent(new window.Event('change', { bubbles: true }));
 check('回到全部为 2 个', $all('#ivList .iv-item').length === 2);
 
 // 3.1) 库存预警快捷筛选
@@ -50,7 +61,8 @@ $('.iv-filter-warn').click();
 check('点击库存预警后只剩预警商品', $all('#ivList .iv-item').length === 1);
 check('预警筛选结果含芙蓉王', $('#ivList').textContent.includes('芙蓉王'));
 check('预警筛选不含茅台', !$('#ivList').textContent.includes('茅台'));
-$('.iv-filter[data-cat="all"]').click();
+catSel.value = 'all';
+catSel.dispatchEvent(new window.Event('change', { bubbles: true }));
 check('回到全部恢复 2 个', $all('#ivList .iv-item').length === 2);
 
 // 3.2) 按名称搜索 + 分组显示
