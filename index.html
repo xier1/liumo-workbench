@@ -242,6 +242,12 @@
   .iv-warn-count { display: inline-block; min-width: 16px; padding: 0 5px; margin-left: 3px; border-radius: 10px; background: rgba(0,0,0,0.13); font-size: 11px; line-height: 16px; text-align: center; font-weight: 600; }
   .iv-search { flex: 1 1 160px; min-width: 140px; height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: #fff; color: var(--text); outline: none; }
   .iv-search:focus { border-color: var(--primary-2); }
+  .iv-cat-filter { flex: 0 0 auto; height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text); font-size: 13px; cursor: pointer; outline: none; }
+  .iv-cat-filter:focus { border-color: var(--primary-2); }
+  .iv-warn-only { margin-bottom: 14px; }
+  .toolbar.iv-search-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .toolbar.iv-search-bar .iv-search { flex: 1 1 auto; min-width: 0; }
+  .toolbar.iv-search-bar .iv-cat-filter { flex: 0 0 auto; min-width: 84px; }
   .iv-group-title { margin: 14px 2px 8px; font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
   .iv-group-title::before { content: ''; width: 3px; height: 13px; border-radius: 2px; background: var(--primary-2); }
   .iv-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
@@ -8767,56 +8773,79 @@ function renderInventoryModule(content, mod) {
 
     <div class="wt-stats" id="ivStats"></div>
 
-    <div class="toolbar" style="gap:8px; margin-bottom:14px;">
-      <input type="search" id="ivSearch" class="iv-search" placeholder="搜索商品名称…" value="${escapeHtml(inventorySearch || '')}" />
-      <span class="iv-filter ${inventoryFilter === 'all' ? 'active' : ''}" data-cat="all">全部</span>
-      <span class="iv-filter iv-filter-cig ${inventoryFilter === 'cigarette' ? 'active' : ''}" data-cat="cigarette">香烟</span>
-      <span class="iv-filter iv-filter-liq ${inventoryFilter === 'liquor' ? 'active' : ''}" data-cat="liquor">酒水</span>
-      <span class="iv-filter iv-filter-warn ${inventoryFilter === 'warn' ? 'active' : ''}" data-cat="warn">库存预警 <span class="iv-warn-count" id="ivWarnCount">0</span></span>
-    </div>
-
-    <div class="wt-chart-card">
-      <div class="wt-chart-title">商品信息</div>
-      <div class="toolbar wt-add-bar iv-form">
-        <div class="wt-field">
-          <label>名称</label>
-          <input type="text" id="ivName" placeholder="如 芙蓉王(硬)" />
-        </div>
-        <div class="wt-field">
-          <label>分类</label>
-          <select id="ivCat">
-            <option value="cigarette">香烟</option>
-            <option value="liquor">酒水</option>
-          </select>
-        </div>
-        <div class="wt-field">
-          <label>进价</label>
-          <input type="number" step="any" min="0" id="ivPrice" placeholder="如 220" />
-        </div>
-        <div class="wt-field">
-          <label>当前库存</label>
-          <input type="number" step="any" min="0" id="ivStock" placeholder="0" />
-        </div>
-        <div class="wt-field">
-          <label>是否需要预警</label>
-          <label class="iv-checkbox-label">
-            <input type="checkbox" id="ivNeedWarn" checked />
-            需要库存预警
-          </label>
-        </div>
-        <div class="wt-field" id="ivWarnField">
-          <label>预警阈值</label>
-          <input type="number" step="any" min="0" id="ivWarn" placeholder="默认 2" />
-        </div>
-        <button class="btn-add" id="ivSaveBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span id="ivSaveLabel">添加商品</span>
+    <!-- 商品信息：置于搜索上方，默认折叠隐藏 -->
+    <div class="co-admin-card co-collapsed" id="ivFormCard" style="margin-bottom:14px;">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="ivFormToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>商品信息</span>
         </button>
-        <button class="btn-ghost" id="ivCancelBtn" style="display:none;">取消</button>
+      </div>
+      <div class="co-collapse-body">
+        <div class="toolbar wt-add-bar iv-form">
+          <div class="wt-field">
+            <label>名称</label>
+            <input type="text" id="ivName" placeholder="如 芙蓉王(硬)" />
+          </div>
+          <div class="wt-field">
+            <label>分类</label>
+            <select id="ivCat">
+              <option value="cigarette">香烟</option>
+              <option value="liquor">酒水</option>
+            </select>
+          </div>
+          <div class="wt-field">
+            <label>进价</label>
+            <input type="number" step="any" min="0" id="ivPrice" placeholder="如 220" />
+          </div>
+          <div class="wt-field">
+            <label>当前库存</label>
+            <input type="number" step="any" min="0" id="ivStock" placeholder="0" />
+          </div>
+          <div class="wt-field">
+            <label>是否需要预警</label>
+            <label class="iv-checkbox-label">
+              <input type="checkbox" id="ivNeedWarn" checked />
+              需要库存预警
+            </label>
+          </div>
+          <div class="wt-field" id="ivWarnField">
+            <label>预警阈值</label>
+            <input type="number" step="any" min="0" id="ivWarn" placeholder="默认 2" />
+          </div>
+          <button class="btn-add" id="ivSaveBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span id="ivSaveLabel">添加商品</span>
+          </button>
+          <button class="btn-ghost" id="ivCancelBtn" style="display:none;">取消</button>
+        </div>
       </div>
     </div>
 
-    <div class="wt-list" id="ivList"></div>
+    <!-- 搜索：搜索框 + 分类下拉一行 -->
+    <div class="toolbar iv-search-bar" style="gap:8px; margin-bottom:10px;">
+      <input type="search" id="ivSearch" class="iv-search" placeholder="搜索商品名称…" value="${escapeHtml(inventorySearch || '')}" />
+      <select id="ivCatFilter" class="iv-cat-filter" aria-label="按分类筛选">
+        <option value="all"${inventoryFilter === 'all' ? ' selected' : ''}>全部分类</option>
+        <option value="cigarette"${inventoryFilter === 'cigarette' ? ' selected' : ''}>香烟</option>
+        <option value="liquor"${inventoryFilter === 'liquor' ? ' selected' : ''}>酒水</option>
+      </select>
+    </div>
+    <!-- 库存预警单独显示 -->
+    <div class="iv-warn-only">
+      <span class="iv-filter iv-filter-warn ${inventoryFilter === 'warn' ? 'active' : ''}" data-cat="warn">库存预警 <span class="iv-warn-count" id="ivWarnCount">0</span></span>
+    </div>
+
+    <!-- 商品列表：默认折叠 -->
+    <div class="co-admin-card co-collapsed" id="ivListCard" style="margin-bottom:18px;">
+      <div class="co-admin-head">
+        <button class="co-toggle" id="ivListToggle" type="button" aria-expanded="false">
+          <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span>商品列表（<span id="ivListCount">0</span>）</span>
+        </button>
+      </div>
+      <div class="wt-list co-collapse-body" id="ivList"></div>
+    </div>
 
     <div class="co-admin-card co-collapsed" style="margin-top:18px;">
       <div class="co-admin-head">
@@ -8882,11 +8911,10 @@ function ivItemRow(it) {
   const needWarn = itemNeedWarn(it);
   const warn = Number(it.warn) || 0;
   const isWarn = needWarn && stock <= warn;
-  const price = Number(it.price) || 0;
-  const sub = ['进价 ' + saMoney(price), needWarn ? ('预警 ≤ ' + warn) : '不预警'].join(' · ');
+  const sub = needWarn ? ('预警 ≤ ' + warn) : '不预警';
   return `<div class="iv-item ${cat.cls}">
     <div class="iv-item-main">
-      <div class="iv-item-name">${escapeHtml(it.name)} <span class="iv-tag ${cat.cls}">${cat.name}</span></div>
+      <div class="iv-item-name">${escapeHtml(it.name)}</div>
       <div class="iv-item-sub">${sub}</div>
     </div>
     <div class="iv-item-stock ${isWarn ? 'iv-warn' : ''}">
@@ -8905,6 +8933,8 @@ function ivItemRow(it) {
 function renderInventoryList() {
   const el = document.getElementById('ivList');
   if (!el) return;
+  const lc = document.getElementById('ivListCount');
+  if (lc) lc.textContent = inventoryItems.length;
   const kw = (inventorySearch || '').trim().toLowerCase();
   let items = inventoryItems.slice();
   if (kw) items = items.filter(i => (i.name || '').toLowerCase().includes(kw));
@@ -8995,13 +9025,20 @@ function bindInventoryEvents() {
   const searchEl = document.getElementById('ivSearch');
   if (searchEl) searchEl.addEventListener('input', () => { inventorySearch = searchEl.value; renderInventoryList(); });
 
-  document.querySelectorAll('.iv-filter').forEach(f => {
-    f.addEventListener('click', () => {
-      inventoryFilter = f.dataset.cat;
-      document.querySelectorAll('.iv-filter').forEach(x => x.classList.remove('active'));
-      f.classList.add('active');
-      renderInventoryList();
-    });
+  const catFilterEl = document.getElementById('ivCatFilter');
+  if (catFilterEl) catFilterEl.addEventListener('change', () => {
+    inventoryFilter = catFilterEl.value;
+    document.querySelectorAll('.iv-filter').forEach(x => x.classList.remove('active'));
+    renderInventoryList();
+  });
+
+  const warnTag = document.querySelector('.iv-filter-warn');
+  if (warnTag) warnTag.addEventListener('click', () => {
+    inventoryFilter = 'warn';
+    if (catFilterEl) catFilterEl.value = 'all';
+    document.querySelectorAll('.iv-filter').forEach(x => x.classList.remove('active'));
+    warnTag.classList.add('active');
+    renderInventoryList();
   });
 
   saveBtn.addEventListener('click', () => {
@@ -9034,6 +9071,8 @@ function bindInventoryEvents() {
     resetForm();
     renderInventoryStats();
     renderInventoryList();
+    const fc = document.getElementById('ivFormCard');
+    if (fc) { fc.classList.add('co-collapsed'); const ft = document.getElementById('ivFormToggle'); if (ft) ft.setAttribute('aria-expanded', 'false'); }
   });
 
   cancelBtn.addEventListener('click', resetForm);
@@ -9058,6 +9097,20 @@ function bindInventoryEvents() {
     });
   }
 
+  const formToggle = document.getElementById('ivFormToggle');
+  if (formToggle) formToggle.addEventListener('click', () => {
+    const card = formToggle.closest('.co-admin-card');
+    const collapsed = card.classList.toggle('co-collapsed');
+    formToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
+
+  const listToggle = document.getElementById('ivListToggle');
+  if (listToggle) listToggle.addEventListener('click', () => {
+    const card = listToggle.closest('.co-admin-card');
+    const collapsed = card.classList.toggle('co-collapsed');
+    listToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
+
   bindInventoryModal();
 }
 
@@ -9075,6 +9128,12 @@ function startInventoryEdit(id, refs) {
   refs.warnEl.disabled = !needWarn;
   refs.saveLabel.textContent = '保存修改';
   refs.cancelBtn.style.display = '';
+  const formCard = document.getElementById('ivFormCard');
+  if (formCard && formCard.classList.contains('co-collapsed')) {
+    formCard.classList.remove('co-collapsed');
+    const ft = document.getElementById('ivFormToggle');
+    if (ft) ft.setAttribute('aria-expanded', 'true');
+  }
   refs.nameEl.focus();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
