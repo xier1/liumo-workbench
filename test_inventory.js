@@ -42,6 +42,16 @@ check('筛选结果含茅台', $('#ivList').textContent.includes('茅台'));
 $('.iv-filter[data-cat="all"]').click();
 check('回到全部为 2 个', $all('#ivList .iv-item').length === 2);
 
+// 3.1) 库存预警快捷筛选
+check('存在库存预警快捷筛选标签', !!$('.iv-filter-warn'));
+check('预警数量徽标为 1', $('#ivWarnCount').textContent === '1'); // 芙蓉王 5<=10
+$('.iv-filter-warn').click();
+check('点击库存预警后只剩预警商品', $all('#ivList .iv-item').length === 1);
+check('预警筛选结果含芙蓉王', $('#ivList').textContent.includes('芙蓉王'));
+check('预警筛选不含茅台', !$('#ivList').textContent.includes('茅台'));
+$('.iv-filter[data-cat="all"]').click();
+check('回到全部恢复 2 个', $all('#ivList .iv-item').length === 2);
+
 // 4) 新增商品（勾选需要预警，阈值默认 2）
 check('新增表单默认勾选需要预警', $('#ivNeedWarn').checked === true);
 check('勾选时阈值输入框可填', $('#ivWarn').disabled === false);

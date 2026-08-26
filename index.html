@@ -237,6 +237,9 @@
   .iv-filter.active { background: var(--primary-2); color: #fff; border-color: var(--primary-2); }
   .iv-filter-cig.active { background: #b45309; border-color: #b45309; }
   .iv-filter-liq.active { background: #6d28d9; border-color: #6d28d9; }
+  .iv-filter-warn { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+  .iv-filter-warn.active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  .iv-warn-count { display: inline-block; min-width: 16px; padding: 0 5px; margin-left: 3px; border-radius: 10px; background: rgba(0,0,0,0.13); font-size: 11px; line-height: 16px; text-align: center; font-weight: 600; }
   .iv-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
@@ -8704,10 +8707,13 @@ const IV_CAT = {
   liquor: { name: '酒水', cls: 'iv-cat-liq', defUnit: '瓶' }
 };
 
+function itemNeedWarn(it) { return it.needWarn !== undefined ? it.needWarn : (Number(it.warn) > 0); }
+function isItemWarned(it) { return itemNeedWarn(it) && (Number(it.stock) || 0) <= (Number(it.warn) || 0); }
+
 let inventoryItems = [];
 let inventoryLogs = [];
 let inventoryEditingId = null;
-let inventoryFilter = 'all';     // all | cigarette | liquor
+let inventoryFilter = 'all';     // all | cigarette | liquor | warn
 let ivModalItemId = null;
 let ivModalType = null;          // in | out
 
@@ -8755,6 +8761,7 @@ function renderInventoryModule(content, mod) {
       <span class="iv-filter ${inventoryFilter === 'all' ? 'active' : ''}" data-cat="all">全部</span>
       <span class="iv-filter iv-filter-cig ${inventoryFilter === 'cigarette' ? 'active' : ''}" data-cat="cigarette">香烟</span>
       <span class="iv-filter iv-filter-liq ${inventoryFilter === 'liquor' ? 'active' : ''}" data-cat="liquor">酒水</span>
+      <span class="iv-filter iv-filter-warn ${inventoryFilter === 'warn' ? 'active' : ''}" data-cat="warn">库存预警 <span class="iv-warn-count" id="ivWarnCount">0</span></span>
     </div>
 
     <div class="wt-chart-card">
@@ -8839,28 +8846,31 @@ function renderInventoryStats() {
   const total = inventoryItems.length;
   const cig = inventoryItems.filter(i => i.category === 'cigarette').length;
   const liq = inventoryItems.filter(i => i.category === 'liquor').length;
-  const warn = inventoryItems.filter(i => {
-    const nw = i.needWarn !== undefined ? i.needWarn : (Number(i.warn) > 0);
-    return nw && (Number(i.stock) || 0) <= (Number(i.warn) || 0);
-  }).length;
+  const warn = inventoryItems.filter(i => isItemWarned(i)).length;
   el.innerHTML = [
     statCard('商品总数', total + ' 种', ''),
     statCard('香烟', cig + ' 种', ''),
     statCard('酒水', liq + ' 种', ''),
     statCard('库存预警', warn + ' 种', warn ? 'warning' : 'success')
   ].join('');
+  const wc = document.getElementById('ivWarnCount');
+  if (wc) wc.textContent = warn;
 }
 
 function renderInventoryList() {
   const el = document.getElementById('ivList');
   if (!el) return;
   let items = inventoryItems.slice();
-  if (inventoryFilter !== 'all') items = items.filter(i => i.category === inventoryFilter);
-  if (items.length === 0) { el.innerHTML = `<div class="wt-empty">还没有商品，先在上方「商品信息」添加。</div>`; return; }
+  if (inventoryFilter === 'warn') items = items.filter(i => isItemWarned(i));
+  else if (inventoryFilter !== 'all') items = items.filter(i => i.category === inventoryFilter);
+  if (items.length === 0) {
+    const tip = inventoryFilter === 'warn' ? '当前没有处于预警状态的商品 🎉' : '还没有商品，先在上方「商品信息」添加。';
+    el.innerHTML = `<div class="wt-empty">${tip}</div>`; return;
+  }
   el.innerHTML = items.map(it => {
     const cat = IV_CAT[it.category] || { name: it.category, cls: '' };
     const stock = Number(it.stock) || 0;
-    const needWarn = it.needWarn !== undefined ? it.needWarn : (Number(it.warn) > 0);
+    const needWarn = itemNeedWarn(it);
     const warn = Number(it.warn) || 0;
     const isWarn = needWarn && stock <= warn;
     const price = Number(it.price) || 0;
