@@ -53,6 +53,22 @@ check('预警筛选不含茅台', !$('#ivList').textContent.includes('茅台'));
 $('.iv-filter[data-cat="all"]').click();
 check('回到全部恢复 2 个', $all('#ivList .iv-item').length === 2);
 
+// 3.2) 按名称搜索 + 分组显示
+check('存在按名称搜索框', !!$('#ivSearch'));
+check('全部视图含 2 个分组标题', $all('#ivList .iv-group-title').length === 2);
+check('分组标题含“香烟”', Array.from($all('#ivList .iv-group-title')).some(e => e.textContent.includes('香烟')));
+check('分组标题含“酒水”', Array.from($all('#ivList .iv-group-title')).some(e => e.textContent.includes('酒水')));
+$('#ivSearch').value = '茅台';
+$('#ivSearch').dispatchEvent(new window.Event('input', { bubbles: true }));
+check('搜索“茅台”后只剩 1 个', $all('#ivList .iv-item').length === 1);
+check('搜索结果含茅台', $('#ivList').textContent.includes('茅台'));
+$('#ivSearch').value = '不存在的商品XYZ';
+$('#ivSearch').dispatchEvent(new window.Event('input', { bubbles: true }));
+check('无匹配时显示空提示', $('#ivList').textContent.includes('未找到匹配'));
+$('#ivSearch').value = '';
+$('#ivSearch').dispatchEvent(new window.Event('input', { bubbles: true }));
+check('清空搜索后恢复 2 个', $all('#ivList .iv-item').length === 2);
+
 // 4) 新增商品（勾选需要预警，阈值默认 2）
 check('新增表单默认勾选需要预警', $('#ivNeedWarn').checked === true);
 check('勾选时阈值输入框可填', $('#ivWarn').disabled === false);
@@ -135,6 +151,11 @@ check('相关数据已删除', window.eval("inventoryItems.length") === 3);
 
 // 10) 流水默认折叠
 check('流水卡片默认折叠', $('#ivLogs').closest('.co-admin-card').classList.contains('co-collapsed'));
+
+// 11) 列表按库存从高到低（同组）
+window.eval("inventoryItems=[{id:'c1',name:'A烟',category:'cigarette',price:1,stock:3,warn:0,needWarn:false},{id:'c2',name:'B烟',category:'cigarette',price:1,stock:9,warn:0,needWarn:false},{id:'c3',name:'C烟',category:'cigarette',price:1,stock:5,warn:0,needWarn:false}]; inventoryFilter='all'; inventorySearch=''; renderInventoryList();");
+const order = $all('#ivList .iv-item .iv-item-name').map(e => e.textContent);
+check('同组库存倒序排列(B9>A5>C3)', order.length === 3 && order[0].includes('B烟') && order[1].includes('C烟') && order[2].includes('A烟'));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
