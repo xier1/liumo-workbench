@@ -3171,7 +3171,7 @@ const MODULES = [
   {
     id: 'monthcost',
     name: '月度成本管理',
-    desc: '固定成本设置合计 + 成本录入当月合计 → 该月总成本 · 确认后生成月度成本记录',
+    desc: '固定成本设置合计 + 成本录入当月合计 + 该月工资总额 → 该月总成本 · 确认后生成月度成本记录',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 14h8M8 17h5"/></svg>',
     enabled: true
   },
@@ -8147,6 +8147,7 @@ function renderMonthCostModule(content, mod) {
   loadCost();        // 确保 costLogs 已加载
   loadCostItems();   // 确保 costItems 已加载（固定成本设置各默认值）
   loadCostEntry();   // 确保 costEntryItems / costEntryLogs 已加载
+  loadSalary();      // 确保 salaryLogs 已加载（工资总额）
   loadMonthlyCost();
   const now = new Date();
   const curMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
@@ -8156,7 +8157,7 @@ function renderMonthCostModule(content, mod) {
       <div class="page-desc">${mod.desc}</div>
     </div>
     <div class="wt-note">
-      说明：先选择<b>月份</b>，再分别点击「<b>获取固定成本</b>」（带入固定成本设置中各默认值合计）与「<b>获取成本录入</b>」（带入成本录入中该月的各成本项合计），系统自动算出<b>该月成本</b>。核对无误后点「<b>生成成本记录</b>」保存，<b>同一月份再次生成将覆盖</b>原记录。
+      说明：先选择<b>月份</b>，再分别点击「<b>获取固定成本</b>」（带入固定成本设置中各默认值合计）、「<b>获取成本录入</b>」（带入成本录入中该月的各成本项合计）与「<b>获取工资</b>」（带入工资管理中该月的总工资），系统自动算出<b>该月成本</b>。核对无误后点「<b>生成成本记录</b>」保存，<b>同一月份再次生成将覆盖</b>原记录。
     </div>
     <div class="co-admin-card">
       <div class="co-admin-head"><span>月度成本管理</span></div>
@@ -8181,8 +8182,15 @@ function renderMonthCostModule(content, mod) {
             <button class="co-fill-default" id="mcFetchEntry" type="button">获取成本录入</button>
           </div>
         </div>
+        <div class="wt-field">
+          <label>该月工资总额（来自工资管理）</label>
+          <div class="co-inline">
+            <input type="text" id="mcSalary" class="co-entry-amt" readonly placeholder="点击右侧获取" />
+            <button class="co-fill-default" id="mcFetchSalary" type="button">获取工资</button>
+          </div>
+        </div>
         <div class="co-admin-total">
-          <span class="co-admin-total-label">该月成本（固定成本设置合计 ＋ 成本录入当月合计）</span>
+          <span class="co-admin-total-label">该月成本（固定成本设置合计 ＋ 成本录入当月合计 ＋ 该月工资总额）</span>
           <span class="co-admin-total-val" id="mcTotal">0 元</span>
         </div>
       </div>
@@ -8208,19 +8216,25 @@ function mcFixedTotal() {
 function mcEntryMonthTotal(month) {
   return (costEntryLogs || []).reduce((s, l) => s + ((l.date || '').startsWith(month) ? (Number(l.amount) || 0) : 0), 0);
 }
+function mcSalaryMonthTotal(month) {
+  const rec = (salaryLogs || []).find(l => (l.date || '') === month);
+  return rec ? (Number(rec.total) || 0) : 0;
+}
 
 function bindMonthCostEvents() {
   const monthEl = document.getElementById('mcMonth');
   const fixedEl = document.getElementById('mcFixed');
   const entryEl = document.getElementById('mcEntry');
+  const salaryEl = document.getElementById('mcSalary');
   const totalEl = document.getElementById('mcTotal');
   const genBtn = document.getElementById('mcGenBtn');
-  if (!monthEl || !fixedEl || !entryEl || !totalEl || !genBtn) return;
+  if (!monthEl || !fixedEl || !entryEl || !salaryEl || !totalEl || !genBtn) return;
 
   function refreshTotal() {
     const f = Number(fixedEl.dataset.val || 0);
     const e = Number(entryEl.dataset.val || 0);
-    totalEl.textContent = saMoney(f + e);
+    const s = Number(salaryEl.dataset.val || 0);
+    totalEl.textContent = saMoney(f + e + s);
   }
 
   document.getElementById('mcFetchFixed').addEventListener('click', () => {
@@ -8239,25 +8253,37 @@ function bindMonthCostEvents() {
     refreshTotal();
   });
 
+  document.getElementById('mcFetchSalary').addEventListener('click', () => {
+    const m = monthEl.value;
+    if (!m) { showToast('请先选择月份'); return; }
+    const v = mcSalaryMonthTotal(m);
+    salaryEl.value = saMoney(v);
+    salaryEl.dataset.val = v;
+    refreshTotal();
+  });
+
   genBtn.addEventListener('click', () => {
     const m = monthEl.value;
     if (!m) { showToast('请先选择月份'); return; }
     const f = Number(fixedEl.dataset.val || 0);
     const e = Number(entryEl.dataset.val || 0);
+    const s = Number(salaryEl.dataset.val || 0);
     const gotFixed = fixedEl.dataset.val !== undefined && fixedEl.dataset.val !== '';
     const gotEntry = entryEl.dataset.val !== undefined && entryEl.dataset.val !== '';
-    if (!gotFixed || !gotEntry) { showToast('请先分别获取「固定成本」与「成本录入」两项金额'); return; }
-    const total = f + e;
+    const gotSalary = salaryEl.dataset.val !== undefined && salaryEl.dataset.val !== '';
+    if (!gotFixed || !gotEntry || !gotSalary) { showToast('请先分别获取「固定成本」「成本录入」「工资」三项金额'); return; }
+    const total = f + e + s;
     const ok = window.confirm(
       m + ' 月度成本\n' +
       '固定成本设置合计：' + saMoney(f) + '\n' +
       '成本录入当月合计：' + saMoney(e) + '\n' +
+      '该月工资总额：' + saMoney(s) + '\n' +
       '该月成本：' + saMoney(total) + '\n\n' +
       '确认生成 / 覆盖该月成本记录？'
     );
     if (!ok) return;
     const existIdx = monthlyCostLogs.findIndex(r => r.month === m);
-    const rec = { id: uid(), month: m, fixedTotal: f, entryTotal: e, total: total, createdAt: Date.now() };
+    const rec = { id: uid(), month: m, fixedTotal: f, entryTotal: e, salaryTotal: s, total: total, createdAt: Date.now() };
     if (existIdx >= 0) monthlyCostLogs[existIdx] = rec; else monthlyCostLogs.push(rec);
     monthlyCostLogs.sort((a, b) => (a.month || '').localeCompare(b.month || ''));
     saveMonthlyCost();
@@ -8273,7 +8299,7 @@ function renderMcList() {
   el.innerHTML = monthlyCostLogs.slice().reverse().map(r => `
     <div class="wt-item" data-id="${r.id}">
       <div class="wt-item-date">${r.month}</div>
-      <div class="wt-item-delta"><b>该月成本 ${saMoney(r.total)}</b> · 固定 ${saMoney(r.fixedTotal)} · 录入 ${saMoney(r.entryTotal)}</div>
+      <div class="wt-item-delta"><b>该月成本 ${saMoney(r.total)}</b> · 固定 ${saMoney(r.fixedTotal)} · 录入 ${saMoney(r.entryTotal)} · 工资 ${saMoney(r.salaryTotal)}</div>
       <button class="action-btn delete" data-action="mc-del" data-id="${r.id}" title="删除">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
       </button>
