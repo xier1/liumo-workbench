@@ -1,0 +1,129 @@
+const fs = require('fs');
+const { JSDOM } = require('jsdom');
+const html = fs.readFileSync('/root/.codebuddy/artifact/fresh/index.html', 'utf8');
+const dom = new JSDOM(html, { runScripts: 'dangerously', resources: 'usable', url: 'http://localhost/', pretendToBeVisual: true });
+const { window } = dom;
+
+let pass = 0, fail = 0;
+function check(n, c) { if (c) { pass++; console.log('  ok  ' + n); } else { fail++; console.log('  FAIL ' + n); } }
+function $(s) { return window.document.querySelector(s); }
+function $all(s) { return Array.from(window.document.querySelectorAll(s)); }
+
+// 准备数据：两条商品（旧数据，无 needWarn 字段，按 warn>0 推断需要预警）
+window.localStorage.setItem('liumo_inventory_items', JSON.stringify([
+  { id: 'i1', name: '芙蓉王(硬)', category: 'cigarette', price: 220, stock: 5, warn: 10, createdAt: 1, updatedAt: 1 },
+  { id: 'i2', name: '茅台', category: 'liquor', price: 1499, stock: 20, warn: 3, createdAt: 1, updatedAt: 1 }
+]));
+window.localStorage.setItem('liumo_inventory_logs', JSON.stringify([
+  { id: 'l1', itemId: 'i1', itemName: '芙蓉王(硬)', category: 'cigarette', type: 'in', qty: 5, note: '进货', createdAt: 1 }
+]));
+
+window.eval("currentModule='inventory'; renderContent();");
+
+// 1) 模块与统计卡（旧数据：芙蓉王 5<=10 预警，茅台 20>3 不预警）
+check('模块标题', $('.page-title') && $('.page-title').textContent.includes('库存管理'));
+check('统计卡含商品总数', $('#ivStats').textContent.includes('商品总数'));
+check('统计卡含香烟', $('#ivStats').textContent.includes('香烟'));
+check('统计卡含酒水', $('#ivStats').textContent.includes('酒水'));
+check('统计卡含库存预警 1 种', $('#ivStats').textContent.includes('1 种'));
+
+// 2) 列表两条 + 分类标签 + 预警标红
+const items = $all('#ivList .iv-item');
+check('列表渲染 2 个商品', items.length === 2);
+check('芙蓉王标签为香烟', items[0].textContent.includes('香烟'));
+check('茅台标签为酒水', items[1].textContent.includes('酒水'));
+check('芙蓉王库存预警标红', items[0].querySelector('.iv-item-stock.iv-warn'));
+check('芙蓉王副文案含预警阈值', items[0].textContent.includes('预警 ≤ 10'));
+
+// 3) 筛选：点“酒水”只剩茅台
+$('.iv-filter-liq').click();
+check('筛选酒水后只剩 1 个', $all('#ivList .iv-item').length === 1);
+check('筛选结果含茅台', $('#ivList').textContent.includes('茅台'));
+$('.iv-filter[data-cat="all"]').click();
+check('回到全部为 2 个', $all('#ivList .iv-item').length === 2);
+
+// 4) 新增商品（勾选需要预警，阈值默认 2）
+check('新增表单默认勾选需要预警', $('#ivNeedWarn').checked === true);
+check('勾选时阈值输入框可填', $('#ivWarn').disabled === false);
+$('#ivName').value = '五粮液';
+$('#ivCat').value = 'liquor';
+$('#ivPrice').value = '900';
+$('#ivStock').value = '8';
+$('#ivWarn').value = '2';
+$('#ivSaveBtn').click();
+check('新增后列表 3 个', $all('#ivList .iv-item').length === 3);
+check('新增商品已保存', window.eval("inventoryItems.length") === 3);
+check('新增商品进价已保存', window.eval("inventoryItems.find(i=>i.name==='五粮液').price") === 900);
+check('新增商品 needWarn=true', window.eval("inventoryItems.find(i=>i.name==='五粮液').needWarn") === true);
+check('新增商品 warn 默认 2', window.eval("inventoryItems.find(i=>i.name==='五粮液').warn") === 2);
+check('表单已重置', $('#ivName').value === '');
+
+// 5) 新增商品不勾选预警 -> needWarn=false, warn=0, 列表显示不预警
+$('#ivName').value = '黄鹤楼';
+$('#ivCat').value = 'cigarette';
+$('#ivPrice').value = '180';
+$('#ivStock').value = '3';
+$('#ivNeedWarn').checked = false;
+// 触发 change 以禁用阈值框
+$('#ivNeedWarn').dispatchEvent(new window.Event('change', { bubbles: true }));
+check('取消勾选后阈值输入框被禁用', $('#ivWarn').disabled === true);
+$('#ivWarn').value = '99'; // 即便填了也不应保存
+$('#ivSaveBtn').click();
+check('不预警商品已保存', window.eval("inventoryItems.length") === 4);
+const hh = window.eval("inventoryItems.find(i=>i.name==='黄鹤楼')");
+check('不预警 needWarn=false', hh.needWarn === false);
+check('不预警 warn=0（忽略填入的99）', hh.warn === 0);
+check('不预警列表显示“不预警”', $('#ivList').textContent.includes('不预警'));
+check('不预警商品库存 3 不会标红', !$all('#ivList .iv-item').find(el => el.textContent.includes('黄鹤楼') && el.querySelector('.iv-item-stock.iv-warn')));
+check('库存预警统计仍为 1 种', $('#ivStats').textContent.includes('1 种'));
+
+// 6) 入库茅台 +6 -> 26，并产生一条流水
+$all('#ivList .iv-item').forEach(el => {
+  if (el.textContent.includes('茅台')) el.querySelector('[data-act="in"]').click();
+});
+check('弹窗打开', $('#ivModalMask').style.display === 'flex');
+$('#ivModalQty').value = '6';
+$('#ivModalNote').value = '补货';
+$('#ivModalOk').click();
+check('弹窗关闭', $('#ivModalMask').style.display === 'none');
+check('茅台库存变 26', window.eval("inventoryItems.find(i=>i.id==='i2').stock") === 26);
+check('流水新增为 2 条', window.eval("inventoryLogs.length") === 2);
+check('最后流水为入库 6', window.eval("inventoryLogs[inventoryLogs.length-1].qty") === 6);
+
+// 7) 出库超过库存应被拦截
+$all('#ivList .iv-item').forEach(el => {
+  if (el.textContent.includes('五粮液')) el.querySelector('[data-act="out"]').click();
+});
+$('#ivModalQty').value = '999';
+$('#ivModalOk').click();
+check('超量出库被拦截（库存不变 8）', window.eval("inventoryItems.find(i=>i.name==='五粮液').stock") === 8);
+
+// 8) 编辑商品：切换预警开关
+$all('#ivList .iv-item').forEach(el => {
+  if (el.textContent.includes('黄鹤楼')) el.querySelector('[data-act="edit"]').click();
+});
+check('进入编辑态(标签变保存修改)', $('#ivSaveLabel').textContent === '保存修改');
+check('编辑不预警商品时复选框未勾选', $('#ivNeedWarn').checked === false);
+check('编辑不预警商品时阈值框禁用', $('#ivWarn').disabled === true);
+$('#ivNeedWarn').checked = true;
+$('#ivNeedWarn').dispatchEvent(new window.Event('change', { bubbles: true }));
+check('编辑时勾选后阈值框启用且默认 2', $('#ivWarn').disabled === false && $('#ivWarn').value === '2');
+$('#ivStock').value = '15';
+$('#ivSaveBtn').click();
+check('编辑后库存 15', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').stock") === 15);
+check('编辑后 needWarn=true', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').needWarn") === true);
+check('编辑后 warn=2', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').warn") === 2);
+
+// 9) 删除商品（confirm 返回 true）
+window.confirm = () => true;
+$all('#ivList .iv-item').forEach(el => {
+  if (el.textContent.includes('黄鹤楼')) el.querySelector('[data-act="del"]').click();
+});
+check('删除后剩 3 个', $all('#ivList .iv-item').length === 3);
+check('相关数据已删除', window.eval("inventoryItems.length") === 3);
+
+// 10) 流水默认折叠
+check('流水卡片默认折叠', $('#ivLogs').closest('.co-admin-card').classList.contains('co-collapsed'));
+
+console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
+process.exit(fail ? 1 : 0);
