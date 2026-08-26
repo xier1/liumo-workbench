@@ -240,6 +240,10 @@
   .iv-filter-warn { color: #b45309; border-color: #fde68a; background: #fffbeb; }
   .iv-filter-warn.active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
   .iv-warn-count { display: inline-block; min-width: 16px; padding: 0 5px; margin-left: 3px; border-radius: 10px; background: rgba(0,0,0,0.13); font-size: 11px; line-height: 16px; text-align: center; font-weight: 600; }
+  .iv-search { flex: 1 1 160px; min-width: 140px; height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: #fff; color: var(--text); outline: none; }
+  .iv-search:focus { border-color: var(--primary-2); }
+  .iv-group-title { margin: 14px 2px 8px; font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
+  .iv-group-title::before { content: ''; width: 3px; height: 13px; border-radius: 2px; background: var(--primary-2); }
   .iv-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
@@ -8714,6 +8718,7 @@ let inventoryItems = [];
 let inventoryLogs = [];
 let inventoryEditingId = null;
 let inventoryFilter = 'all';     // all | cigarette | liquor | warn
+let inventorySearch = '';        // 按名称搜索的关键字
 let ivModalItemId = null;
 let ivModalType = null;          // in | out
 
@@ -8744,6 +8749,7 @@ function renderInventoryModule(content, mod) {
   loadInventoryLogs();
   inventoryEditingId = null;
   inventoryFilter = inventoryFilter || 'all';
+  inventorySearch = inventorySearch || '';
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">${mod.name}</div>
@@ -8752,12 +8758,13 @@ function renderInventoryModule(content, mod) {
 
     <div class="wt-note">
       说明：管理<b>香烟</b>与<b>酒水</b>的库存。先添加商品（名称、分类、进价、当前库存，按需勾选是否预警），
-      日常通过<b>入库 / 出库</b>增减库存并自动记录流水；勾选预警且库存 ≤ 阈值时<b>标红预警</b>（默认阈值 2）。列表可<b>修改 / 删除</b>，下方「出入库流水」默认折叠。
+      日常通过<b>入库 / 出库</b>增减库存并自动记录流水；勾选预警且库存 ≤ 阈值时<b>标红预警</b>（默认阈值 2）。支持<b>按名称搜索</b>，列表按<b>库存从高到低</b>排列、<b>香烟 / 酒水分组</b>显示，可<b>修改 / 删除</b>，下方「出入库流水」默认折叠。
     </div>
 
     <div class="wt-stats" id="ivStats"></div>
 
     <div class="toolbar" style="gap:8px; margin-bottom:14px;">
+      <input type="search" id="ivSearch" class="iv-search" placeholder="搜索商品名称…" value="${escapeHtml(inventorySearch || '')}" />
       <span class="iv-filter ${inventoryFilter === 'all' ? 'active' : ''}" data-cat="all">全部</span>
       <span class="iv-filter iv-filter-cig ${inventoryFilter === 'cigarette' ? 'active' : ''}" data-cat="cigarette">香烟</span>
       <span class="iv-filter iv-filter-liq ${inventoryFilter === 'liquor' ? 'active' : ''}" data-cat="liquor">酒水</span>
@@ -8864,41 +8871,63 @@ function renderInventoryStats() {
   if (wc) wc.textContent = warn;
 }
 
+function ivItemRow(it) {
+  const cat = IV_CAT[it.category] || { name: it.category, cls: '' };
+  const stock = Number(it.stock) || 0;
+  const needWarn = itemNeedWarn(it);
+  const warn = Number(it.warn) || 0;
+  const isWarn = needWarn && stock <= warn;
+  const price = Number(it.price) || 0;
+  const sub = ['进价 ' + saMoney(price), needWarn ? ('预警 ≤ ' + warn) : '不预警'].join(' · ');
+  return `<div class="iv-item ${cat.cls}">
+    <div class="iv-item-main">
+      <div class="iv-item-name">${escapeHtml(it.name)} <span class="iv-tag ${cat.cls}">${cat.name}</span></div>
+      <div class="iv-item-sub">${sub}</div>
+    </div>
+    <div class="iv-item-stock ${isWarn ? 'iv-warn' : ''}">
+      <div class="iv-stock-num">${stock}</div>
+      <div class="iv-stock-unit">${isWarn ? '预警' : ''}</div>
+    </div>
+    <div class="iv-item-actions">
+      <button class="iv-btn iv-in" data-id="${it.id}" data-act="in">入库</button>
+      <button class="iv-btn iv-out" data-id="${it.id}" data-act="out">出库</button>
+      <button class="iv-btn iv-edit" data-id="${it.id}" data-act="edit">编辑</button>
+      <button class="iv-btn iv-del" data-id="${it.id}" data-act="del">删除</button>
+    </div>
+  </div>`;
+}
+
 function renderInventoryList() {
   const el = document.getElementById('ivList');
   if (!el) return;
+  const kw = (inventorySearch || '').trim().toLowerCase();
   let items = inventoryItems.slice();
+  if (kw) items = items.filter(i => (i.name || '').toLowerCase().includes(kw));
   if (inventoryFilter === 'warn') items = items.filter(i => isItemWarned(i));
   else if (inventoryFilter !== 'all') items = items.filter(i => i.category === inventoryFilter);
+  // 按库存从高到低
+  items.sort((a, b) => (Number(b.stock) || 0) - (Number(a.stock) || 0));
   if (items.length === 0) {
-    const tip = inventoryFilter === 'warn' ? '当前没有处于预警状态的商品 🎉' : '还没有商品，先在上方「商品信息」添加。';
+    let tip;
+    if (kw) tip = '未找到匹配「' + inventorySearch.trim() + '」的商品';
+    else if (inventoryFilter === 'warn') tip = '当前没有处于预警状态的商品 🎉';
+    else tip = '还没有商品，先在上方「商品信息」添加。';
     el.innerHTML = `<div class="wt-empty">${tip}</div>`; return;
   }
-  el.innerHTML = items.map(it => {
-    const cat = IV_CAT[it.category] || { name: it.category, cls: '' };
-    const stock = Number(it.stock) || 0;
-    const needWarn = itemNeedWarn(it);
-    const warn = Number(it.warn) || 0;
-    const isWarn = needWarn && stock <= warn;
-    const price = Number(it.price) || 0;
-    const sub = ['进价 ' + saMoney(price), needWarn ? ('预警 ≤ ' + warn) : '不预警'].join(' · ');
-    return `<div class="iv-item ${cat.cls}">
-      <div class="iv-item-main">
-        <div class="iv-item-name">${escapeHtml(it.name)} <span class="iv-tag ${cat.cls}">${cat.name}</span></div>
-        <div class="iv-item-sub">${sub}</div>
-      </div>
-      <div class="iv-item-stock ${isWarn ? 'iv-warn' : ''}">
-        <div class="iv-stock-num">${stock}</div>
-        <div class="iv-stock-unit">${isWarn ? '预警' : ''}</div>
-      </div>
-      <div class="iv-item-actions">
-        <button class="iv-btn iv-in" data-id="${it.id}" data-act="in">入库</button>
-        <button class="iv-btn iv-out" data-id="${it.id}" data-act="out">出库</button>
-        <button class="iv-btn iv-edit" data-id="${it.id}" data-act="edit">编辑</button>
-        <button class="iv-btn iv-del" data-id="${it.id}" data-act="del">删除</button>
-      </div>
-    </div>`;
-  }).join('');
+  // 全部 / 预警 视图下，香烟、酒水分组显示
+  const groupByCat = inventoryFilter === 'all' || inventoryFilter === 'warn';
+  if (groupByCat) {
+    const groups = [['cigarette', '香烟'], ['liquor', '酒水']];
+    let html = '';
+    groups.forEach(([cat, catName]) => {
+      const g = items.filter(i => i.category === cat);
+      if (g.length === 0) return;
+      html += `<div class="iv-group-title">${catName}（${g.length}）</div>` + g.map(ivItemRow).join('');
+    });
+    el.innerHTML = html;
+  } else {
+    el.innerHTML = items.map(ivItemRow).join('');
+  }
 }
 
 function renderInventoryLogs() {
@@ -8957,6 +8986,9 @@ function bindInventoryEvents() {
   }
 
   catEl.addEventListener('change', () => { /* 进价与库存与分类无关，无需联动 */ });
+
+  const searchEl = document.getElementById('ivSearch');
+  if (searchEl) searchEl.addEventListener('input', () => { inventorySearch = searchEl.value; renderInventoryList(); });
 
   document.querySelectorAll('.iv-filter').forEach(f => {
     f.addEventListener('click', () => {
