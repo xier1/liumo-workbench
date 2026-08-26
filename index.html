@@ -7897,16 +7897,6 @@ function renderCostEntryModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">按成本项汇总 · 各成本项合计与占比</div>
-      <div id="ceSummary"></div>
-    </div>
-
-    <div class="wt-chart-card">
-      <div class="wt-chart-title">按月汇总 · 各月成本合计</div>
-      <div id="ceMonthSummary"></div>
-    </div>
-
-    <div class="wt-chart-card">
       <div class="wt-chart-title">明细矩阵 · 月份 × 成本项</div>
       <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
     </div>
@@ -7918,8 +7908,6 @@ function renderCostEntryModule(content, mod) {
   renderCeItemAdmin();
   renderCeItemSelect();
   renderCeStats();
-  renderCeSummary();
-  renderCeMonthSummary();
   renderCeMatrix();
   renderCeList();
   updateCeSalaryBtn();
@@ -7977,57 +7965,6 @@ function ceItemTotals() {
   const map = {};
   costEntryLogs.forEach(l => { const n = (l.itemName || '').trim() || '未命名'; map[n] = (map[n] || 0) + (Number(l.amount) || 0); });
   return map;
-}
-function ceMonthTotals() {
-  const map = {};
-  costEntryLogs.forEach(l => { const m = (l.date || '').slice(0, 7); if (m) map[m] = (map[m] || 0) + (Number(l.amount) || 0); });
-  return map;
-}
-
-function renderCeSummary() {
-  const el = document.getElementById('ceSummary');
-  if (!el) return;
-  const map = ceItemTotals();
-  const names = Object.keys(map).sort((a, b) => map[b] - map[a]);
-  const grand = names.reduce((s, n) => s + map[n], 0);
-  if (names.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
-  const money = v => Math.round(v).toLocaleString();
-  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
-  el.innerHTML = `
-    <table class="wt-cat">
-      <thead><tr><th>成本项</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
-      <tbody>
-        ${names.map(n => {
-          const v = map[n];
-          const share = grand > 0 ? v / grand * 100 : 0;
-          return `<tr><td>${escapeHtml(n)}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#6366f1"></i></span></div></td></tr>`;
-        }).join('')}
-        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
-      </tbody>
-    </table>`;
-}
-
-function renderCeMonthSummary() {
-  const el = document.getElementById('ceMonthSummary');
-  if (!el) return;
-  const map = ceMonthTotals();
-  const months = Object.keys(map).sort((a, b) => b.localeCompare(a));
-  const grand = months.reduce((s, m) => s + map[m], 0);
-  if (months.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
-  const money = v => Math.round(v).toLocaleString();
-  const pct = v => grand > 0 ? (v / grand * 100).toFixed(1) + '%' : '0%';
-  el.innerHTML = `
-    <table class="wt-cat">
-      <thead><tr><th>月份</th><th>合计金额</th><th>占比</th><th>分布</th></tr></thead>
-      <tbody>
-        ${months.map(m => {
-          const v = map[m];
-          const share = grand > 0 ? v / grand * 100 : 0;
-          return `<tr><td>${m}</td><td>${money(v)} 元</td><td>${pct(v)}</td><td><div class="cat-gross"><span class="bar"><i style="width:${share.toFixed(1)}%;background:#10b981"></i></span></div></td></tr>`;
-        }).join('')}
-        <tr class="co-grand"><td><b>合计</b></td><td><b>${money(grand)} 元</b></td><td>100%</td><td></td></tr>
-      </tbody>
-    </table>`;
 }
 
 function renderCeMatrix() {
@@ -8092,7 +8029,7 @@ function bindCostEntryEvents() {
   const list = document.getElementById('ceList');
 
   function refreshAll() {
-    renderCeStats(); renderCeSummary(); renderCeMonthSummary(); renderCeMatrix(); renderCeList();
+    renderCeStats(); renderCeMatrix(); renderCeList();
   }
   function updateTotal() {
     if (!entryTotalEl || !amountEl) return;
