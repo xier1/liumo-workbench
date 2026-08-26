@@ -7951,11 +7951,6 @@ function renderCostEntryModule(content, mod) {
     </div>
 
     <div class="wt-chart-card">
-      <div class="wt-chart-title">明细矩阵 · 月份 × 成本项</div>
-      <div class="wt-cat-wrap"><div id="ceMatrix"></div></div>
-    </div>
-
-    <div class="wt-chart-card">
       <div class="wt-chart-title">各成本项趋势 · 一项一图，每个图每年一条曲线</div>
       <div id="ceCharts" class="ce-charts"></div>
     </div>
@@ -7975,7 +7970,6 @@ function renderCostEntryModule(content, mod) {
   renderCeItemAdmin();
   renderCeItemSelect();
   renderCeStats();
-  renderCeMatrix();
   renderCeCharts();
   renderCeList();
   updateCeSalaryBtn();
@@ -8027,42 +8021,6 @@ function renderCeStats() {
     statCard('覆盖月份', months + ' 个', '')
   ];
   el.innerHTML = cards.join('');
-}
-
-function ceItemTotals() {
-  const map = {};
-  costEntryLogs.forEach(l => { const n = (l.itemName || '').trim() || '未命名'; map[n] = (map[n] || 0) + (Number(l.amount) || 0); });
-  return map;
-}
-
-function renderCeMatrix() {
-  const el = document.getElementById('ceMatrix');
-  if (!el) return;
-  if (costEntryLogs.length === 0) { el.innerHTML = `<div class="wt-empty">暂无数据</div>`; return; }
-  const seen = new Set();
-  const itemNames = [];
-  costEntryItems.forEach(it => { const n = (it.name || '').trim(); if (n && !seen.has(n)) { itemNames.push(n); seen.add(n); } });
-  Object.keys(ceItemTotals()).forEach(n => { if (!seen.has(n)) { itemNames.push(n); seen.add(n); } });
-  const months = [...new Set(costEntryLogs.map(l => (l.date || '').slice(0, 7)))].filter(Boolean).sort((a, b) => b.localeCompare(a));
-  const cell = {};
-  costEntryLogs.forEach(l => {
-    const m = (l.date || '').slice(0, 7); const n = (l.itemName || '').trim() || '未命名';
-    if (!m) return;
-    cell[m] = cell[m] || {};
-    cell[m][n] = (cell[m][n] || 0) + (Number(l.amount) || 0);
-  });
-  const money = v => Math.round(v).toLocaleString();
-  el.innerHTML = `
-    <table class="wt-cat co-matrix">
-      <thead><tr><th>月份</th>${itemNames.map(n => `<th>${escapeHtml(n)}</th>`).join('')}<th>合计</th></tr></thead>
-      <tbody>
-        ${months.map(m => {
-          let rowTotal = 0;
-          const tds = itemNames.map(n => { const v = (cell[m] && cell[m][n]) ? cell[m][n] : 0; rowTotal += v; return `<td>${v ? money(v) : '—'}</td>`; }).join('');
-          return `<tr><td>${m}</td>${tds}<td class="co-rowtotal"><b>${money(rowTotal)}</b></td></tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
 }
 
 function renderCeCharts() {
@@ -8127,7 +8085,7 @@ function bindCostEntryEvents() {
   const list = document.getElementById('ceList');
 
   function refreshAll() {
-    renderCeStats(); renderCeMatrix(); renderCeCharts(); renderCeList();
+    renderCeStats(); renderCeCharts(); renderCeList();
   }
   function updateTotal() {
     if (!entryTotalEl || !amountEl) return;
