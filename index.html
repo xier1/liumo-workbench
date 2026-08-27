@@ -2933,6 +2933,11 @@
   .gp-cmp-total td { background: var(--bg-soft); font-weight: 700; }
   .gp-cmp-note, .gp-cmp-empty { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--bg-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
   .gp-cmp-note-tag { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 500; color: var(--text-muted, #6b7280); background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
+  .gp-grp-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px 4px; }
+  .gp-grp-bar { width: 100%; height: auto; display: block; }
+  .gp-grp-bar text { font-family: var(--font-sans, system-ui, sans-serif); }
+  .gp-grp-legend { display: flex; gap: 18px; align-items: center; font-size: 13px; color: var(--text); margin: 2px 2px 8px; }
+  .gp-grp-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
   .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
   .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
@@ -8894,6 +8899,52 @@ function gpAgg(map) {
     gross: s.gross + r.gross, revenue: s.revenue + r.revenue, cost: s.cost + r.cost, n: s.n + 1
   }), { gross: 0, revenue: 0, cost: 0, n: 0 });
 }
+function saMoneyShort(v) {
+  const a = Math.abs(v);
+  if (a >= 10000) return (Math.round(v / 1000) / 10) + '万';
+  return saMoney(v).replace(' 元', '');
+}
+function niceCeil(v) {
+  if (v <= 0) return 1;
+  const pow = Math.pow(10, Math.floor(Math.log10(v)));
+  const n = v / pow;
+  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+  return nice * pow;
+}
+// groups: [{label, cur, prev}]  → 每个维度今年/去年并排分组柱状图
+function buildGroupedBarChart(groups) {
+  const W = 720, H = 360;
+  const padL = 58, padR = 16, padT = 18, padB = 56;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const baseY = padT + plotH;
+  const curColor = '#2563eb', prevColor = '#f59e0b';
+  const maxV = Math.max(1, ...groups.flatMap(g => [g.cur, g.prev]));
+  const niceMax = niceCeil(maxV);
+  const yOf = v => baseY - (Math.abs(v) / niceMax) * plotH;
+  const ticks = 4;
+  let grid = '';
+  for (let i = 0; i <= ticks; i++) {
+    const v = niceMax * i / ticks, y = yOf(v);
+    grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--border)" stroke-width="1" opacity="0.55"/>`;
+    grid += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="var(--text-muted,#6b7280)">${saMoneyShort(v)}</text>`;
+  }
+  const n = groups.length;
+  const groupW = plotW / n;
+  const barW = Math.min(44, groupW * 0.30);
+  const gap = 6;
+  let bars = '';
+  groups.forEach((g, i) => {
+    const cx = padL + groupW * i + groupW / 2;
+    const x1 = cx - barW - gap / 2, x2 = cx + gap / 2;
+    const h1 = Math.max(0, baseY - yOf(g.cur)), h2 = Math.max(0, baseY - yOf(g.prev));
+    bars += `<rect x="${x1}" y="${yOf(g.cur)}" width="${barW}" height="${h1}" rx="3" fill="${curColor}"><title>${g.label}·今年：${saMoney(g.cur)}</title></rect>`;
+    if (h1 >= 12) bars += `<text x="${x1 + barW / 2}" y="${yOf(g.cur) - 5}" text-anchor="middle" font-size="10.5" fill="${curColor}" font-weight="700">${saMoneyShort(g.cur)}</text>`;
+    bars += `<rect x="${x2}" y="${yOf(g.prev)}" width="${barW}" height="${h2}" rx="3" fill="${prevColor}"><title>${g.label}·去年：${saMoney(g.prev)}</title></rect>`;
+    if (h2 >= 12) bars += `<text x="${x2 + barW / 2}" y="${yOf(g.prev) - 5}" text-anchor="middle" font-size="10.5" fill="${prevColor}" font-weight="700">${saMoneyShort(g.prev)}</text>`;
+    bars += `<text x="${cx}" y="${baseY + 18}" text-anchor="middle" font-size="12" fill="var(--text)">${g.label}</text>`;
+  });
+  return `<svg class="gp-grp-bar" viewBox="0 0 ${W} ${H}" role="img" aria-label="今年与去年各维度对比分组柱状图">${grid}${bars}</svg>`;
+}
 
 function renderGpCompare() {
   const el = document.getElementById('gpCompare');
@@ -8999,6 +9050,19 @@ function renderGpCompare() {
       </tbody>
     </table>`;
 
+  // 分组柱状图：各维度今年 vs 去年（主口径）
+  const grpGroups = [
+    { label: '营业额', cur: curWinRev, prev: prevWinRev },
+    { label: '录入成本', cur: curWinEntry, prev: prevWinEntry },
+    { label: '工资', cur: curWinSalary, prev: prevWinSalary },
+    { label: '固定成本', cur: curWinFixed, prev: prevWinFixed }
+  ];
+  const grpChart = `
+    <div class="gp-grp-wrap">
+      <div class="gp-grp-legend"><span><i style="background:#2563eb"></i>今年 ${curY}</span><span><i style="background:#f59e0b"></i>去年 ${prevY}</span></div>
+      ${buildGroupedBarChart(grpGroups)}
+    </div>`;
+
   // 净利润变化拆解（营业额 / 录入成本 / 工资 / 固定成本）
   const ratePct = Math.round(grossMargin * 1000) / 10;
   const dRevW = curWinRev - prevWinRev;
@@ -9058,6 +9122,8 @@ function renderGpCompare() {
     <div class="gp-compare">
       ${overviewCards}
       ${monthTable}
+      <div class="gp-cmp-sub">分组柱状图 · 各维度今年 vs 去年（主口径 ${winLabel} · 单位：元）</div>
+      ${grpChart}
       ${bdTable}
       <div class="gp-analysis" style="margin-top:14px;">
         <section><h4>同比变化原因（同区间口径）</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
