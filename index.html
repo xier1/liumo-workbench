@@ -2932,6 +2932,7 @@
   .gp-cmp-sub { font-size: 13px; font-weight: 600; color: var(--text-muted, #6b7280); margin: 14px 0 6px; }
   .gp-cmp-total td { background: var(--bg-soft); font-weight: 700; }
   .gp-cmp-note, .gp-cmp-empty { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--bg-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .gp-cmp-note-tag { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 500; color: var(--text-muted, #6b7280); background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
   .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
   .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
@@ -8847,9 +8848,28 @@ function renderGpAnalysis() {
     </div>`;
 }
 
+function gpMonthDetailRows() {
+  const revMap = {}, costMap = {};
+  (salaryLogs || []).forEach(l => { const m = l.date; if (m) revMap[m] = (Number(l.revenue) || 0); });
+  (monthlyCostLogs || []).forEach(r => {
+    const m = r.month; if (!m) return;
+    costMap[m] = {
+      total: Number(r.total) || 0,
+      fixedTotal: Number(r.fixedTotal) || 0,
+      entryTotal: Number(r.entryTotal) || 0,
+      salaryTotal: Number(r.salaryTotal) || 0
+    };
+  });
+  const months = Array.from(new Set([...Object.keys(revMap), ...Object.keys(costMap)])).sort().reverse();
+  return months.map(m => {
+    const revenue = revMap[m] || 0;
+    const c = costMap[m] || { total: 0, fixedTotal: 0, entryTotal: 0, salaryTotal: 0 };
+    return { month: m, revenue, cost: c.total, fixedTotal: c.fixedTotal, entryTotal: c.entryTotal, salaryTotal: c.salaryTotal, gross: revenue * grossMargin - c.total };
+  });
+}
 function gpYearMonthMap(year) {
   const m = {};
-  gpMonthRows().forEach(r => {
+  gpMonthDetailRows().forEach(r => {
     const p = (r.month || '').split('-').map(Number);
     if (p[0] === year) m[p[1]] = r;
   });
@@ -8940,6 +8960,12 @@ function renderGpCompare() {
   const prevWinRev = sumBy(prevMap, winSet, 'revenue');
   const curWinCost = sumBy(curMap, winSet, 'cost');
   const prevWinCost = sumBy(prevMap, winSet, 'cost');
+  const curWinEntry = sumBy(curMap, winSet, 'entryTotal');
+  const prevWinEntry = sumBy(prevMap, winSet, 'entryTotal');
+  const curWinSalary = sumBy(curMap, winSet, 'salaryTotal');
+  const prevWinSalary = sumBy(prevMap, winSet, 'salaryTotal');
+  const curWinFixed = sumBy(curMap, winSet, 'fixedTotal');
+  const prevWinFixed = sumBy(prevMap, winSet, 'fixedTotal');
   const cmpDelta = curWinGross - prevWinGross;
   const cmpPct = gpYoyText(curWinGross, prevWinGross);
   const yoyBadge = (curWinGross >= prevWinGross ? 'success' : 'warning');
@@ -8973,20 +8999,49 @@ function renderGpCompare() {
       </tbody>
     </table>`;
 
+  // 净利润变化拆解（营业额 / 录入成本 / 工资 / 固定成本）
+  const ratePct = Math.round(grossMargin * 1000) / 10;
+  const dRevW = curWinRev - prevWinRev;
+  const dEntryW = curWinEntry - prevWinEntry;
+  const dSalaryW = curWinSalary - prevWinSalary;
+  const dFixedW = curWinFixed - prevWinFixed;
+  const revContribW = dRevW * grossMargin;
+  const bdRows = [
+    { name: '营业额', cur: curWinRev, prev: prevWinRev, d: dRevW, impact: revContribW, note: '×' + ratePct + '%利润率' },
+    { name: '录入成本', cur: curWinEntry, prev: prevWinEntry, d: dEntryW, impact: -dEntryW, note: '直接扣减' },
+    { name: '工资', cur: curWinSalary, prev: prevWinSalary, d: dSalaryW, impact: -dSalaryW, note: '直接扣减' },
+    { name: '固定成本', cur: curWinFixed, prev: prevWinFixed, d: dFixedW, impact: -dFixedW, note: '直接扣减' }
+  ];
+  const bdTable = `
+    <div class="gp-cmp-sub">净利润变化拆解 · 主口径（${winLabel} · 单位：元）</div>
+    <table class="wt-cat">
+      <thead><tr><th>维度</th><th>今年</th><th>去年</th><th>同比变化</th><th>对净利润影响</th></tr></thead>
+      <tbody>
+        ${bdRows.map(r => {
+          const dCls = gpDeltaClass(r.cur, r.prev);
+          const impCls = r.impact >= 0 ? 'gp-up' : 'gp-down';
+          return `<tr><td>${r.name}<span class="gp-cmp-note-tag">${r.note}</span></td><td>${saMoney(r.cur)}</td><td>${saMoney(r.prev)}</td><td class="${dCls}">${saMoney(r.d)}（${gpYoyText(r.cur, r.prev)}）</td><td class="${impCls}">${r.impact >= 0 ? '+' : ''}${saMoney(r.impact)}</td></tr>`;
+        }).join('')}
+        <tr class="gp-cmp-total"><td>合计（≈净利润变化）</td><td>—</td><td>—</td><td class="${gpDeltaClass(curWinGross, prevWinGross)}">${saMoney(cmpDelta)}</td><td class="${gpDeltaClass(curWinGross, prevWinGross)}">${saMoney(revContribW - dEntryW - dSalaryW - dFixedW)}</td></tr>
+      </tbody>
+    </table>`;
+
   // 原因拆解（基于同区间口径，最公平）
   const dGross = curWinGross - prevWinGross;
-  const dRev = curWinRev - prevWinRev;
-  const dCost = curWinCost - prevWinCost;
-  const revContrib = dRev * grossMargin;
+  const dCostW = curWinCost - prevWinCost;
   const better = dGross >= 0;
   const dir = better ? '优于' : '不及';
   const reasons = [
     `同区间（${winLabel}）下，今年净利润 <b>${saMoney(curWinGross)}</b>，${better ? '高于' : '低于'}去年 <b>${saMoney(prevWinGross)}</b>，同比 <b>${cmpPct}</b>，今年经营整体${dir}去年。`,
-    `净利润变化（${saMoney(dGross)}）可拆解为：营业额${dRev >= 0 ? '增长' : '下降'} <b>${saMoney(dRev)}</b>（按 ${Math.round(grossMargin * 1000) / 10}% 利润率约贡献 <b>${saMoney(revContrib)}</b>），成本${dCost >= 0 ? '上升' : '下降'} <b>${saMoney(dCost)}</b>（直接${dCost >= 0 ? '拖累' : '贡献'}利润）。`,
-    `下方「全年概览」为各自全部月份的粗略对照（月份数不同、口径不一致），正式同比请以本区间为准。${fallback ? '（当前按全年重叠月份回退计算，因 1–' + curMonthNow + ' 月内无完整重叠。）' : ''}`
+    `<b>营业额角度</b>：今年 ${saMoney(curWinRev)} vs 去年 ${saMoney(prevWinRev)}（${gpYoyText(curWinRev, prevWinRev)}），按 ${ratePct}% 利润率约贡献净利润 <b>${saMoney(revContribW)}</b>。`,
+    `<b>录入成本角度</b>：今年 ${saMoney(curWinEntry)} vs 去年 ${saMoney(prevWinEntry)}（${gpYoyText(curWinEntry, prevWinEntry)}），${dEntryW >= 0 ? '上升' : '下降'} <b>${saMoney(dEntryW)}</b>，${dEntryW >= 0 ? '拖累' : '贡献'}净利润。`,
+    `<b>工资角度</b>：今年 ${saMoney(curWinSalary)} vs 去年 ${saMoney(prevWinSalary)}（${gpYoyText(curWinSalary, prevWinSalary)}），${dSalaryW >= 0 ? '上升' : '下降'} <b>${saMoney(dSalaryW)}</b>，${dSalaryW >= 0 ? '拖累' : '贡献'}净利润${dSalaryW > 1e-9 ? '——工资是人力成本大头，需重点看排班人效' : ''}。`,
+    `固定成本今年 ${saMoney(curWinFixed)} vs 去年 ${saMoney(prevWinFixed)}（${gpYoyText(curWinFixed, prevWinFixed)}）。以上分项拆解见上方「净利润变化拆解」表，合计应等于净利润变化 ${saMoney(cmpDelta)}。`
   ];
-  if (dCost > 1e-9 && dGross < 0) reasons.push(`成本上升是今年转弱的主因，需优先核查成本增长项（固定 / 录入 / 工资）。`);
-  if (dRev < -1e-9 && dGross < 0) reasons.push(`营业额下滑叠加成本压力，双重挤压导致净利润走弱。`);
+  if (dEntryW > 1e-9 && dGross < 0) reasons.push(`录入成本上升是今年转弱的重要成本因素，需核查报损 / 采购价 / 临期处理，减少无谓损耗。`);
+  if (dSalaryW > 1e-9 && dGross < 0) reasons.push(`工资同比上升拖累利润，需复盘排班与人效，避免工时虚高。`);
+  if (dCostW > 1e-9 && dGross < 0) reasons.push(`总体成本上升是今年转弱的主因，进入「月度成本管理」逐项核查固定 / 录入 / 工资。`);
+  if (dRevW < -1e-9 && dGross < 0) reasons.push(`营业额下滑叠加成本压力，双重挤压导致净利润走弱。`);
 
   // 解决方案
   const solutions = [];
@@ -9003,6 +9058,7 @@ function renderGpCompare() {
     <div class="gp-compare">
       ${overviewCards}
       ${monthTable}
+      ${bdTable}
       <div class="gp-analysis" style="margin-top:14px;">
         <section><h4>同比变化原因（同区间口径）</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
         <section><h4>今年改进方案</h4><ul>${solutions.map(t => `<li>${t}</li>`).join('')}</ul></section>
