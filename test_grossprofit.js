@@ -64,11 +64,46 @@ check('盈利行为绿字 gp-pos', rows2[0] && rows2[0].querySelector('.gp-pos')
 const statVals2 = $all('#gpStats .stat-value').map(e => e.textContent);
 check('改率后总毛利 9,800', statVals2.some(v => v.includes('9,800')));
 
+// 5.5) 仅有今年数据时，对比板块提示缺去年
+check('缺去年时对比提示含 2025', $('#gpCompare').textContent.includes('2025') && $('#gpCompare').textContent.includes('暂无'));
+
 // 6) 无数据时空态
 window.localStorage.removeItem('liumo_salary_logs');
 window.localStorage.removeItem('liumo_monthly_cost_logs');
 window.eval("currentModule='grossprofit'; renderContent();");
 check('无数据时显示空态', $('#gpTable').textContent.includes('还没有可用数据'));
+
+// 7) 今年 vs 去年 对比分析（两年数据）
+window.localStorage.setItem('liumo_salary_logs', JSON.stringify([
+  {id:'s1',date:'2026-08',total:9000,revenue:100000,head:3},
+  {id:'s2',date:'2026-07',total:8800,revenue:80000,head:3},
+  {id:'s3',date:'2025-08',total:8500,revenue:70000,head:3},
+  {id:'s4',date:'2025-07',total:8400,revenue:60000,head:3}
+]));
+window.localStorage.setItem('liumo_monthly_cost_logs', JSON.stringify([
+  {id:'m1',month:'2026-08',fixedTotal:14200,entryTotal:1000,salaryTotal:9000,total:24200},
+  {id:'m2',month:'2026-07',fixedTotal:14000,entryTotal:1000,salaryTotal:5000,total:20000},
+  {id:'m3',month:'2025-08',fixedTotal:12000,entryTotal:1000,salaryTotal:8500,total:21500},
+  {id:'m4',month:'2025-07',fixedTotal:11000,entryTotal:1000,salaryTotal:8400,total:20400}
+]));
+// 先把利润率重置回 18%（step5 改成了 30% 且已保存）
+window.document.getElementById('gpMargin').value = '18';
+window.document.getElementById('gpMarginSave').click();
+window.eval("currentModule='grossprofit'; renderContent();");
+
+check('对比卡片已渲染 #gpCompare', !!$('#gpCompare'));
+check('对比含同区间同比增长卡片', $('#gpCompare').textContent.includes('同区间同比增长'));
+check('对比含年度概览表', $('#gpCompare').textContent.includes('年度概览'));
+check('对比含 2025 口径', $('#gpCompare').textContent.includes('2025'));
+check('对比含 2026 口径', $('#gpCompare').textContent.includes('2026'));
+check('逐月对比含 08月', $('#gpCompare').textContent.includes('08月'));
+check('对比含变化原因段', $('#gpCompare').textContent.includes('同比变化原因'));
+check('对比含改进方案段', $('#gpCompare').textContent.includes('今年改进方案'));
+// 2026-08 净利润=100000*0.18-24200=-6200；2026-07=-5600 → 今年同区间合计 -11,800
+// 2025-08=70000*0.18-21500=-8900；2025-07=-9600 → 去年同区间合计 -18,500；同比 +6,700（+36.2%）
+check('同区间今年净利润 -11,800', $('#gpCompare').textContent.includes('-11,800'));
+check('同区间去年净利润 -18,500', $('#gpCompare').textContent.includes('-18,500'));
+check('同区间同比增长 +6,700', $('#gpCompare').textContent.includes('6,700'));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
