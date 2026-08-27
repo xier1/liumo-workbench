@@ -43,6 +43,7 @@ check('列表项不显示分类标签(iv-tag)', $all('#ivList .iv-item .iv-tag')
 check('列表项含可点击进价区块(内联改价)', $all('#ivList .iv-item-price').length > 0);
 check('芙蓉王库存预警标红', items[0].querySelector('.iv-item-stock.iv-warn'));
 check('芙蓉王副文案含预警阈值', items[0].textContent.includes('预警 ≤ 10'));
+check('列表项显示商品名称', items.every(it => { const n = it.querySelector('.iv-item-name'); return n && n.textContent.trim().length > 0; }));
 
 // 3) 筛选：下拉选“酒水”只剩茅台
 const catSel = $('#ivCatFilter');

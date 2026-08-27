@@ -256,7 +256,7 @@
   .iv-item { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
-  .iv-item-main { flex: 1 1 0%; min-width: 0; overflow: hidden; }
+  .iv-item-main { flex: 1 1 0%; min-width: 120px; overflow: hidden; }
   .iv-item-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
   .iv-item-sub { font-size: 12px; color: var(--text-soft); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .iv-tag { font-size: 11px; padding: 1px 8px; border-radius: 10px; color: #fff; }
@@ -274,6 +274,7 @@
   .iv-price-label { font-size: 11px; color: var(--text-soft); }
   .iv-price-val { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .iv-price-val::after { content: ' ✎'; font-size: 10px; color: var(--text-soft); font-weight: 400; }
+  #ivList { overflow-x: auto; }
   .iv-price-input { width: 66px; text-align: right; font-size: 14px; padding: 2px 4px; border: 1px solid var(--primary-2); border-radius: 6px; }
   .iv-item-actions { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 5px; flex-shrink: 0; }
   .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; transition: background var(--transition); white-space: nowrap; }
