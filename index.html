@@ -2925,6 +2925,13 @@
   .wt-cat tbody tr:last-child td:last-child { border-bottom-right-radius: var(--radius-sm); }
   .gp-pos { color: var(--success); font-weight: 700; }
   .gp-neg { color: var(--danger, #ef4444); font-weight: 700; }
+  .gp-up { color: var(--success); font-weight: 700; }
+  .gp-down { color: var(--danger, #ef4444); font-weight: 700; }
+  .gp-flat { color: var(--text-muted, #6b7280); font-weight: 700; }
+  .gp-compare .wt-stats { margin-bottom: 14px; }
+  .gp-cmp-sub { font-size: 13px; font-weight: 600; color: var(--text-muted, #6b7280); margin: 14px 0 6px; }
+  .gp-cmp-total td { background: var(--bg-soft); font-weight: 700; }
+  .gp-cmp-note, .gp-cmp-empty { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--bg-soft); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
   .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
   .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
@@ -8670,6 +8677,10 @@ function renderGrossProfitModule(content, mod) {
       <div class="wt-cat-wrap"><div id="gpAnalysis"></div></div>
     </div>
     <div class="wt-chart-card" style="margin-top:18px;">
+      <div class="wt-chart-title">今年 vs 去年 净利润对比（同比分析）</div>
+      <div class="wt-cat-wrap"><div id="gpCompare"></div></div>
+    </div>
+    <div class="wt-chart-card" style="margin-top:18px;">
       <div class="wt-chart-title">月度净利润明细（营业额 × 利润率 − 总成本）</div>
       <div class="wt-cat-wrap"><div id="gpTable"></div></div>
     </div>
@@ -8682,13 +8693,14 @@ function renderGrossProfitModule(content, mod) {
     grossMargin = pts / 100;
     saveGrossMargin();
     document.getElementById('gpMarginVal').textContent = (Math.round(grossMargin * 1000) / 10) + '%';
-    renderGpStats(); renderGpTable(); renderGpChart(); renderGpAnalysis();
+    renderGpStats(); renderGpTable(); renderGpChart(); renderGpAnalysis(); renderGpCompare();
     showToast('利润率已设为 ' + (Math.round(grossMargin * 1000) / 10) + '%');
   });
   renderGpStats();
   renderGpTable();
   renderGpChart();
   renderGpAnalysis();
+  renderGpCompare();
 }
 
 function gpMonthRows() {
@@ -8832,6 +8844,151 @@ function renderGpAnalysis() {
       <section><h4>一、净利润分析</h4><ul>${analysis.map(t => `<li>${t}</li>`).join('')}</ul></section>
       <section><h4>二、具体原因</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
       <section><h4>三、解决方案</h4><ul>${solutions.map(t => `<li>${t}</li>`).join('')}</ul></section>
+    </div>`;
+}
+
+function gpYearMonthMap(year) {
+  const m = {};
+  gpMonthRows().forEach(r => {
+    const p = (r.month || '').split('-').map(Number);
+    if (p[0] === year) m[p[1]] = r;
+  });
+  return m;
+}
+function gpYoyText(cur, prev) {
+  if (prev === 0) {
+    if (cur === 0) return '—';
+    return cur > 0 ? '去年为 0（新增）' : '去年为 0（新增亏损）';
+  }
+  const pct = Math.round((cur - prev) / Math.abs(prev) * 1000) / 10;
+  return (pct > 0 ? '+' : '') + pct + '%';
+}
+function gpDeltaClass(cur, prev) {
+  const d = cur - prev;
+  if (d > 1e-9) return 'gp-up';
+  if (d < -1e-9) return 'gp-down';
+  return 'gp-flat';
+}
+function gpAgg(map) {
+  return Object.values(map).reduce((s, r) => ({
+    gross: s.gross + r.gross, revenue: s.revenue + r.revenue, cost: s.cost + r.cost, n: s.n + 1
+  }), { gross: 0, revenue: 0, cost: 0, n: 0 });
+}
+
+function renderGpCompare() {
+  const el = document.getElementById('gpCompare');
+  if (!el) return;
+  const rows = gpMonthRows();
+  if (rows.length === 0) { el.innerHTML = `<div class="wt-empty">还没有可用数据：请先在「工资管理」录入营业额、在「月度成本管理」生成月度成本记录，即可自动生成同比对比。</div>`; return; }
+
+  const curY = new Date().getFullYear();
+  const prevY = curY - 1;
+  const curMap = gpYearMonthMap(curY);
+  const prevMap = gpYearMonthMap(prevY);
+  const curS = gpAgg(curMap);
+  const prevS = gpAgg(prevMap);
+
+  // 缺某一年：给出提示并展示已有年份
+  if (curS.n === 0 || prevS.n === 0) {
+    const hasCur = curS.n > 0;
+    const s = hasCur ? curS : prevS;
+    const y = hasCur ? curY : prevY;
+    const missY = hasCur ? prevY : curY;
+    el.innerHTML = `
+      <div class="gp-compare">
+        <div class="gp-cmp-note">
+          当前仅有 <b>${y}</b> 年数据（共 ${s.n} 个月，净利润总额 <b>${saMoney(s.gross)}</b>），
+          但 <b>${missY}</b> 年暂无营业额或成本记录，暂无法生成「今年 vs 去年」同比对比。
+          请在「工资管理 / 月度成本管理」补齐 ${missY} 年数据后，本板块会自动生成对比。
+        </div>
+      </div>`;
+    return;
+  }
+
+  const common = [];
+  for (let mo = 1; mo <= 12; mo++) { if (curMap[mo] && prevMap[mo]) common.push(mo); }
+  const curCommon = common.reduce((s, mo) => s + curMap[mo].gross, 0);
+  const prevCommon = common.reduce((s, mo) => s + prevMap[mo].gross, 0);
+  const cmpDelta = curCommon - prevCommon;
+  const cmpPct = gpYoyText(curCommon, prevCommon);
+  const yoyBadge = (curCommon >= prevCommon ? 'success' : 'warning');
+  const rateTxt = (v, rev) => (rev ? (Math.round(v / rev * 1000) / 10) : 0) + '%';
+
+  const overviewCards = `
+    <div class="wt-stats">
+      ${statCard(`今年(${curY})·同区间净利润`, saMoney(curCommon), '')}
+      ${statCard(`去年(${prevY})·同区间净利润`, saMoney(prevCommon), '')}
+      ${statCard('同区间同比增长', saMoney(cmpDelta) + '（' + cmpPct + '）', yoyBadge)}
+    </div>`;
+
+  const monthRows = common.map(mo => {
+    const c = curMap[mo].gross, p = prevMap[mo].gross;
+    const dCls = gpDeltaClass(c, p);
+    return `<tr>
+      <td>${String(mo).padStart(2, '0')}月</td>
+      <td>${saMoney(c)}</td>
+      <td>${saMoney(p)}</td>
+      <td class="${dCls}">${saMoney(c - p)}</td>
+      <td class="${dCls}">${gpYoyText(c, p)}</td>
+    </tr>`;
+  }).join('');
+  const monthTable = common.length ? `
+    <div class="gp-cmp-sub">逐月对比（同口径 ${common.length} 个月 · 单位：元）</div>
+    <table class="wt-cat">
+      <thead><tr><th>月份</th><th>今年净利润</th><th>去年净利润</th><th>同比差额</th><th>同比</th></tr></thead>
+      <tbody>
+        ${monthRows}
+        <tr class="gp-cmp-total"><td>同区间合计</td><td>${saMoney(curCommon)}</td><td>${saMoney(prevCommon)}</td><td class="${gpDeltaClass(curCommon, prevCommon)}">${saMoney(cmpDelta)}</td><td class="${gpDeltaClass(curCommon, prevCommon)}">${cmpPct}</td></tr>
+      </tbody>
+    </table>` : '';
+
+  const overallTable = `
+    <div class="gp-cmp-sub">年度概览（各自已有数据口径）</div>
+    <table class="wt-cat">
+      <thead><tr><th>指标</th><th>今年 ${curY}（${curS.n} 个月）</th><th>去年 ${prevY}（${prevS.n} 个月）</th><th>同比</th></tr></thead>
+      <tbody>
+        <tr><td>净利润总额</td><td>${saMoney(curS.gross)}</td><td>${saMoney(prevS.gross)}</td><td class="${gpDeltaClass(curS.gross, prevS.gross)}">${gpYoyText(curS.gross, prevS.gross)}</td></tr>
+        <tr><td>总营业额</td><td>${saMoney(curS.revenue)}</td><td>${saMoney(prevS.revenue)}</td><td class="${gpDeltaClass(curS.revenue, prevS.revenue)}">${gpYoyText(curS.revenue, prevS.revenue)}</td></tr>
+        <tr><td>总成本</td><td>${saMoney(curS.cost)}</td><td>${saMoney(prevS.cost)}</td><td class="${gpDeltaClass(curS.cost, prevS.cost)}">${gpYoyText(curS.cost, prevS.cost)}</td></tr>
+        <tr><td>净利润率</td><td>${rateTxt(curS.gross, curS.revenue)}</td><td>${rateTxt(prevS.gross, prevS.revenue)}</td><td class="${gpDeltaClass(curS.gross / (curS.revenue || 1), prevS.gross / (prevS.revenue || 1))}">${gpYoyText(curS.gross / (curS.revenue || 1), prevS.gross / (prevS.revenue || 1))}</td></tr>
+      </tbody>
+    </table>`;
+
+  // 原因拆解
+  const dGross = curS.gross - prevS.gross;
+  const dRev = curS.revenue - prevS.revenue;
+  const dCost = curS.cost - prevS.cost;
+  const revContrib = dRev * grossMargin;
+  const better = dGross >= 0;
+  const dir = better ? '优于' : '不及';
+  const reasons = [
+    `今年净利润总额 <b>${saMoney(curS.gross)}</b>，${better ? '高于' : '低于'}去年 <b>${saMoney(prevS.gross)}</b>，同比 <b>${gpYoyText(curS.gross, prevS.gross)}</b>，今年经营整体${dir}去年。`,
+    `净利润变化（${saMoney(dGross)}）可拆解为：营业额${dRev >= 0 ? '增长' : '下降'} <b>${saMoney(dRev)}</b>（按 ${Math.round(grossMargin * 1000) / 10}% 利润率约贡献 <b>${saMoney(revContrib)}</b>），成本${dCost >= 0 ? '上升' : '下降'} <b>${saMoney(dCost)}</b>（直接${dCost >= 0 ? '拖累' : '贡献'}利润）。`,
+    `同口径（重叠 ${common.length || '—'} 个月）下，今年净利润 <b>${saMoney(curCommon)}</b> 对比去年 <b>${saMoney(prevCommon)}</b>，同比 <b>${gpYoyText(curCommon, prevCommon)}</b>${common.length === 0 ? '（两年暂无重叠月份，建议补齐相同月份数据）' : ''}。`
+  ];
+  if (dCost > 1e-9 && dGross < 0) reasons.push(`成本上升是今年转弱的主因，需优先核查成本增长项（固定 / 录入 / 工资）。`);
+  if (dRev < -1e-9 && dGross < 0) reasons.push(`营业额下滑叠加成本压力，双重挤压导致净利润走弱。`);
+
+  // 解决方案
+  const solutions = [];
+  if (better) {
+    solutions.push(`<b>巩固优势</b>：今年整体${dir}去年，保持现有成本控制节奏，把表现好的月份策略（引流 / 促销 / 陈列）标准化并复制到薄弱月份。`);
+  } else {
+    solutions.push(`<b>补强薄弱月</b>：对照下方逐月对比，针对同比下滑明显的月份，用引流品 + 满减拉动客流与客单价，把缺口补回来。`);
+    solutions.push(`<b>压降成本</b>：今年成本同比上升 <b>${saMoney(dCost)}</b>，进入「月度成本管理」逐项核查高成本项，优先砍可变动成本、设报损红线。`);
+  }
+  solutions.push(`<b>参考去年做法</b>：对比去年同月净利润较高的月份，借鉴其营业额结构与成本控制经验，避免今年同类月份重演下滑。`);
+  solutions.push(`<b>月度经营复盘</b>：以上逐月对比表作为每月复盘依据，对连续同比下滑的月份设预警与改进动作，动态跟踪。${common.length === 0 ? '建议优先补齐两年相同月份数据，使同比更可比。' : ''}`);
+
+  el.innerHTML = `
+    <div class="gp-compare">
+      ${overviewCards}
+      ${overallTable}
+      ${monthTable}
+      <div class="gp-analysis" style="margin-top:14px;">
+        <section><h4>同比变化原因</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
+        <section><h4>今年改进方案</h4><ul>${solutions.map(t => `<li>${t}</li>`).join('')}</ul></section>
+      </div>
     </div>`;
 }
 
