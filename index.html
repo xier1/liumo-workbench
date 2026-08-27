@@ -8883,10 +8883,12 @@ function renderGpCompare() {
 
   const curY = new Date().getFullYear();
   const prevY = curY - 1;
+  const curMonthNow = new Date().getMonth() + 1;
   const curMap = gpYearMonthMap(curY);
   const prevMap = gpYearMonthMap(prevY);
   const curS = gpAgg(curMap);
   const prevS = gpAgg(prevMap);
+  const rateTxt = (v, rev) => (rev ? (Math.round(v / rev * 1000) / 10) : 0) + '%';
 
   // 缺某一年：给出提示并展示已有年份
   if (curS.n === 0 || prevS.n === 0) {
@@ -8896,54 +8898,14 @@ function renderGpCompare() {
     const missY = hasCur ? prevY : curY;
     el.innerHTML = `
       <div class="gp-compare">
-        <div class="gp-cmp-note">
-          当前仅有 <b>${y}</b> 年数据（共 ${s.n} 个月，净利润总额 <b>${saMoney(s.gross)}</b>），
-          但 <b>${missY}</b> 年暂无营业额或成本记录，暂无法生成「今年 vs 去年」同比对比。
-          请在「工资管理 / 月度成本管理」补齐 ${missY} 年数据后，本板块会自动生成对比。
-        </div>
+        <div class="gp-cmp-note">当前仅有 <b>${y}</b> 年数据（共 ${s.n} 个月，净利润总额 <b>${saMoney(s.gross)}</b>），但 <b>${missY}</b> 年暂无营业额或成本记录，暂无法生成「今年 vs 去年」同比对比。请在「工资管理 / 月度成本管理」补齐 ${missY} 年数据后，本板块会自动生成对比。</div>
       </div>`;
     return;
   }
 
-  const common = [];
-  for (let mo = 1; mo <= 12; mo++) { if (curMap[mo] && prevMap[mo]) common.push(mo); }
-  const curCommon = common.reduce((s, mo) => s + curMap[mo].gross, 0);
-  const prevCommon = common.reduce((s, mo) => s + prevMap[mo].gross, 0);
-  const cmpDelta = curCommon - prevCommon;
-  const cmpPct = gpYoyText(curCommon, prevCommon);
-  const yoyBadge = (curCommon >= prevCommon ? 'success' : 'warning');
-  const rateTxt = (v, rev) => (rev ? (Math.round(v / rev * 1000) / 10) : 0) + '%';
-
-  const overviewCards = `
-    <div class="wt-stats">
-      ${statCard(`今年(${curY})·同区间净利润`, saMoney(curCommon), '')}
-      ${statCard(`去年(${prevY})·同区间净利润`, saMoney(prevCommon), '')}
-      ${statCard('同区间同比增长', saMoney(cmpDelta) + '（' + cmpPct + '）', yoyBadge)}
-    </div>`;
-
-  const monthRows = common.map(mo => {
-    const c = curMap[mo].gross, p = prevMap[mo].gross;
-    const dCls = gpDeltaClass(c, p);
-    return `<tr>
-      <td>${String(mo).padStart(2, '0')}月</td>
-      <td>${saMoney(c)}</td>
-      <td>${saMoney(p)}</td>
-      <td class="${dCls}">${saMoney(c - p)}</td>
-      <td class="${dCls}">${gpYoyText(c, p)}</td>
-    </tr>`;
-  }).join('');
-  const monthTable = common.length ? `
-    <div class="gp-cmp-sub">逐月对比（同口径 ${common.length} 个月 · 单位：元）</div>
-    <table class="wt-cat">
-      <thead><tr><th>月份</th><th>今年净利润</th><th>去年净利润</th><th>同比差额</th><th>同比</th></tr></thead>
-      <tbody>
-        ${monthRows}
-        <tr class="gp-cmp-total"><td>同区间合计</td><td>${saMoney(curCommon)}</td><td>${saMoney(prevCommon)}</td><td class="${gpDeltaClass(curCommon, prevCommon)}">${saMoney(cmpDelta)}</td><td class="${gpDeltaClass(curCommon, prevCommon)}">${cmpPct}</td></tr>
-      </tbody>
-    </table>` : '';
-
+  // 辅助参考：全年概览（口径为各自全部月份，仅供粗略对照）
   const overallTable = `
-    <div class="gp-cmp-sub">年度概览（各自已有数据口径）</div>
+    <div class="gp-cmp-sub">全年概览（辅助参考 · 口径为各自全部月份，月份数不同）</div>
     <table class="wt-cat">
       <thead><tr><th>指标</th><th>今年 ${curY}（${curS.n} 个月）</th><th>去年 ${prevY}（${prevS.n} 个月）</th><th>同比</th></tr></thead>
       <tbody>
@@ -8954,17 +8916,74 @@ function renderGpCompare() {
       </tbody>
     </table>`;
 
-  // 原因拆解
-  const dGross = curS.gross - prevS.gross;
-  const dRev = curS.revenue - prevS.revenue;
-  const dCost = curS.cost - prevS.cost;
+  // 主对比口径：严格同月份区间（年初 1 月至当前月），两年交集；窗口内无重叠则放宽到全年重叠
+  let winSet = [];
+  for (let mo = 1; mo <= curMonthNow; mo++) { if (curMap[mo] && prevMap[mo]) winSet.push(mo); }
+  let fallback = false;
+  if (winSet.length === 0) {
+    for (let mo = 1; mo <= 12; mo++) { if (curMap[mo] && prevMap[mo]) winSet.push(mo); }
+    fallback = true;
+  }
+  if (winSet.length === 0) {
+    el.innerHTML = `
+      <div class="gp-compare">
+        <div class="gp-cmp-note">今年（${curS.n} 个月）与去年（${prevS.n} 个月）没有可比的重叠月份，无法生成同区间同比。请补齐两年相同月份（如都录入 1–${curMonthNow} 月）的数据后再看本板块。</div>
+        ${overallTable}
+      </div>`;
+    return;
+  }
+
+  const sumBy = (map, mos, key) => mos.reduce((s, mo) => s + map[mo][key], 0);
+  const curWinGross = sumBy(curMap, winSet, 'gross');
+  const prevWinGross = sumBy(prevMap, winSet, 'gross');
+  const curWinRev = sumBy(curMap, winSet, 'revenue');
+  const prevWinRev = sumBy(prevMap, winSet, 'revenue');
+  const curWinCost = sumBy(curMap, winSet, 'cost');
+  const prevWinCost = sumBy(prevMap, winSet, 'cost');
+  const cmpDelta = curWinGross - prevWinGross;
+  const cmpPct = gpYoyText(curWinGross, prevWinGross);
+  const yoyBadge = (curWinGross >= prevWinGross ? 'success' : 'warning');
+  const winLabel = fallback ? `重叠 ${winSet.length} 个月` : `1–${curMonthNow} 月（重叠 ${winSet.length} 个月）`;
+
+  const overviewCards = `
+    <div class="wt-stats">
+      ${statCard(`今年(${curY})·1–${curMonthNow}月净利润`, saMoney(curWinGross), '')}
+      ${statCard(`去年(${prevY})·1–${curMonthNow}月净利润`, saMoney(prevWinGross), '')}
+      ${statCard('同区间同比增长', saMoney(cmpDelta) + '（' + cmpPct + '）', yoyBadge)}
+    </div>`;
+
+  const monthRows = winSet.map(mo => {
+    const c = curMap[mo].gross, p = prevMap[mo].gross;
+    const dCls = gpDeltaClass(c, p);
+    return `<tr>
+      <td>${String(mo).padStart(2, '0')}月</td>
+      <td>${saMoney(c)}</td>
+      <td>${saMoney(p)}</td>
+      <td class="${dCls}">${saMoney(c - p)}</td>
+      <td class="${dCls}">${gpYoyText(c, p)}</td>
+    </tr>`;
+  }).join('');
+  const monthTable = `
+    <div class="gp-cmp-sub">逐月对比 · 主口径（${winLabel} · 单位：元）</div>
+    <table class="wt-cat">
+      <thead><tr><th>月份</th><th>今年净利润</th><th>去年净利润</th><th>同比差额</th><th>同比</th></tr></thead>
+      <tbody>
+        ${monthRows}
+        <tr class="gp-cmp-total"><td>同区间合计</td><td>${saMoney(curWinGross)}</td><td>${saMoney(prevWinGross)}</td><td class="${gpDeltaClass(curWinGross, prevWinGross)}">${saMoney(cmpDelta)}</td><td class="${gpDeltaClass(curWinGross, prevWinGross)}">${cmpPct}</td></tr>
+      </tbody>
+    </table>`;
+
+  // 原因拆解（基于同区间口径，最公平）
+  const dGross = curWinGross - prevWinGross;
+  const dRev = curWinRev - prevWinRev;
+  const dCost = curWinCost - prevWinCost;
   const revContrib = dRev * grossMargin;
   const better = dGross >= 0;
   const dir = better ? '优于' : '不及';
   const reasons = [
-    `今年净利润总额 <b>${saMoney(curS.gross)}</b>，${better ? '高于' : '低于'}去年 <b>${saMoney(prevS.gross)}</b>，同比 <b>${gpYoyText(curS.gross, prevS.gross)}</b>，今年经营整体${dir}去年。`,
+    `同区间（${winLabel}）下，今年净利润 <b>${saMoney(curWinGross)}</b>，${better ? '高于' : '低于'}去年 <b>${saMoney(prevWinGross)}</b>，同比 <b>${cmpPct}</b>，今年经营整体${dir}去年。`,
     `净利润变化（${saMoney(dGross)}）可拆解为：营业额${dRev >= 0 ? '增长' : '下降'} <b>${saMoney(dRev)}</b>（按 ${Math.round(grossMargin * 1000) / 10}% 利润率约贡献 <b>${saMoney(revContrib)}</b>），成本${dCost >= 0 ? '上升' : '下降'} <b>${saMoney(dCost)}</b>（直接${dCost >= 0 ? '拖累' : '贡献'}利润）。`,
-    `同口径（重叠 ${common.length || '—'} 个月）下，今年净利润 <b>${saMoney(curCommon)}</b> 对比去年 <b>${saMoney(prevCommon)}</b>，同比 <b>${gpYoyText(curCommon, prevCommon)}</b>${common.length === 0 ? '（两年暂无重叠月份，建议补齐相同月份数据）' : ''}。`
+    `下方「全年概览」为各自全部月份的粗略对照（月份数不同、口径不一致），正式同比请以本区间为准。${fallback ? '（当前按全年重叠月份回退计算，因 1–' + curMonthNow + ' 月内无完整重叠。）' : ''}`
   ];
   if (dCost > 1e-9 && dGross < 0) reasons.push(`成本上升是今年转弱的主因，需优先核查成本增长项（固定 / 录入 / 工资）。`);
   if (dRev < -1e-9 && dGross < 0) reasons.push(`营业额下滑叠加成本压力，双重挤压导致净利润走弱。`);
@@ -8974,21 +8993,21 @@ function renderGpCompare() {
   if (better) {
     solutions.push(`<b>巩固优势</b>：今年整体${dir}去年，保持现有成本控制节奏，把表现好的月份策略（引流 / 促销 / 陈列）标准化并复制到薄弱月份。`);
   } else {
-    solutions.push(`<b>补强薄弱月</b>：对照下方逐月对比，针对同比下滑明显的月份，用引流品 + 满减拉动客流与客单价，把缺口补回来。`);
+    solutions.push(`<b>补强薄弱月</b>：对照上方逐月对比，针对同比下滑明显的月份，用引流品 + 满减拉动客流与客单价，把缺口补回来。`);
     solutions.push(`<b>压降成本</b>：今年成本同比上升 <b>${saMoney(dCost)}</b>，进入「月度成本管理」逐项核查高成本项，优先砍可变动成本、设报损红线。`);
   }
   solutions.push(`<b>参考去年做法</b>：对比去年同月净利润较高的月份，借鉴其营业额结构与成本控制经验，避免今年同类月份重演下滑。`);
-  solutions.push(`<b>月度经营复盘</b>：以上逐月对比表作为每月复盘依据，对连续同比下滑的月份设预警与改进动作，动态跟踪。${common.length === 0 ? '建议优先补齐两年相同月份数据，使同比更可比。' : ''}`);
+  solutions.push(`<b>月度经营复盘</b>：以上逐月对比表作为每月复盘依据，对连续同比下滑的月份设预警与改进动作，动态跟踪。`);
 
   el.innerHTML = `
     <div class="gp-compare">
       ${overviewCards}
-      ${overallTable}
       ${monthTable}
       <div class="gp-analysis" style="margin-top:14px;">
-        <section><h4>同比变化原因</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
+        <section><h4>同比变化原因（同区间口径）</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
         <section><h4>今年改进方案</h4><ul>${solutions.map(t => `<li>${t}</li>`).join('')}</ul></section>
       </div>
+      ${overallTable}
     </div>`;
 }
 
