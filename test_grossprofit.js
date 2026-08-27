@@ -106,6 +106,13 @@ check('主口径卡片含 1–8月净利润', $('#gpCompare').textContent.includ
 check('同区间今年净利润 -11,800', $('#gpCompare').textContent.includes('-11,800'));
 check('同区间去年净利润 -18,500', $('#gpCompare').textContent.includes('-18,500'));
 check('同区间同比增长 +6,700', $('#gpCompare').textContent.includes('6,700'));
+check('含净利润变化拆解表', $('#gpCompare').textContent.includes('净利润变化拆解'));
+check('拆解含营业额维度', $('#gpCompare').textContent.includes('营业额'));
+check('拆解含录入成本维度', $('#gpCompare').textContent.includes('录入成本'));
+check('拆解含工资维度', $('#gpCompare').textContent.includes('工资'));
+check('原因含营业额角度', $('#gpCompare').textContent.includes('营业额角度'));
+check('原因含录入成本角度', $('#gpCompare').textContent.includes('录入成本角度'));
+check('原因含工资角度', $('#gpCompare').textContent.includes('工资角度'));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
