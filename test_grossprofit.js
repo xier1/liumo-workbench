@@ -93,14 +93,16 @@ window.eval("currentModule='grossprofit'; renderContent();");
 
 check('对比卡片已渲染 #gpCompare', !!$('#gpCompare'));
 check('对比含同区间同比增长卡片', $('#gpCompare').textContent.includes('同区间同比增长'));
-check('对比含年度概览表', $('#gpCompare').textContent.includes('年度概览'));
+check('对比含全年概览表', $('#gpCompare').textContent.includes('全年概览'));
+check('全年概览标注辅助参考', $('#gpCompare').textContent.includes('辅助参考'));
 check('对比含 2025 口径', $('#gpCompare').textContent.includes('2025'));
 check('对比含 2026 口径', $('#gpCompare').textContent.includes('2026'));
 check('逐月对比含 08月', $('#gpCompare').textContent.includes('08月'));
 check('对比含变化原因段', $('#gpCompare').textContent.includes('同比变化原因'));
 check('对比含改进方案段', $('#gpCompare').textContent.includes('今年改进方案'));
-// 2026-08 净利润=100000*0.18-24200=-6200；2026-07=-5600 → 今年同区间合计 -11,800
+// 2026-08 净利润=100000*0.18-24200=-6200；2026-07=-5600 → 今年同区间(1–8月)合计 -11,800
 // 2025-08=70000*0.18-21500=-8900；2025-07=-9600 → 去年同区间合计 -18,500；同比 +6,700（+36.2%）
+check('主口径卡片含 1–8月净利润', $('#gpCompare').textContent.includes('1–8月净利润'));
 check('同区间今年净利润 -11,800', $('#gpCompare').textContent.includes('-11,800'));
 check('同区间去年净利润 -18,500', $('#gpCompare').textContent.includes('-18,500'));
 check('同区间同比增长 +6,700', $('#gpCompare').textContent.includes('6,700'));
