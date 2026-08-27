@@ -8749,11 +8749,8 @@ function renderGpChart() {
   });
   const years = Object.keys(byYear).sort();
   const series = years.map((y, i) => ({ year: y, color: GP_YEAR_COLORS[i % GP_YEAR_COLORS.length], vals: byYear[y] }));
-  let legend = '';
-  if (years.length > 1) {
-    legend = '<div class="ce-chart-legend">' + years.map((y, i) =>
-      `<span class="ce-lg-item"><i style="background:${GP_YEAR_COLORS[i % GP_YEAR_COLORS.length]}"></i>${y}年</span>`).join('') + '</div>';
-  }
+  const legend = '<div class="ce-chart-legend">' + years.map((y, i) =>
+    `<span class="ce-legend-item"><i style="background:${GP_YEAR_COLORS[i % GP_YEAR_COLORS.length]}"></i>${y}年</span>`).join('') + '</div>';
   el.innerHTML = legend + buildYearLinesSVG(series);
 }
 
