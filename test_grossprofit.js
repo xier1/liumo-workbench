@@ -29,6 +29,8 @@ check('当前毛利率显示 18%', $('#gpMarginVal').textContent === '18%');
 // 1.5) 年度净利润曲线图（一年一条曲线，曲线上标注数据）
 check('净利润曲线图已渲染(svg)', !!$('#gpChart svg'));
 check('图表含年份标注(2026年)', $('#gpChart').textContent.includes('2026年'));
+check('图例年份前有色块(至少1个色块)', $all('#gpChart .ce-legend-item i').length > 0);
+check('图例色块有背景色样式', $all('#gpChart .ce-legend-item i').every(el => el.getAttribute('style').includes('background:')));
 check('曲线上已标注净利润数据数值', /\-?[\d]{2,}/.test($('#gpChart svg').textContent));
 
 // 2) 表格按月份倒序，2 行（2026-08、2026-07）
