@@ -40,7 +40,7 @@ check('库存预警统计卡可点击', !!$('.iv-warn-card'));
 const items = $all('#ivList .iv-item');
 check('列表渲染 2 个商品', items.length === 2);
 check('列表项不显示分类标签(iv-tag)', $all('#ivList .iv-item .iv-tag').length === 0);
-check('列表项不显示进价文案', !$('#ivList').textContent.includes('进价'));
+check('列表项含可点击进价区块(内联改价)', $all('#ivList .iv-item-price').length > 0);
 check('芙蓉王库存预警标红', items[0].querySelector('.iv-item-stock.iv-warn'));
 check('芙蓉王副文案含预警阈值', items[0].textContent.includes('预警 ≤ 10'));
 
@@ -159,6 +159,17 @@ $('#ivSaveBtn').click();
 check('编辑后库存 15', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').stock") === 15);
 check('编辑后 needWarn=true', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').needWarn") === true);
 check('编辑后 warn=2', window.eval("inventoryItems.find(i=>i.name==='黄鹤楼').warn") === 2);
+
+// 8.5) 列表内联改价：点击芙蓉王进价 -> 输入 300 -> 回车保存
+const prEl = $('#ivList .iv-item-price[data-id="i1"]');
+check('内联改价：列表含芙蓉王进价区块', !!prEl);
+prEl.click();
+const pin = prEl.querySelector('.iv-price-input');
+check('内联改价：点击后变为输入框', !!pin);
+pin.value = '300';
+pin.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+check('内联改价：进价已保存(300)', window.eval("inventoryItems.find(i=>i.id==='i1').price") === 300);
+check('内联改价：库存金额同步更新(1,500 元)', $('#ivList').textContent.includes('1,500 元'));
 
 // 9) 删除商品（confirm 返回 true）
 window.confirm = () => true;

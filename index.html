@@ -269,6 +269,12 @@
   .iv-item-amount { text-align: right; flex: 0 0 84px; }
   .iv-amount-label { font-size: 11px; color: var(--text-soft); }
   .iv-amount-val { font-size: 14px; font-weight: 700; color: var(--primary-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .iv-item-price { text-align: right; flex: 0 0 72px; cursor: pointer; border-radius: 6px; padding: 1px 4px; margin: -1px -4px; transition: background var(--transition); }
+  .iv-item-price:hover { background: var(--primary-soft); }
+  .iv-price-label { font-size: 11px; color: var(--text-soft); }
+  .iv-price-val { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .iv-price-val::after { content: ' ✎'; font-size: 10px; color: var(--text-soft); font-weight: 400; }
+  .iv-price-input { width: 66px; text-align: right; font-size: 14px; padding: 2px 4px; border: 1px solid var(--primary-2); border-radius: 6px; }
   .iv-item-actions { flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 5px; flex-shrink: 0; }
   .iv-btn { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 5px 8px; font-size: 12px; cursor: pointer; transition: background var(--transition); white-space: nowrap; }
   .iv-btn:hover { background: #f8fafc; }
@@ -3046,6 +3052,8 @@
     .ce-charts { grid-template-columns: 1fr; }
     .iv-item-amount { flex-basis: 70px; }
     .iv-amount-val { font-size: 13px; }
+    .iv-item-price { flex-basis: 60px; }
+    .iv-price-val { font-size: 13px; }
     .iv-btn { padding: 4px 6px; font-size: 11px; }
   }
 
@@ -8931,6 +8939,10 @@ function ivItemRow(it) {
       <div class="iv-amount-label">库存金额</div>
       <div class="iv-amount-val">${saMoney(stock * (Number(it.price) || 0))}</div>
     </div>
+    <div class="iv-item-price" data-id="${it.id}" title="点击修改进价">
+      <div class="iv-price-label">进价</div>
+      <div class="iv-price-val">${'¥' + (Number(it.price) || 0).toLocaleString()}</div>
+    </div>
     <div class="iv-item-actions">
       <button class="iv-btn iv-in" data-id="${it.id}" data-act="in">入库</button>
       <button class="iv-btn iv-out" data-id="${it.id}" data-act="out">出库</button>
@@ -8938,6 +8950,46 @@ function ivItemRow(it) {
       <button class="iv-btn iv-del" data-id="${it.id}" data-act="del">删除</button>
     </div>
   </div>`;
+}
+
+let ivInlineEditing = false;
+function startInlinePriceEdit(id, priceEl) {
+  if (ivInlineEditing) return;
+  const it = inventoryItems.find(i => i.id === id);
+  if (!it) return;
+  ivInlineEditing = true;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.step = 'any';
+  input.min = '0';
+  input.className = 'iv-price-input';
+  input.value = (Number(it.price) || 0);
+  priceEl.innerHTML = '';
+  priceEl.appendChild(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = (save) => {
+    if (done) return;
+    done = true;
+    ivInlineEditing = false;
+    if (save) {
+      const v = parseFloat(input.value);
+      if (isNaN(v) || v < 0) { showToast('进价需为不小于 0 的数字'); renderInventoryList(); return; }
+      it.price = v;
+      saveInventory();
+      renderInventoryStats();
+      renderInventoryList();
+      showToast('已更新进价：' + it.name + ' → ¥' + (Number(it.price) || 0).toLocaleString());
+    } else {
+      renderInventoryList();
+    }
+  };
+  input.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+  });
+  input.addEventListener('blur', () => finish(true));
 }
 
 function renderInventoryList() {
@@ -9105,6 +9157,8 @@ function bindInventoryEvents() {
 
   const list = document.getElementById('ivList');
   list.addEventListener('click', e => {
+    const ipEl = e.target.closest('.iv-item-price');
+    if (ipEl) { startInlinePriceEdit(ipEl.dataset.id, ipEl); return; }
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const id = btn.dataset.id;
