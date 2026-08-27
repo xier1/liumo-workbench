@@ -33,6 +33,10 @@ check('图例年份前有色块(至少1个色块)', $all('#gpChart .ce-legend-it
 check('图例色块有背景色样式', $all('#gpChart .ce-legend-item i').every(el => el.getAttribute('style').includes('background:')));
 check('曲线上已标注净利润数据数值', /\-?[\d]{2,}/.test($('#gpChart svg').textContent));
 
+// 1.6) 净利润分析板块（趋势 / 原因 / 解决方案）
+check('净利润分析板块已渲染', !!$('#gpAnalysis') && $('#gpAnalysis').textContent.includes('净利润分析'));
+check('分析含三段：原因与解决方案', $('#gpAnalysis').textContent.includes('具体原因') && $('#gpAnalysis').textContent.includes('解决方案'));
+
 // 2) 表格按月份倒序，2 行（2026-08、2026-07）
 const rows = $all('#gpTable tbody tr');
 check('表格含 2 个月', rows.length === 2);
