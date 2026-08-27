@@ -93,8 +93,8 @@ window.eval("currentModule='grossprofit'; renderContent();");
 
 check('对比卡片已渲染 #gpCompare', !!$('#gpCompare'));
 check('对比含同区间同比增长卡片', $('#gpCompare').textContent.includes('同区间同比增长'));
-check('对比含全年概览表', $('#gpCompare').textContent.includes('全年概览'));
-check('全年概览标注辅助参考', $('#gpCompare').textContent.includes('辅助参考'));
+check('对比含同区间年度关键指标表', $('#gpCompare').textContent.includes('年度关键指标同比'));
+check('同区间概览标注口径', $('#gpCompare').textContent.includes('同区间口径'));
 check('对比含 2025 口径', $('#gpCompare').textContent.includes('2025'));
 check('对比含 2026 口径', $('#gpCompare').textContent.includes('2026'));
 check('逐月对比含 08月', $('#gpCompare').textContent.includes('08月'));

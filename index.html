@@ -8974,9 +8974,9 @@ function renderGpCompare() {
     return;
   }
 
-  // 辅助参考：全年概览（口径为各自全部月份，仅供粗略对照）
-  const overallTable = `
-    <div class="gp-cmp-sub">全年概览（辅助参考 · 口径为各自全部月份，月份数不同）</div>
+  // 无重叠月份时的兜底参考（非同区间，仅作提示用）
+  const overallTableFull = `
+    <div class="gp-cmp-sub">全年概览（参考 · 口径为各自全部月份，月份数不同，非同区间对比）</div>
     <table class="wt-cat">
       <thead><tr><th>指标</th><th>今年 ${curY}（${curS.n} 个月）</th><th>去年 ${prevY}（${prevS.n} 个月）</th><th>同比</th></tr></thead>
       <tbody>
@@ -8999,7 +8999,7 @@ function renderGpCompare() {
     el.innerHTML = `
       <div class="gp-compare">
         <div class="gp-cmp-note">今年（${curS.n} 个月）与去年（${prevS.n} 个月）没有可比的重叠月份，无法生成同区间同比。请补齐两年相同月份（如都录入 1–${curMonthNow} 月）的数据后再看本板块。</div>
-        ${overallTable}
+        ${overallTableFull}
       </div>`;
     return;
   }
@@ -9021,6 +9021,19 @@ function renderGpCompare() {
   const cmpPct = gpYoyText(curWinGross, prevWinGross);
   const yoyBadge = (curWinGross >= prevWinGross ? 'success' : 'warning');
   const winLabel = fallback ? `重叠 ${winSet.length} 个月` : `1–${curMonthNow} 月（重叠 ${winSet.length} 个月）`;
+
+  // 年度关键指标同比（同区间口径，与主对比完全一致）
+  const overallTable = `
+    <div class="gp-cmp-sub">年度关键指标同比（同区间口径 ${winLabel}）</div>
+    <table class="wt-cat">
+      <thead><tr><th>指标</th><th>今年 ${curY}</th><th>去年 ${prevY}</th><th>同比</th></tr></thead>
+      <tbody>
+        <tr><td>净利润总额</td><td>${saMoney(curWinGross)}</td><td>${saMoney(prevWinGross)}</td><td class="${gpDeltaClass(curWinGross, prevWinGross)}">${gpYoyText(curWinGross, prevWinGross)}</td></tr>
+        <tr><td>总营业额</td><td>${saMoney(curWinRev)}</td><td>${saMoney(prevWinRev)}</td><td class="${gpDeltaClass(curWinRev, prevWinRev)}">${gpYoyText(curWinRev, prevWinRev)}</td></tr>
+        <tr><td>总成本</td><td>${saMoney(curWinCost)}</td><td>${saMoney(prevWinCost)}</td><td class="${gpDeltaClass(curWinCost, prevWinCost)}">${gpYoyText(curWinCost, prevWinCost)}</td></tr>
+        <tr><td>净利润率</td><td>${rateTxt(curWinGross, curWinRev)}</td><td>${rateTxt(prevWinGross, prevWinRev)}</td><td class="${gpDeltaClass(curWinGross / (curWinRev || 1), prevWinGross / (prevWinRev || 1))}">${gpYoyText(curWinGross / (curWinRev || 1), prevWinGross / (prevWinRev || 1))}</td></tr>
+      </tbody>
+    </table>`;
 
   const overviewCards = `
     <div class="wt-stats">
