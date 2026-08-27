@@ -113,6 +113,11 @@ check('拆解含工资维度', $('#gpCompare').textContent.includes('工资'));
 check('原因含营业额角度', $('#gpCompare').textContent.includes('营业额角度'));
 check('原因含录入成本角度', $('#gpCompare').textContent.includes('录入成本角度'));
 check('原因含工资角度', $('#gpCompare').textContent.includes('工资角度'));
+check('分组柱状图已渲染 svg.gp-grp-bar', !!$('#gpCompare svg.gp-grp-bar'));
+check('柱状图含副标题', $('#gpCompare').textContent.includes('分组柱状图'));
+check('柱状图含4个维度标签', ['营业额', '录入成本', '工资', '固定成本'].every(t => $('#gpCompare svg.gp-grp-bar').textContent.includes(t)));
+check('柱状图含今年图例', $('#gpCompare').textContent.includes('今年 2026') || $('#gpCompare').textContent.includes('今年 2025'));
+check('柱状图含今年/去年柱(rect≥8)', $('#gpCompare svg.gp-grp-bar').querySelectorAll('rect').length >= 8);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
