@@ -2904,6 +2904,11 @@
   .wt-empty { color: var(--text-muted); text-align: center; padding: 44px 20px; font-size: 13px; background: rgba(248,250,252,0.7); border-radius: var(--radius); border: 1px dashed var(--border); }
   .wt-empty::before { content: '📭'; display: block; font-size: 28px; margin-bottom: 10px; opacity: 0.55; }
   .wt-cat-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow-sm); scrollbar-width: thin; scrollbar-color: #c7c8d3 var(--bg-soft); }
+  .gp-analysis section { margin-bottom: 14px; }
+  .gp-analysis section:last-child { margin-bottom: 0; }
+  .gp-analysis h4 { margin: 0 0 6px; font-size: 14px; color: var(--primary-2); }
+  .gp-analysis ul { margin: 0; padding-left: 20px; }
+  .gp-analysis li { margin: 5px 0; font-size: 13px; line-height: 1.65; color: var(--text); }
   .wt-cat-wrap::-webkit-scrollbar { height: 8px; }
   .wt-cat-wrap::-webkit-scrollbar-track { background: var(--bg-soft); border-radius: 4px; }
   .wt-cat-wrap::-webkit-scrollbar-thumb { background: #c7c8d3; border-radius: 4px; }
@@ -8661,6 +8666,10 @@ function renderGrossProfitModule(content, mod) {
       <div class="wt-cat-wrap"><div id="gpChart"></div></div>
     </div>
     <div class="wt-chart-card" style="margin-top:18px;">
+      <div class="wt-chart-title">净利润分析（趋势 · 具体原因 · 解决方案）</div>
+      <div class="wt-cat-wrap"><div id="gpAnalysis"></div></div>
+    </div>
+    <div class="wt-chart-card" style="margin-top:18px;">
       <div class="wt-chart-title">月度净利润明细（营业额 × 利润率 − 总成本）</div>
       <div class="wt-cat-wrap"><div id="gpTable"></div></div>
     </div>
@@ -8673,12 +8682,13 @@ function renderGrossProfitModule(content, mod) {
     grossMargin = pts / 100;
     saveGrossMargin();
     document.getElementById('gpMarginVal').textContent = (Math.round(grossMargin * 1000) / 10) + '%';
-    renderGpStats(); renderGpTable(); renderGpChart();
+    renderGpStats(); renderGpTable(); renderGpChart(); renderGpAnalysis();
     showToast('利润率已设为 ' + (Math.round(grossMargin * 1000) / 10) + '%');
   });
   renderGpStats();
   renderGpTable();
   renderGpChart();
+  renderGpAnalysis();
 }
 
 function gpMonthRows() {
@@ -8752,6 +8762,77 @@ function renderGpChart() {
   const legend = '<div class="ce-chart-legend">' + years.map((y, i) =>
     `<span class="ce-legend-item"><i style="background:${GP_YEAR_COLORS[i % GP_YEAR_COLORS.length]}"></i>${y}年</span>`).join('') + '</div>';
   el.innerHTML = legend + buildYearLinesSVG(series);
+}
+
+function renderGpAnalysis() {
+  const el = document.getElementById('gpAnalysis');
+  if (!el) return;
+  const rows = gpMonthRows();
+  if (rows.length === 0) { el.innerHTML = `<div class="wt-empty">还没有可用数据：请先在「工资管理」录入营业额、在「月度成本管理」生成月度成本记录，即可自动生成净利润分析。</div>`; return; }
+  const sorted = [...rows].sort((a, b) => a.month.localeCompare(b.month));
+  const total = rows.reduce((s, r) => s + r.gross, 0);
+  const avg = total / rows.length;
+  const totalRev = rows.reduce((s, r) => s + r.revenue, 0);
+  const totalCost = rows.reduce((s, r) => s + r.cost, 0);
+  const profitMonths = rows.filter(r => r.gross >= 0);
+  const lossMonths = rows.filter(r => r.gross < 0);
+  const costRate = totalRev ? totalCost / totalRev : 0;
+  const netRate = totalRev ? total / totalRev : 0;
+  const best = sorted.reduce((m, r) => r.gross > m.gross ? r : m, sorted[0]);
+  const worst = sorted.reduce((m, r) => r.gross < m.gross ? r : m, sorted[0]);
+  const first = sorted[0], last = sorted[sorted.length - 1];
+  const ratePct = Math.round(grossMargin * 1000) / 10;
+  const costRatePct = Math.round(costRate * 1000) / 10;
+  const netRatePct = Math.round(netRate * 1000) / 10;
+
+  // 一、净利润分析
+  const trendTxt = sorted.length >= 2
+    ? `从 ${first.month} 的 ${saMoney(first.gross)} 到 ${last.month} 的 ${saMoney(last.gross)}，${last.gross > first.gross ? '整体呈改善趋势' : '整体呈下滑趋势'}`
+    : `仅 ${first.month} 一个月数据`;
+  const overall = total >= 0 ? '整体盈利' : '整体亏损';
+  const analysis = [
+    `统计区间共 ${rows.length} 个月，<b>${overall}</b>：总净利润 <b>${saMoney(total)}</b>，平均每月 <b>${saMoney(avg)}</b>（整体净利润率约 ${netRatePct}%）。`,
+    `盈利 ${profitMonths.length} 个月，亏损 ${lossMonths.length} 个月。`,
+    `表现最好：${best.month}（${saMoney(best.gross)}）；表现最差：${worst.month}（${saMoney(worst.gross)}）。`,
+    `趋势：${trendTxt}。`
+  ];
+
+  // 二、具体原因
+  const reasons = [];
+  if (costRate > grossMargin + 1e-9) {
+    reasons.push(`<b>总成本偏高</b>：成本占营业额比重达 <b>${costRatePct}%</b>，高于设定利润率 <b>${ratePct}%</b>，成本端已吃掉利润空间${total < 0 ? '并造成亏损' : ''}。`);
+  } else {
+    reasons.push(`成本占营业额比重为 <b>${costRatePct}%</b>，低于设定利润率 <b>${ratePct}%</b>，成本端相对可控。`);
+  }
+  if (lossMonths.length) {
+    const items = lossMonths.map(r => `${r.month}（${saMoney(r.gross)}，成本率 ${Math.round((r.revenue ? r.cost / r.revenue : 1) * 1000) / 10}%）`).join('、');
+    reasons.push(`以下月份净利润为负，需重点复盘：${items}。${costRate > grossMargin + 1e-9 ? '共性是当月成本率过高或营业额不足。' : '多为营业额偏低所致。'}`);
+  }
+  if (netRate > 0 && netRate < grossMargin * 0.5) {
+    reasons.push(`整体净利润率仅约 <b>${netRatePct}%</b>，利润空间偏薄，抗风险能力弱，一旦成本波动即转亏。`);
+  }
+  if (!reasons.length) reasons.push('当前均为盈利月份，结构良好，可继续关注成本与营业额的匹配增长。');
+
+  // 三、解决方案
+  const solutions = [];
+  if (total < 0 || costRate > grossMargin + 1e-9) {
+    solutions.push(`<b>压降总成本</b>：进入「月度成本管理」逐项核查高成本项（固定 / 录入 / 工资），优先砍掉可变动成本；建立日盘+周盘减少损耗，设报损红线。`);
+  }
+  if (lossMonths.length || avg < 0) {
+    solutions.push(`<b>提升营业额</b>：用引流品 + 满减 / 买赠拉动来客数与客单价；推动关联陈列与连带话术，把薄弱月份的客流补起来。`);
+  }
+  if (netRate < grossMargin - 1e-9 || costRate > grossMargin + 1e-9) {
+    solutions.push(`<b>优化定价</b>：当前利润率设定为 ${ratePct}%，若市场可接受，可适度上调至 ${Math.round(ratePct + 2)}%–${Math.round(ratePct + 5)}% 档位，直接在上方「利润率设置」调整。`);
+  }
+  solutions.push(`<b>复盘最差月 ${worst.month}</b>：对比其营业额与成本结构，判断是订货 / 促销力度 / 临时支出异常，避免同类月份重演。`);
+  solutions.push(`<b>动态跟踪</b>：每月更新营业额与成本后，本分析会自动重算，建议按月对照趋势。`);
+
+  el.innerHTML = `
+    <div class="gp-analysis">
+      <section><h4>一、净利润分析</h4><ul>${analysis.map(t => `<li>${t}</li>`).join('')}</ul></section>
+      <section><h4>二、具体原因</h4><ul>${reasons.map(t => `<li>${t}</li>`).join('')}</ul></section>
+      <section><h4>三、解决方案</h4><ul>${solutions.map(t => `<li>${t}</li>`).join('')}</ul></section>
+    </div>`;
 }
 
 // ===================== 库存管理（香烟 / 酒水） =====================
