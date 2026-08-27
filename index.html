@@ -7482,8 +7482,9 @@ function buildYearLinesSVG(series) {
   series.forEach(s => Object.values(s.vals).forEach(v => { if (isFinite(v)) allVals.push(v); }));
   if (allVals.length === 0) return `<div class="wt-empty" style="padding:18px 0;">暂无数据</div>`;
   let vMax = Math.max.apply(null, allVals);
-  const vMin = 0;
-  if (vMax <= 0) vMax = 1;
+  let vMin = Math.min.apply(null, allVals);
+  if (vMin > 0) vMin = 0;
+  if (vMax <= vMin) vMax = vMin + Math.max(1, Math.abs(vMin) || 1);
   const vRange = vMax - vMin;
   const months = 12;
   const xOf = m => padL + (m - 1) * (W - padL - padR) / (months - 1);
@@ -7511,7 +7512,7 @@ function buildYearLinesSVG(series) {
       const x = xOf(m), y = yOf(v);
       poly += (prev ? ' ' : '') + x.toFixed(1) + ',' + y.toFixed(1);
       dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${s.color}" stroke="#fff" stroke-width="1.4"><title>${s.year}年${m}月 ${Math.round(v)}元</title></circle>`;
-      let ty = y - 8; if (ty < 12) ty = y + 14;
+      let ty = y - 8; if (ty < 12) ty = y + 14; if (ty > H - 6) ty = y - 14;
       labels += `<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="${s.color}">${Math.round(v)}</text>`;
       prev = true;
     });
@@ -8656,6 +8657,10 @@ function renderGrossProfitModule(content, mod) {
     </div>
     <div class="wt-stats" id="gpStats"></div>
     <div class="wt-chart-card" style="margin-top:18px;">
+      <div class="wt-chart-title">年度毛利曲线（一年一条曲线 · 每月毛利，单位：元）</div>
+      <div class="wt-cat-wrap"><div id="gpChart"></div></div>
+    </div>
+    <div class="wt-chart-card" style="margin-top:18px;">
       <div class="wt-chart-title">月度毛利明细（营业额 × 毛利率 − 总成本）</div>
       <div class="wt-cat-wrap"><div id="gpTable"></div></div>
     </div>
@@ -8668,11 +8673,12 @@ function renderGrossProfitModule(content, mod) {
     grossMargin = pts / 100;
     saveGrossMargin();
     document.getElementById('gpMarginVal').textContent = (Math.round(grossMargin * 1000) / 10) + '%';
-    renderGpStats(); renderGpTable();
+    renderGpStats(); renderGpTable(); renderGpChart();
     showToast('毛利率已设为 ' + (Math.round(grossMargin * 1000) / 10) + '%');
   });
   renderGpStats();
   renderGpTable();
+  renderGpChart();
 }
 
 function gpMonthRows() {
@@ -8726,6 +8732,29 @@ function renderGpTable() {
         }).join('')}
       </tbody>
     </table>`;
+}
+
+const GP_YEAR_COLORS = ['#14b8a6', '#6366f1', '#f59e0b', '#ec4899', '#10b981', '#ef4444', '#8b5cf6', '#0ea5e9'];
+function renderGpChart() {
+  const el = document.getElementById('gpChart');
+  if (!el) return;
+  const rows = gpMonthRows();
+  if (rows.length === 0) { el.innerHTML = `<div class="wt-empty">还没有可用数据：请先在「工资管理」录入营业额、在「月度成本管理」生成月度成本记录。</div>`; return; }
+  // 按年份分组：year -> { 月: 毛利 }
+  const byYear = {};
+  rows.forEach(r => {
+    const p = (r.month || '').split('-').map(Number);
+    if (!(p[0] && p[1])) return;
+    (byYear[p[0]] = byYear[p[0]] || {})[p[1]] = r.gross;
+  });
+  const years = Object.keys(byYear).sort();
+  const series = years.map((y, i) => ({ year: y, color: GP_YEAR_COLORS[i % GP_YEAR_COLORS.length], vals: byYear[y] }));
+  let legend = '';
+  if (years.length > 1) {
+    legend = '<div class="ce-chart-legend">' + years.map((y, i) =>
+      `<span class="ce-lg-item"><i style="background:${GP_YEAR_COLORS[i % GP_YEAR_COLORS.length]}"></i>${y}年</span>`).join('') + '</div>';
+  }
+  el.innerHTML = legend + buildYearLinesSVG(series);
 }
 
 // ===================== 库存管理（香烟 / 酒水） =====================
