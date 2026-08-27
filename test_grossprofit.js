@@ -22,14 +22,14 @@ window.localStorage.setItem('liumo_monthly_cost_logs', JSON.stringify([
 window.eval("currentModule='grossprofit'; renderContent();");
 
 // 1) 模块渲染与默认毛利率
-check('模块标题', $('.page-title') && $('.page-title').textContent.includes('毛利分析'));
+check('模块标题', $('.page-title') && $('.page-title').textContent.includes('净利润分析'));
 check('毛利率输入框默认 18', $('#gpMargin').value === '18');
 check('当前毛利率显示 18%', $('#gpMarginVal').textContent === '18%');
 
-// 1.5) 年度毛利曲线图（一年一条曲线，曲线上标注数据）
-check('毛利曲线图已渲染(svg)', !!$('#gpChart svg'));
+// 1.5) 年度净利润曲线图（一年一条曲线，曲线上标注数据）
+check('净利润曲线图已渲染(svg)', !!$('#gpChart svg'));
 check('图表含年份标注(2026年)', $('#gpChart').textContent.includes('2026年'));
-check('曲线上已标注毛利数据数值', /\-?[\d]{2,}/.test($('#gpChart svg').textContent));
+check('曲线上已标注净利润数据数值', /\-?[\d]{2,}/.test($('#gpChart svg').textContent));
 
 // 2) 表格按月份倒序，2 行（2026-08、2026-07）
 const rows = $all('#gpTable tbody tr');
@@ -39,21 +39,21 @@ check('次行为 2026-07', rows[1] && rows[1].textContent.includes('2026-07'));
 check('2026-08 营业额 100,000', rows[0] && rows[0].textContent.includes('100,000'));
 check('2026-08 总成本 24,200', rows[0] && rows[0].textContent.includes('24,200'));
 
-// 3) 2026-08 毛利 = 100000*0.18 - 24200 = -6200
-check('2026-08 毛利 -6,200', rows[0] && rows[0].textContent.includes('-6,200'));
+// 3) 2026-08 净利润 = 100000*0.18 - 24200 = -6200
+check('2026-08 净利润 -6,200', rows[0] && rows[0].textContent.includes('-6,200'));
 check('亏损行为红字 gp-neg', rows[0] && rows[0].querySelector('.gp-neg'));
 
-// 4) 汇总卡片：总毛利 -11800, 亏损月数 2
+// 4) 汇总卡片：总净利润 -11800, 亏损月数 2
 const statVals = $all('#gpStats .stat-value').map(e => e.textContent);
-check('总毛利 -11,800', statVals.some(v => v.includes('-11,800')));
+check('总净利润 -11,800', statVals.some(v => v.includes('-11,800')));
 check('亏损月数=2', statVals.some(v => v.includes('2 个月')));
 
-// 5) 改毛利率为 30% 并保存 → 2026-08 毛利 = 30000-24200 = 5800（盈利）
+// 5) 改利润率为 30% 并保存 → 2026-08 净利润 = 30000-24200 = 5800（盈利）
 $('#gpMargin').value = '30';
 $('#gpMarginSave').click();
 check('保存后显示 30%', $('#gpMarginVal').textContent === '30%');
 const rows2 = $all('#gpTable tbody tr');
-check('改率后 2026-08 毛利 5,800', rows2[0] && rows2[0].textContent.includes('5,800'));
+check('改率后 2026-08 净利润 5,800', rows2[0] && rows2[0].textContent.includes('5,800'));
 check('盈利行为绿字 gp-pos', rows2[0] && rows2[0].querySelector('.gp-pos'));
 const statVals2 = $all('#gpStats .stat-value').map(e => e.textContent);
 check('改率后总毛利 9,800', statVals2.some(v => v.includes('9,800')));

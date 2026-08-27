@@ -3294,8 +3294,8 @@ const MODULES = [
   },
   {
     id: 'grossprofit',
-    name: '毛利分析',
-    desc: '每月毛利 = 营业额 × 毛利率 − 总成本 · 营业额取自工资管理 · 总成本取自月度成本管理',
+    name: '净利润分析',
+    desc: '每月净利润 = 营业额 × 利润率 − 总成本 · 营业额取自工资管理 · 总成本取自月度成本管理',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
     enabled: true
   },
@@ -8637,13 +8637,13 @@ function renderGrossProfitModule(content, mod) {
       <div class="page-desc">${mod.desc}</div>
     </div>
     <div class="wt-note">
-      说明：每月<b>毛利 = 营业额 × 毛利率 − 总成本</b>。营业额取自<b>工资管理</b>的营业额，总成本取自<b>月度成本管理</b>的「该月成本」。毛利率可自定义，默认 <b>18 个点（18%）</b>。
+      说明：每月<b>净利润 = 营业额 × 利润率 − 总成本</b>。营业额取自<b>工资管理</b>的营业额，总成本取自<b>月度成本管理</b>的「该月成本」。利润率可自定义，默认 <b>18 个点（18%）</b>。
     </div>
     <div class="co-admin-card">
-      <div class="co-admin-head"><span>毛利率设置</span></div>
+      <div class="co-admin-head"><span>利润率设置</span></div>
       <div class="co-entry-grid">
         <div class="wt-field">
-          <label>毛利率（个点，默认 18）</label>
+          <label>利润率（个点，默认 18）</label>
           <div class="co-inline">
             <input type="number" step="0.1" min="0" max="100" id="gpMargin" class="co-entry-amt" value="${Math.round(grossMargin * 1000) / 10}" />
             <button class="co-fill-default" id="gpMarginSave" type="button">保存</button>
@@ -8651,17 +8651,17 @@ function renderGrossProfitModule(content, mod) {
         </div>
       </div>
       <div class="co-admin-total">
-        <span class="co-admin-total-label">当前毛利率</span>
+        <span class="co-admin-total-label">当前利润率</span>
         <span class="co-admin-total-val" id="gpMarginVal">${Math.round(grossMargin * 1000) / 10}%</span>
       </div>
     </div>
     <div class="wt-stats" id="gpStats"></div>
     <div class="wt-chart-card" style="margin-top:18px;">
-      <div class="wt-chart-title">年度毛利曲线（一年一条曲线 · 每月毛利，单位：元）</div>
+      <div class="wt-chart-title">年度净利润曲线（一年一条曲线 · 每月净利润，单位：元）</div>
       <div class="wt-cat-wrap"><div id="gpChart"></div></div>
     </div>
     <div class="wt-chart-card" style="margin-top:18px;">
-      <div class="wt-chart-title">月度毛利明细（营业额 × 毛利率 − 总成本）</div>
+      <div class="wt-chart-title">月度净利润明细（营业额 × 利润率 − 总成本）</div>
       <div class="wt-cat-wrap"><div id="gpTable"></div></div>
     </div>
   `;
@@ -8674,7 +8674,7 @@ function renderGrossProfitModule(content, mod) {
     saveGrossMargin();
     document.getElementById('gpMarginVal').textContent = (Math.round(grossMargin * 1000) / 10) + '%';
     renderGpStats(); renderGpTable(); renderGpChart();
-    showToast('毛利率已设为 ' + (Math.round(grossMargin * 1000) / 10) + '%');
+    showToast('利润率已设为 ' + (Math.round(grossMargin * 1000) / 10) + '%');
   });
   renderGpStats();
   renderGpTable();
@@ -8703,8 +8703,8 @@ function renderGpStats() {
   const profitMonths = rows.filter(r => r.gross >= 0).length;
   const lossMonths = rows.length - profitMonths;
   el.innerHTML = [
-    statCard('总毛利', saMoney(totalGross), totalGross < 0 ? 'warning' : 'success'),
-    statCard('平均月毛利', saMoney(avg), ''),
+    statCard('总净利润', saMoney(totalGross), totalGross < 0 ? 'warning' : 'success'),
+    statCard('平均月净利润', saMoney(avg), ''),
     statCard('盈利月数', profitMonths + ' 个月', 'success'),
     statCard('亏损月数', lossMonths + ' 个月', lossMonths ? 'warning' : '')
   ].join('');
@@ -8718,7 +8718,7 @@ function renderGpTable() {
   const rateTxt = (Math.round(grossMargin * 1000) / 10) + '%';
   el.innerHTML = `
     <table class="wt-cat">
-      <thead><tr><th>月份</th><th>营业额</th><th>总成本</th><th>毛利率</th><th>毛利</th></tr></thead>
+      <thead><tr><th>月份</th><th>营业额</th><th>总成本</th><th>利润率</th><th>净利润</th></tr></thead>
       <tbody>
         ${rows.map(r => {
           const cls = r.gross < 0 ? 'gp-neg' : 'gp-pos';
@@ -8740,7 +8740,7 @@ function renderGpChart() {
   if (!el) return;
   const rows = gpMonthRows();
   if (rows.length === 0) { el.innerHTML = `<div class="wt-empty">还没有可用数据：请先在「工资管理」录入营业额、在「月度成本管理」生成月度成本记录。</div>`; return; }
-  // 按年份分组：year -> { 月: 毛利 }
+  // 按年份分组：year -> { 月: 净利润 }
   const byYear = {};
   rows.forEach(r => {
     const p = (r.month || '').split('-').map(Number);
