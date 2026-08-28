@@ -80,6 +80,19 @@ const recs = JSON.parse(window.localStorage.getItem('liumo_dealerfee_records'));
 check('记录金额=2200(已修改)', recs.length === 1 && recs[0].amount === 2200);
 check('记录月份为当前月', recs[0] && recs[0].month === (new Date().getMonth() + 1));
 
+// 4b) 第二个启用经销商 + 登记费用，让柱状图呈现「启用蓝 + 禁用灰」两根柱
+clickTab('经销商管理');
+$('#dfDName').value = '乐乐便利';
+$('#dfDSave').click();
+clickTab('费用管理');
+const sel2 = $('#dfRecDealer');
+const leOpt = Array.from(sel2.options).find(o => o.textContent.includes('乐乐便利'));
+sel2.value = leOpt.value;
+sel2.dispatchEvent(new window.Event('change', { bubbles: true }));
+$('#dfRecAmount').value = '1500';
+$('#dfRecSave').click();
+check('第二笔费用(乐乐便利)已添加', $('#dfRecList').textContent.includes('乐乐便利'));
+
 // 5) 禁用已登记费用的经销商后：已有费用不受影响，设置中不可选
 clickTab('经销商管理');
 (function () {
@@ -105,6 +118,16 @@ check('统计含 按年份汇总', $('#dfBody').textContent.includes('按年份�
 check('统计含 按月趋势', $('#dfBody').textContent.includes('按月趋势'));
 check('统计仍含 旺旺食品(记录不受影响)', $('#dfBody').textContent.includes('旺旺食品'));
 check('统计本年累计含 2,200', $('#dfBody').textContent.includes('2,200'));
+// 按经销商柱状图
+check('统计含 按经销商费用柱状图 卡片', $('#dfBody').textContent.includes('按经销商费用柱状图'));
+check('柱状图 SVG 已渲染', !!$('#dfBody .df-chart-bar'));
+const barRects = $all('#dfBody .df-chart-bar rect');
+check('柱状图至少 2 根柱(旺旺+乐乐)', barRects.length >= 2);
+check('柱状图含启用/禁用图例', $('#dfBody').querySelectorAll('.df-chart-legend').length >= 1);
+const disabledBar = $all('#dfBody .df-chart-bar rect').some(r => (r.getAttribute('fill') || '') === '#94a3b8');
+check('禁用经销商柱为灰色', disabledBar);
+const enabledBar = $all('#dfBody .df-chart-bar rect').some(r => (r.getAttribute('fill') || '') === '#2563eb');
+check('启用经销商柱为蓝色', enabledBar);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
