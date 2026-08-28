@@ -2938,6 +2938,28 @@
   .gp-grp-bar text { font-family: var(--font-sans, system-ui, sans-serif); }
   .gp-grp-legend { display: flex; gap: 18px; align-items: center; font-size: 13px; color: var(--text); margin: 2px 2px 8px; }
   .gp-grp-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  /* 经销商费用管理 */
+  .df-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .df-tab { border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 999px; padding: 7px 16px; font-size: 14px; cursor: pointer; transition: all var(--transition); }
+  .df-tab:hover { border-color: var(--text-muted); }
+  .df-tab.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .df-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 14px; }
+  .df-card h3 { margin: 0 0 10px; font-size: 15px; }
+  .df-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end; }
+  .df-form .wt-field { margin: 0; }
+  .df-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .df-empty { color: var(--text-muted); font-size: 13px; padding: 8px 0; line-height: 1.7; }
+  .df-status { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .df-status.on { background: rgba(16,185,129,.15); color: var(--success, #10b981); }
+  .df-status.off { background: rgba(239,68,68,.15); color: var(--danger, #ef4444); }
+  .df-btn { border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 8px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; transition: all var(--transition); margin-right: 4px; }
+  .df-btn:hover { border-color: var(--text-muted); }
+  .df-btn.df-del { color: var(--danger, #ef4444); border-color: rgba(239,68,68,.4); }
+  .df-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .df-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .df-bar { flex: 1; min-width: 60px; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+  .df-bar > i { display: block; height: 100%; background: #2563eb; }
+  .df-pct { font-size: 12px; color: var(--text-muted); white-space: nowrap; min-width: 34px; text-align: right; }
   .cat-gross { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .cat-gross .bar { flex: 0 0 70px; height: 6px; border-radius: 4px; background: var(--border); overflow: hidden; }
   .cat-gross .bar > i { display: block; height: 100%; border-radius: 4px; }
@@ -3453,6 +3475,13 @@ const MODULES = [
     desc: '管理香烟与酒水的库存 · 入库/出库自动记录 · 库存预警',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>',
     enabled: true
+  },
+  {
+    id: 'dealerfee',
+    name: '经销商费用',
+    desc: '维护经销商每月给超市的固定费用 · 费用设置 / 经销商管理 / 费用统计',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h14l2 3"/><path d="M12 11v6M9 14h6"/></svg>',
+    enabled: true
   }
 ];
 
@@ -3905,6 +3934,12 @@ function renderContent() {
   // 库存管理模块
   if (currentModule === 'inventory') {
     renderInventoryModule(content, mod);
+    return;
+  }
+
+  // 经销商费用管理模块
+  if (currentModule === 'dealerfee') {
+    renderDealerFeeModule(content, mod);
     return;
   }
 
@@ -9144,6 +9179,350 @@ function renderGpCompare() {
       </div>
       ${overallTable}
     </div>`;
+}
+
+// ===================== 经销商费用管理 =====================
+const DEALER_FEE_DEALERS_KEY = 'liumo_dealerfee_dealers';
+const DEALER_FEE_SETTINGS_KEY = 'liumo_dealerfee_settings';
+const DEALER_FEE_RECORDS_KEY = 'liumo_dealerfee_records';
+let dealerFeeDealers = [];
+let dealerFeeSettings = {};   // { [dealerId]: 每月固定金额 }
+let dealerFeeRecords = [];    // { id, dealerId, year, month, amount, note, createdAt }
+let dealerFeeTab = 'manage';  // manage | setting | dealer | stats
+let dealerFeeDealerEditing = null;
+let dealerFeeRecEditing = null;
+let dfContent = null, dfMod = null;
+
+function loadDealerFee() {
+  try { dealerFeeDealers = JSON.parse(localStorage.getItem(DEALER_FEE_DEALERS_KEY) || '[]'); } catch (e) { dealerFeeDealers = []; }
+  if (!Array.isArray(dealerFeeDealers)) dealerFeeDealers = [];
+  try { dealerFeeSettings = JSON.parse(localStorage.getItem(DEALER_FEE_SETTINGS_KEY) || '{}'); } catch (e) { dealerFeeSettings = {}; }
+  if (typeof dealerFeeSettings !== 'object' || !dealerFeeSettings) dealerFeeSettings = {};
+  try { dealerFeeRecords = JSON.parse(localStorage.getItem(DEALER_FEE_RECORDS_KEY) || '[]'); } catch (e) { dealerFeeRecords = []; }
+  if (!Array.isArray(dealerFeeRecords)) dealerFeeRecords = [];
+}
+function saveDealerFeeDealers() { localStorage.setItem(DEALER_FEE_DEALERS_KEY, JSON.stringify(dealerFeeDealers)); }
+function saveDealerFeeSettings() { localStorage.setItem(DEALER_FEE_SETTINGS_KEY, JSON.stringify(dealerFeeSettings)); }
+function saveDealerFeeRecords() { localStorage.setItem(DEALER_FEE_RECORDS_KEY, JSON.stringify(dealerFeeRecords)); }
+
+const dfDealerById = id => dealerFeeDealers.find(d => d.id === id);
+const dfDealerName = id => { const d = dfDealerById(id); return d ? d.name : '已删除经销商'; };
+const dfDealerEnabled = id => { const d = dfDealerById(id); return d ? !!d.enabled : false; };
+const dfMonthLabel = (y, m) => y + '年' + (m < 10 ? '0' + m : '' + m) + '月';
+const dfCurY = () => new Date().getFullYear();
+const dfCurM = () => new Date().getMonth() + 1;
+const dfEnabledDealers = () => dealerFeeDealers.filter(d => d.enabled);
+
+function dfTabsHtml() {
+  const tabs = [['manage', '费用管理'], ['setting', '费用设置'], ['dealer', '经销商管理'], ['stats', '费用统计']];
+  return `<div class="df-tabs">` + tabs.map(([id, name]) =>
+    `<button class="df-tab ${dealerFeeTab === id ? 'on' : ''}" data-tab="${id}" type="button">${name}</button>`
+  ).join('') + `</div>`;
+}
+function dfRender() { if (dfContent) renderDealerFeeModule(dfContent, dfMod); }
+
+function renderDealerFeeModule(content, mod) {
+  loadDealerFee();
+  dfContent = content; dfMod = mod;
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      维护<b>经销商每月给超市的固定费用</b>。先在「经销商管理」录入经销商并<b>启用</b>，再到「费用设置」为每个启用经销商配置<b>每月固定金额</b>；
+      之后在「费用管理」按月登记费用（自动带出设置金额，可改），「费用统计」查看汇总。
+      <b>禁用</b>的经销商在费用设置中不可选择，其<b>已登记费用不受影响</b>。
+    </div>
+    ${dfTabsHtml()}
+    <div id="dfBody"></div>
+  `;
+  content.querySelectorAll('.df-tab').forEach(b => b.addEventListener('click', () => {
+    dealerFeeTab = b.dataset.tab;
+    renderDealerFeeModule(content, mod);
+  }));
+  renderDealerFeeBody();
+}
+function renderDealerFeeBody() {
+  const body = dfContent && dfContent.querySelector('#dfBody');
+  if (!body) return;
+  if (dealerFeeTab === 'manage') dfRenderManage(body);
+  else if (dealerFeeTab === 'setting') dfRenderSetting(body);
+  else if (dealerFeeTab === 'dealer') dfRenderDealer(body);
+  else dfRenderStats(body);
+}
+
+// ---- 费用管理 ----
+function dfRenderManage(body) {
+  const enabled = dfEnabledDealers();
+  const curY = dfCurY(), curM = dfCurM();
+  const edit = dealerFeeRecEditing ? dealerFeeRecords.find(r => r.id === dealerFeeRecEditing) : null;
+  const selDealer = edit ? edit.dealerId : '';
+  const selYear = edit ? edit.year : curY;
+  const selMonth = edit ? edit.month : curM;
+  const amt = edit ? edit.amount : '';
+  const note = edit ? (edit.note || '') : '';
+  const dealerOpts = enabled.map(d => `<option value="${d.id}"${String(d.id) === String(selDealer) ? ' selected' : ''}>${escapeHtml(d.name)}</option>`).join('');
+  const yearOpts = [curY - 2, curY - 1, curY, curY + 1].map(y => `<option value="${y}"${y === selYear ? ' selected' : ''}>${y} 年</option>`).join('');
+  const monthOpts = Array.from({ length: 12 }, (_, i) => i + 1).map(m => `<option value="${m}"${m === selMonth ? ' selected' : ''}>${m} 月</option>`).join('');
+
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>${edit ? '编辑费用记录' : '登记月度费用'}</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>经销商</label><select id="dfRecDealer">${dealerOpts ? dealerOpts : '<option value="">（无启用经销商）</option>'}</select></div>
+        <div class="wt-field"><label>年份</label><select id="dfRecYear">${yearOpts}</select></div>
+        <div class="wt-field"><label>月份</label><select id="dfRecMonth">${monthOpts}</select></div>
+        <div class="wt-field"><label>费用金额（元）</label><input type="number" step="any" min="0" id="dfRecAmount" placeholder="自动带出设置金额" value="${amt}"/></div>
+        <div class="wt-field" style="grid-column:1/-1;"><label>备注（选填）</label><input type="text" id="dfRecNote" placeholder="如 8月货架费" value="${escapeHtml(note)}"/></div>
+      </div>
+      <div class="df-actions">
+        <button class="btn-add" id="dfRecSave">${edit ? '保存修改' : '添加费用'}</button>
+        ${edit ? '<button class="btn-ghost" id="dfRecCancel">取消</button>' : ''}
+      </div>
+      <div class="df-empty" id="dfRecHint"></div>
+    </div>
+    <div class="df-card">
+      <h3>费用记录（${dealerFeeRecords.length}）</h3>
+      <div id="dfRecList"></div>
+    </div>
+  `;
+
+  const dealerSel = body.querySelector('#dfRecDealer');
+  const amtInput = body.querySelector('#dfRecAmount');
+  const hint = body.querySelector('#dfRecHint');
+  const refreshHint = () => {
+    const v = dealerSel.value;
+    if (!v) { hint.textContent = ''; return; }
+    if (dealerFeeSettings[v] != null) hint.textContent = '已从「费用设置」带出 ' + dfDealerName(v) + ' 的每月固定费用 ' + saMoney(dealerFeeSettings[v]) + '（可修改）';
+    else hint.textContent = '该经销商尚未在「费用设置」配置金额，请手动输入，或先去「费用设置」配置。';
+  };
+  if (dealerSel) {
+    dealerSel.addEventListener('change', () => { if (amtInput && dealerSel.value && dealerFeeSettings[dealerSel.value] != null) amtInput.value = dealerFeeSettings[dealerSel.value]; refreshHint(); });
+    refreshHint();
+  }
+  body.querySelector('#dfRecSave').addEventListener('click', dfSaveRec);
+  const cancel = body.querySelector('#dfRecCancel');
+  if (cancel) cancel.addEventListener('click', () => { dealerFeeRecEditing = null; dfRender(); });
+  dfRenderRecList(body);
+}
+function dfSaveRec() {
+  const body = dfContent.querySelector('#dfBody');
+  const dealerId = body.querySelector('#dfRecDealer').value;
+  const year = Number(body.querySelector('#dfRecYear').value);
+  const month = Number(body.querySelector('#dfRecMonth').value);
+  const amount = Number(body.querySelector('#dfRecAmount').value) || 0;
+  const note = body.querySelector('#dfRecNote').value.trim();
+  if (!dealerId) { showToast('请选择经销商'); return; }
+  if (!(amount >= 0)) { showToast('请输入有效金额'); return; }
+  const editId = dealerFeeRecEditing;
+  if (editId) {
+    const r = dealerFeeRecords.find(x => x.id === editId);
+    if (r) { r.dealerId = dealerId; r.year = year; r.month = month; r.amount = amount; r.note = note; }
+    dealerFeeRecEditing = null;
+  } else {
+    const exist = dealerFeeRecords.find(x => x.dealerId === dealerId && x.year === year && x.month === month);
+    if (exist) { exist.amount = amount; exist.note = note; showToast('该月记录已存在，已更新金额'); }
+    else dealerFeeRecords.push({ id: uid(), dealerId, year, month, amount, note, createdAt: Date.now() });
+  }
+  saveDealerFeeRecords();
+  showToast('已保存');
+  dfRender();
+}
+function dfRenderRecList(body) {
+  const el = body.querySelector('#dfRecList');
+  if (!el) return;
+  const recs = dealerFeeRecords.slice().sort((a, b) => b.year - a.year || b.month - a.month);
+  if (recs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有费用记录，先在上方登记。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>经销商</th><th>状态</th><th>月份</th><th>费用金额</th><th>备注</th><th>操作</th></tr></thead><tbody>` +
+    recs.map(r => {
+      const st = dfDealerEnabled(r.dealerId) ? '<span class="df-status on">启用</span>' : '<span class="df-status off">禁用</span>';
+      return `<tr>
+        <td>${escapeHtml(dfDealerName(r.dealerId))}</td>
+        <td>${st}</td>
+        <td>${dfMonthLabel(r.year, r.month)}</td>
+        <td>${saMoney(r.amount)}</td>
+        <td>${escapeHtml(r.note || '')}</td>
+        <td>
+          <button class="df-btn" data-act="edit" data-id="${r.id}">编辑</button>
+          <button class="df-btn df-del" data-act="del" data-id="${r.id}">删除</button>
+        </td></tr>`;
+    }).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    if (b.dataset.act === 'edit') { dealerFeeRecEditing = id; dfRender(); }
+    else if (confirm('确定删除该费用记录？')) { dealerFeeRecords = dealerFeeRecords.filter(x => x.id !== id); saveDealerFeeRecords(); dfRender(); }
+  }));
+}
+
+// ---- 费用设置 ----
+function dfRenderSetting(body) {
+  const enabled = dfEnabledDealers();
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>费用设置（每月固定金额）</h3>
+      <div class="df-empty">为<b>启用</b>的经销商配置每月固定费用；<b>禁用</b>经销商不在此出现（不可选择），其已登记费用不受影响。</div>
+      <div id="dfSetList"></div>
+    </div>
+  `;
+  const el = body.querySelector('#dfSetList');
+  if (enabled.length === 0) { el.innerHTML = `<div class="wt-empty">还没有启用的经销商，请先到「经销商管理」添加并启用。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>经销商</th><th>每月固定费用</th><th>本年已登记</th><th>操作</th></tr></thead><tbody>` +
+    enabled.map(d => {
+      const amt = dealerFeeSettings[d.id];
+      const cnt = dealerFeeRecords.filter(r => r.dealerId === d.id && r.year === dfCurY()).length;
+      return `<tr data-did="${d.id}">
+        <td>${escapeHtml(d.name)}</td>
+        <td><input type="number" step="any" min="0" class="df-set-amt" value="${amt != null ? amt : ''}" placeholder="如 2000" style="width:120px;"/></td>
+        <td>${cnt} 笔</td>
+        <td>
+          <button class="df-btn df-set-save" data-did="${d.id}">保存</button>
+          <button class="df-btn df-del df-set-clear" data-did="${d.id}"${amt == null ? ' disabled' : ''}>清除</button>
+        </td></tr>`;
+    }).join('') + `</tbody></table>`;
+  el.querySelectorAll('.df-set-save').forEach(b => b.addEventListener('click', () => {
+    const did = b.dataset.did;
+    const inp = el.querySelector('tr[data-did="' + did + '"] .df-set-amt');
+    const v = Number(inp.value) || 0;
+    dealerFeeSettings[did] = v;
+    saveDealerFeeSettings();
+    showToast('已保存 ' + dfDealerName(did) + ' 的费用设置');
+    dfRender();
+  }));
+  el.querySelectorAll('.df-set-clear').forEach(b => b.addEventListener('click', () => {
+    const did = b.dataset.did;
+    delete dealerFeeSettings[did];
+    saveDealerFeeSettings();
+    showToast('已清除设置');
+    dfRender();
+  }));
+}
+
+// ---- 经销商管理 ----
+function dfRenderDealer(body) {
+  const edit = dealerFeeDealerEditing ? dfDealerById(dealerFeeDealerEditing) : null;
+  const name = edit ? edit.name : '';
+  const contact = edit ? (edit.contact || '') : '';
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>${edit ? '编辑经销商' : '添加经销商'}</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>名称</label><input type="text" id="dfDName" placeholder="如 旺旺食品" value="${escapeHtml(name)}"/></div>
+        <div class="wt-field"><label>联系方式（选填）</label><input type="text" id="dfDContact" placeholder="电话 / 微信" value="${escapeHtml(contact)}"/></div>
+      </div>
+      <div class="df-actions">
+        <button class="btn-add" id="dfDSave">${edit ? '保存修改' : '添加经销商'}</button>
+        ${edit ? '<button class="btn-ghost" id="dfDCancel">取消</button>' : ''}
+      </div>
+    </div>
+    <div class="df-card">
+      <h3>经销商列表（${dealerFeeDealers.length}）</h3>
+      <div id="dfDList"></div>
+    </div>
+  `;
+  body.querySelector('#dfDSave').addEventListener('click', dfSaveDealer);
+  const cancel = body.querySelector('#dfDCancel');
+  if (cancel) cancel.addEventListener('click', () => { dealerFeeDealerEditing = null; dfRender(); });
+  dfRenderDealerList(body);
+}
+function dfSaveDealer() {
+  const body = dfContent.querySelector('#dfBody');
+  const name = body.querySelector('#dfDName').value.trim();
+  const contact = body.querySelector('#dfDContact').value.trim();
+  if (!name) { showToast('请输入经销商名称'); return; }
+  if (dealerFeeDealerEditing) {
+    const d = dfDealerById(dealerFeeDealerEditing);
+    if (d) { d.name = name; d.contact = contact; }
+    dealerFeeDealerEditing = null;
+  } else {
+    dealerFeeDealers.push({ id: uid(), name, contact, enabled: true, createdAt: Date.now() });
+  }
+  saveDealerFeeDealers();
+  showToast('已保存');
+  dfRender();
+}
+function dfRenderDealerList(body) {
+  const el = body.querySelector('#dfDList');
+  if (!el) return;
+  if (dealerFeeDealers.length === 0) { el.innerHTML = `<div class="wt-empty">还没有经销商，先在上方添加。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>名称</th><th>联系方式</th><th>状态 / 费用设置</th><th>操作</th></tr></thead><tbody>` +
+    dealerFeeDealers.map(d => {
+      const st = d.enabled ? '<span class="df-status on">启用</span>' : '<span class="df-status off">禁用</span>';
+      const fee = dealerFeeSettings[d.id];
+      const feeTxt = fee != null ? saMoney(fee) + '/月' : '未设置';
+      return `<tr>
+        <td>${escapeHtml(d.name)}</td>
+        <td>${escapeHtml(d.contact || '—')}</td>
+        <td>${st} · ${feeTxt}</td>
+        <td>
+          <button class="df-btn" data-act="toggle" data-id="${d.id}">${d.enabled ? '禁用' : '启用'}</button>
+          <button class="df-btn" data-act="edit" data-id="${d.id}">编辑</button>
+          <button class="df-btn df-del" data-act="del" data-id="${d.id}">删除</button>
+        </td></tr>`;
+    }).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id, act = b.dataset.act;
+    if (act === 'toggle') {
+      const d = dfDealerById(id);
+      if (d) { d.enabled = !d.enabled; saveDealerFeeDealers(); showToast(d.enabled ? '已启用' : '已禁用（费用设置中不可再选，已有费用不受影响）'); dfRender(); }
+    } else if (act === 'edit') { dealerFeeDealerEditing = id; dfRender(); }
+    else if (act === 'del') {
+      if (confirm('删除经销商将同时清除其费用设置；已登记的费用记录保留（显示「已删除经销商」）。确定？')) {
+        dealerFeeDealers = dealerFeeDealers.filter(x => x.id !== id);
+        delete dealerFeeSettings[id];
+        saveDealerFeeDealers(); saveDealerFeeSettings();
+        if (dealerFeeDealerEditing === id) dealerFeeDealerEditing = null;
+        dfRender();
+      }
+    }
+  }));
+}
+
+// ---- 费用统计 ----
+function dfRenderStats(body) {
+  const total = dealerFeeRecords.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const count = dealerFeeRecords.length;
+  const curY = dfCurY(), curM = dfCurM();
+  const ytd = dealerFeeRecords.filter(r => r.year === curY).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const monthAmt = dealerFeeRecords.filter(r => r.year === curY && r.month === curM).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+
+  const byDealer = {};
+  dealerFeeRecords.forEach(r => { byDealer[r.dealerId] = (byDealer[r.dealerId] || 0) + (Number(r.amount) || 0); });
+  const dealerRows = Object.keys(byDealer).map(id => ({ id, name: dfDealerName(id), enabled: dfDealerEnabled(id), amt: byDealer[id], cnt: dealerFeeRecords.filter(r => r.dealerId === id).length })).sort((a, b) => b.amt - a.amt);
+  const maxDealer = dealerRows.length ? dealerRows[0].amt : 1;
+
+  const byYear = {};
+  dealerFeeRecords.forEach(r => { byYear[r.year] = (byYear[r.year] || 0) + (Number(r.amount) || 0); });
+  const yearRows = Object.keys(byYear).map(y => ({ year: Number(y), amt: byYear[y], cnt: dealerFeeRecords.filter(r => r.year === Number(y)).length })).sort((a, b) => b.year - a.year);
+
+  const byMonth = {};
+  dealerFeeRecords.filter(r => r.year === curY).forEach(r => { byMonth[r.month] = (byMonth[r.month] || 0) + (Number(r.amount) || 0); });
+  const monthRows = Array.from({ length: 12 }, (_, i) => i + 1).map(m => ({ m, amt: byMonth[m] || 0, cnt: dealerFeeRecords.filter(r => r.year === curY && r.month === m).length }));
+
+  const dealerTable = dealerRows.length ? `<table class="wt-cat"><thead><tr><th>经销商</th><th>状态</th><th>笔数</th><th>费用合计</th><th style="width:38%">占比</th></tr></thead><tbody>` +
+    dealerRows.map(r => {
+      const st = r.enabled ? '<span class="df-status on">启用</span>' : '<span class="df-status off">禁用</span>';
+      const pct = maxDealer ? Math.round(r.amt / maxDealer * 100) : 0;
+      return `<tr><td>${escapeHtml(r.name)}</td><td>${st}</td><td>${r.cnt}</td><td>${saMoney(r.amt)}</td><td><div class="df-bar-wrap"><div class="df-bar"><i style="width:${pct}%"></i></div><span class="df-pct">${pct}%</span></div></td></tr>`;
+    }).join('') + `</tbody></table>` : `<div class="wt-empty">暂无数据</div>`;
+  const yearTable = yearRows.length ? `<table class="wt-cat"><thead><tr><th>年份</th><th>笔数</th><th>费用合计</th></tr></thead><tbody>` +
+    yearRows.map(r => `<tr><td>${r.year} 年</td><td>${r.cnt}</td><td>${saMoney(r.amt)}</td></tr>`).join('') + `</tbody></table>` : `<div class="wt-empty">暂无数据</div>`;
+
+  body.innerHTML = `
+    <div class="wt-stats">
+      ${statCard('费用总额', saMoney(total), '')}
+      ${statCard('记录数', count + ' 笔', '')}
+      ${statCard(curY + ' 年累计', saMoney(ytd), '')}
+      ${statCard(curY + '年' + curM + '月', saMoney(monthAmt), '')}
+    </div>
+    <div class="df-card"><h3>按经销商汇总</h3>${dealerTable}</div>
+    <div class="df-card"><h3>按年份汇总</h3>${yearTable}</div>
+    <div class="df-card"><h3>${curY} 年按月趋势</h3>
+      <table class="wt-cat"><thead><tr><th>月份</th><th>笔数</th><th>费用合计</th></tr></thead><tbody>
+        ${monthRows.map(r => `<tr><td>${r.m} 月</td><td>${r.cnt}</td><td>${r.amt ? saMoney(r.amt) : '—'}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  `;
 }
 
 // ===================== 库存管理（香烟 / 酒水） =====================
