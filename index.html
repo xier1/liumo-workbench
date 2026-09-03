@@ -10258,6 +10258,10 @@ function renderInventoryModule(content, mod) {
             <input type="number" step="any" min="0" id="ivStock" placeholder="0" />
           </div>
           <div class="wt-field">
+            <label>单位</label>
+            <input type="text" id="ivUnit" placeholder="如 包 / 条 / 瓶 / 箱" />
+          </div>
+          <div class="wt-field">
             <label>是否需要预警</label>
             <label class="iv-checkbox-label">
               <input type="checkbox" id="ivNeedWarn" checked />
@@ -10370,8 +10374,7 @@ function ivItemRow(it) {
       <div class="iv-item-sub">${sub}</div>
     </div>
     <div class="iv-item-stock ${isWarn ? 'iv-warn' : ''}">
-      <div class="iv-stock-num">${stock}</div>
-      <div class="iv-stock-unit">${isWarn ? '预警' : ''}</div>
+      <div class="iv-stock-num">${stock}${it.unit ? ' <span class="iv-stock-unit">' + escapeHtml(it.unit) + '</span>' : ''}</div>
     </div>
     <div class="iv-item-amount">
       <div class="iv-amount-label">库存金额</div>
@@ -10439,7 +10442,7 @@ function renderInventoryLogs() {
     return `<div class="iv-log-row">
       <span class="iv-log-tag ${cls}">${tag}</span>
       <span class="iv-log-name">${escapeHtml(l.itemName || '')}</span>
-      <span class="iv-log-qty ${cls}">${sign}${l.qty} ${escapeHtml(l.unit || '')}</span>
+      <span class="iv-log-qty ${cls}">${sign}${l.qty}${l.unit ? ' ' + escapeHtml(l.unit) : ''}</span>
       ${l.note ? '<span class="iv-log-note">' + escapeHtml(l.note) + '</span>' : ''}
       <span class="iv-log-time">${dt}</span>
     </div>`;
@@ -10451,6 +10454,7 @@ function bindInventoryEvents() {
   const catEl = document.getElementById('ivCat');
   const priceEl = document.getElementById('ivPrice');
   const stockEl = document.getElementById('ivStock');
+  const unitEl = document.getElementById('ivUnit');
   const warnEl = document.getElementById('ivWarn');
   const needWarnEl = document.getElementById('ivNeedWarn');
   const warnField = document.getElementById('ivWarnField');
@@ -10523,10 +10527,12 @@ function bindInventoryEvents() {
     const stock = parseFloat(stockEl.value);
     const needWarn = needWarnEl.checked;
     const warnRaw = parseFloat(warnEl.value);
+    const unit = unitEl.value.trim();
     const rec = {
       name, category,
       price: isNaN(price) ? 0 : price,
       stock: isNaN(stock) ? 0 : stock,
+      unit: unit,
       needWarn: needWarn,
       warn: needWarn ? (isNaN(warnRaw) ? 2 : warnRaw) : 0,
       updatedAt: Date.now()
@@ -10555,7 +10561,7 @@ function bindInventoryEvents() {
     if (!btn) return;
     const id = btn.dataset.id;
     const act = btn.dataset.act;
-    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, priceEl, stockEl, warnEl, needWarnEl, saveLabel, cancelBtn });
+    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, priceEl, stockEl, unitEl, warnEl, needWarnEl, saveLabel, cancelBtn });
     else if (act === 'del') deleteInventoryItem(id);
     else openInventoryModal(id, act);   // in / out
   });
@@ -10594,6 +10600,7 @@ function startInventoryEdit(id, refs) {
   refs.catEl.value = it.category;
   refs.priceEl.value = it.price || '';
   refs.stockEl.value = it.stock;
+  refs.unitEl.value = it.unit || '';
   const needWarn = it.needWarn !== undefined ? it.needWarn : (Number(it.warn) > 0);
   refs.needWarnEl.checked = needWarn;
   refs.warnEl.value = needWarn ? (it.warn || '') : '';
@@ -10657,7 +10664,7 @@ function bindInventoryModal() {
     it.updatedAt = Date.now();
     inventoryLogs.push({
       id: uid(), itemId: it.id, itemName: it.name, category: it.category,
-      type: ivModalType, qty: v, note: note.value.trim(),
+      type: ivModalType, qty: v, note: note.value.trim(), unit: it.unit || '',
       createdAt: Date.now()
     });
     saveInventory();
