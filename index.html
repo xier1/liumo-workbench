@@ -3487,6 +3487,13 @@ const MODULES = [
     desc: '维护经销商每月给超市的固定费用 · 费用设置 / 经销商管理 / 费用统计',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h14l2 3"/><path d="M12 11v6M9 14h6"/></svg>',
     enabled: true
+  },
+  {
+    id: 'bakery',
+    name: '面包房利润分析',
+    desc: '每月工资 · 每月工时 · 每月营业额 · 毛利分析(可设毛利率) · 工资/工时/营业额联动计算净毛利与时薪人效',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+    enabled: true
   }
 ];
 
@@ -3945,6 +3952,12 @@ function renderContent() {
   // 经销商费用管理模块
   if (currentModule === 'dealerfee') {
     renderDealerFeeModule(content, mod);
+    return;
+  }
+
+  // 面包房利润分析模块
+  if (currentModule === 'bakery') {
+    renderBakeryModule(content, mod);
     return;
   }
 
@@ -9568,6 +9581,362 @@ function dfRenderStats(body) {
       </tbody></table>
     </div>
   `;
+}
+
+// ===================== 面包房利润分析 =====================
+const BAKERY_SALARY_KEY = 'liumo_bakery_salary';
+const BAKERY_HOURS_KEY = 'liumo_bakery_hours';
+const BAKERY_REVENUE_KEY = 'liumo_bakery_revenue';
+const BAKERY_MARGIN_KEY = 'liumo_bakery_margin';
+let bakerySalary = [];    // { id, year, month, amount, note }
+let bakeryHours = [];     // { id, year, month, hours, note }
+let bakeryRevenue = [];   // { id, year, month, amount, note }
+let bakeryMargin = 0.6;   // 毛利率（0–1）
+let bakeryTab = 'salary'; // salary | hours | revenue | analysis
+let bakerySalaryEdit = null, bakeryHoursEdit = null, bakeryRevenueEdit = null;
+let bakeContent = null, bakeMod = null;
+
+function loadBakery() {
+  try { bakerySalary = JSON.parse(localStorage.getItem(BAKERY_SALARY_KEY) || '[]'); } catch (e) { bakerySalary = []; }
+  if (!Array.isArray(bakerySalary)) bakerySalary = [];
+  try { bakeryHours = JSON.parse(localStorage.getItem(BAKERY_HOURS_KEY) || '[]'); } catch (e) { bakeryHours = []; }
+  if (!Array.isArray(bakeryHours)) bakeryHours = [];
+  try { bakeryRevenue = JSON.parse(localStorage.getItem(BAKERY_REVENUE_KEY) || '[]'); } catch (e) { bakeryRevenue = []; }
+  if (!Array.isArray(bakeryRevenue)) bakeryRevenue = [];
+  const m = parseFloat(localStorage.getItem(BAKERY_MARGIN_KEY));
+  if (!isNaN(m) && m >= 0) bakeryMargin = m;
+}
+function saveBakerySalary() { localStorage.setItem(BAKERY_SALARY_KEY, JSON.stringify(bakerySalary)); }
+function saveBakeryHours() { localStorage.setItem(BAKERY_HOURS_KEY, JSON.stringify(bakeryHours)); }
+function saveBakeryRevenue() { localStorage.setItem(BAKERY_REVENUE_KEY, JSON.stringify(bakeryRevenue)); }
+function saveBakeryMargin() { localStorage.setItem(BAKERY_MARGIN_KEY, String(bakeryMargin)); }
+
+const bakeCurY = () => new Date().getFullYear();
+const bakeCurM = () => new Date().getMonth() + 1;
+const bakeMonthLabel = (y, m) => y + '年' + (m < 10 ? '0' + m : '' + m) + '月';
+const bakeYearOpts = sel => [bakeCurY() - 2, bakeCurY() - 1, bakeCurY(), bakeCurY() + 1].map(y => `<option value="${y}"${y === sel ? ' selected' : ''}>${y} 年</option>`).join('');
+const bakeMonthOpts = sel => Array.from({ length: 12 }, (_, i) => i + 1).map(m => `<option value="${m}"${m === sel ? ' selected' : ''}>${m} 月</option>`).join('');
+
+function bakeTabsHtml() {
+  const tabs = [['salary', '每月工资'], ['hours', '每月工时'], ['revenue', '每月营业额'], ['analysis', '毛利分析']];
+  return `<div class="df-tabs">` + tabs.map(([id, name]) =>
+    `<button class="df-tab ${bakeryTab === id ? 'on' : ''}" data-tab="${id}" type="button">${name}</button>`
+  ).join('') + `</div>`;
+}
+function bakeRender() { if (bakeContent) renderBakeryModule(bakeContent, bakeMod); }
+
+function renderBakeryModule(content, mod) {
+  loadBakery();
+  bakeContent = content; bakeMod = mod;
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="wt-note">
+      面包房利润分析：分别录入<b>每月工资</b>、<b>每月工时</b>、<b>每月营业额</b>，并在「毛利分析」设置<b>毛利率</b>，
+      系统自动按 <b>毛利 = 营业额 × 毛利率</b>、<b>净毛利 = 毛利 − 工资</b> 计算，并给出<b>时薪</b>、<b>人效(营业额/工时)</b>等衍生指标。
+    </div>
+    ${bakeTabsHtml()}
+    <div id="bakeBody"></div>
+  `;
+  content.querySelectorAll('.df-tab').forEach(b => b.addEventListener('click', () => {
+    bakeryTab = b.dataset.tab;
+    renderBakeryModule(content, mod);
+  }));
+  renderBakeryBody();
+}
+function renderBakeryBody() {
+  const body = bakeContent && bakeContent.querySelector('#bakeBody');
+  if (!body) return;
+  if (bakeryTab === 'salary') bakeRenderSalary(body);
+  else if (bakeryTab === 'hours') bakeRenderHours(body);
+  else if (bakeryTab === 'revenue') bakeRenderRevenue(body);
+  else bakeRenderAnalysis(body);
+}
+
+// ---- 每月工资 ----
+function bakeRenderSalary(body) {
+  const curY = bakeCurY(), curM = bakeCurM();
+  const edit = bakerySalaryEdit ? bakerySalary.find(r => r.id === bakerySalaryEdit) : null;
+  const selY = edit ? edit.year : curY, selM = edit ? edit.month : curM;
+  const amt = edit ? edit.amount : '', note = edit ? (edit.note || '') : '';
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>${edit ? '编辑工资记录' : '登记每月工资'}</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>年份</label><select id="bakeSY">${bakeYearOpts(selY)}</select></div>
+        <div class="wt-field"><label>月份</label><select id="bakeSM">${bakeMonthOpts(selM)}</select></div>
+        <div class="wt-field"><label>工资总额（元）</label><input type="number" step="any" min="0" id="bakeSAmt" placeholder="如 18000" value="${amt}"/></div>
+        <div class="wt-field" style="grid-column:1/-1;"><label>备注（选填）</label><input type="text" id="bakeSNote" placeholder="如 含社保" value="${escapeHtml(note)}"/></div>
+      </div>
+      <div class="df-actions">
+        <button class="btn-add" id="bakeSSave">${edit ? '保存修改' : '添加工资'}</button>
+        ${edit ? '<button class="btn-ghost" id="bakeSCancel">取消</button>' : ''}
+      </div>
+    </div>
+    <div class="df-card">
+      <h3>工资记录（${bakerySalary.length}）</h3>
+      <div id="bakeSList"></div>
+    </div>
+  `;
+  body.querySelector('#bakeSSave').addEventListener('click', bakeSaveSalary);
+  const cancel = body.querySelector('#bakeSCancel');
+  if (cancel) cancel.addEventListener('click', () => { bakerySalaryEdit = null; bakeRender(); });
+  bakeRenderSalaryList(body);
+}
+function bakeSaveSalary() {
+  const body = bakeContent.querySelector('#bakeBody');
+  const year = Number(body.querySelector('#bakeSY').value);
+  const month = Number(body.querySelector('#bakeSM').value);
+  const amount = Number(body.querySelector('#bakeSAmt').value) || 0;
+  const note = body.querySelector('#bakeSNote').value.trim();
+  if (!(amount >= 0)) { showToast('请输入有效金额'); return; }
+  const editId = bakerySalaryEdit;
+  if (editId) {
+    const r = bakerySalary.find(x => x.id === editId);
+    if (r) { r.year = year; r.month = month; r.amount = amount; r.note = note; }
+    bakerySalaryEdit = null;
+  } else {
+    const exist = bakerySalary.find(x => x.year === year && x.month === month);
+    if (exist) { exist.amount = amount; exist.note = note; showToast('该月记录已存在，已更新金额'); }
+    else bakerySalary.push({ id: uid(), year, month, amount, note, createdAt: Date.now() });
+  }
+  saveBakerySalary(); showToast('已保存'); bakeRender();
+}
+function bakeRenderSalaryList(body) {
+  const el = body.querySelector('#bakeSList');
+  if (!el) return;
+  const recs = bakerySalary.slice().sort((a, b) => b.year - a.year || b.month - a.month);
+  if (recs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有工资记录，先在上方登记。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>月份</th><th>工资总额</th><th>备注</th><th>操作</th></tr></thead><tbody>` +
+    recs.map(r => `<tr>
+      <td>${bakeMonthLabel(r.year, r.month)}</td>
+      <td>${saMoney(r.amount)}</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td>
+        <button class="df-btn" data-act="edit" data-id="${r.id}">编辑</button>
+        <button class="df-btn df-del" data-act="del" data-id="${r.id}">删除</button>
+      </td></tr>`).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    if (b.dataset.act === 'edit') { bakerySalaryEdit = id; bakeRender(); }
+    else if (confirm('确定删除该工资记录？')) { bakerySalary = bakerySalary.filter(x => x.id !== id); saveBakerySalary(); bakeRender(); }
+  }));
+}
+
+// ---- 每月工时 ----
+function bakeRenderHours(body) {
+  const curY = bakeCurY(), curM = bakeCurM();
+  const edit = bakeryHoursEdit ? bakeryHours.find(r => r.id === bakeryHoursEdit) : null;
+  const selY = edit ? edit.year : curY, selM = edit ? edit.month : curM;
+  const hrs = edit ? edit.hours : '', note = edit ? (edit.note || '') : '';
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>${edit ? '编辑工时记录' : '登记每月工时'}</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>年份</label><select id="bakeHY">${bakeYearOpts(selY)}</select></div>
+        <div class="wt-field"><label>月份</label><select id="bakeHM">${bakeMonthOpts(selM)}</select></div>
+        <div class="wt-field"><label>工时（小时）</label><input type="number" step="any" min="0" id="bakeHAmt" placeholder="如 176" value="${hrs}"/></div>
+        <div class="wt-field" style="grid-column:1/-1;"><label>备注（选填）</label><input type="text" id="bakeHNote" placeholder="如 含加班" value="${escapeHtml(note)}"/></div>
+      </div>
+      <div class="df-actions">
+        <button class="btn-add" id="bakeHSave">${edit ? '保存修改' : '添加工时'}</button>
+        ${edit ? '<button class="btn-ghost" id="bakeHCancel">取消</button>' : ''}
+      </div>
+    </div>
+    <div class="df-card">
+      <h3>工时记录（${bakeryHours.length}）</h3>
+      <div id="bakeHList"></div>
+    </div>
+  `;
+  body.querySelector('#bakeHSave').addEventListener('click', bakeSaveHours);
+  const cancel = body.querySelector('#bakeHCancel');
+  if (cancel) cancel.addEventListener('click', () => { bakeryHoursEdit = null; bakeRender(); });
+  bakeRenderHoursList(body);
+}
+function bakeSaveHours() {
+  const body = bakeContent.querySelector('#bakeBody');
+  const year = Number(body.querySelector('#bakeHY').value);
+  const month = Number(body.querySelector('#bakeHM').value);
+  const hours = Number(body.querySelector('#bakeHAmt').value) || 0;
+  const note = body.querySelector('#bakeHNote').value.trim();
+  if (!(hours >= 0)) { showToast('请输入有效工时'); return; }
+  const editId = bakeryHoursEdit;
+  if (editId) {
+    const r = bakeryHours.find(x => x.id === editId);
+    if (r) { r.year = year; r.month = month; r.hours = hours; r.note = note; }
+    bakeryHoursEdit = null;
+  } else {
+    const exist = bakeryHours.find(x => x.year === year && x.month === month);
+    if (exist) { exist.hours = hours; exist.note = note; showToast('该月记录已存在，已更新工时'); }
+    else bakeryHours.push({ id: uid(), year, month, hours, note, createdAt: Date.now() });
+  }
+  saveBakeryHours(); showToast('已保存'); bakeRender();
+}
+function bakeRenderHoursList(body) {
+  const el = body.querySelector('#bakeHList');
+  if (!el) return;
+  const recs = bakeryHours.slice().sort((a, b) => b.year - a.year || b.month - a.month);
+  if (recs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有工时记录，先在上方登记。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>月份</th><th>工时（小时）</th><th>备注</th><th>操作</th></tr></thead><tbody>` +
+    recs.map(r => `<tr>
+      <td>${bakeMonthLabel(r.year, r.month)}</td>
+      <td>${Number(r.hours)} h</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td>
+        <button class="df-btn" data-act="edit" data-id="${r.id}">编辑</button>
+        <button class="df-btn df-del" data-act="del" data-id="${r.id}">删除</button>
+      </td></tr>`).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    if (b.dataset.act === 'edit') { bakeryHoursEdit = id; bakeRender(); }
+    else if (confirm('确定删除该工时记录？')) { bakeryHours = bakeryHours.filter(x => x.id !== id); saveBakeryHours(); bakeRender(); }
+  }));
+}
+
+// ---- 每月营业额 ----
+function bakeRenderRevenue(body) {
+  const curY = bakeCurY(), curM = bakeCurM();
+  const edit = bakeryRevenueEdit ? bakeryRevenue.find(r => r.id === bakeryRevenueEdit) : null;
+  const selY = edit ? edit.year : curY, selM = edit ? edit.month : curM;
+  const amt = edit ? edit.amount : '', note = edit ? (edit.note || '') : '';
+  body.innerHTML = `
+    <div class="df-card">
+      <h3>${edit ? '编辑营业额记录' : '登记每月营业额'}</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>年份</label><select id="bakeRY">${bakeYearOpts(selY)}</select></div>
+        <div class="wt-field"><label>月份</label><select id="bakeRM">${bakeMonthOpts(selM)}</select></div>
+        <div class="wt-field"><label>营业额（元）</label><input type="number" step="any" min="0" id="bakeRAmt" placeholder="如 120000" value="${amt}"/></div>
+        <div class="wt-field" style="grid-column:1/-1;"><label>备注（选填）</label><input type="text" id="bakeRNote" placeholder="如 含节日促销" value="${escapeHtml(note)}"/></div>
+      </div>
+      <div class="df-actions">
+        <button class="btn-add" id="bakeRSave">${edit ? '保存修改' : '添加营业额'}</button>
+        ${edit ? '<button class="btn-ghost" id="bakeRCancel">取消</button>' : ''}
+      </div>
+    </div>
+    <div class="df-card">
+      <h3>营业额记录（${bakeryRevenue.length}）</h3>
+      <div id="bakeRList"></div>
+    </div>
+  `;
+  body.querySelector('#bakeRSave').addEventListener('click', bakeSaveRevenue);
+  const cancel = body.querySelector('#bakeRCancel');
+  if (cancel) cancel.addEventListener('click', () => { bakeryRevenueEdit = null; bakeRender(); });
+  bakeRenderRevenueList(body);
+}
+function bakeSaveRevenue() {
+  const body = bakeContent.querySelector('#bakeBody');
+  const year = Number(body.querySelector('#bakeRY').value);
+  const month = Number(body.querySelector('#bakeRM').value);
+  const amount = Number(body.querySelector('#bakeRAmt').value) || 0;
+  const note = body.querySelector('#bakeRNote').value.trim();
+  if (!(amount >= 0)) { showToast('请输入有效金额'); return; }
+  const editId = bakeryRevenueEdit;
+  if (editId) {
+    const r = bakeryRevenue.find(x => x.id === editId);
+    if (r) { r.year = year; r.month = month; r.amount = amount; r.note = note; }
+    bakeryRevenueEdit = null;
+  } else {
+    const exist = bakeryRevenue.find(x => x.year === year && x.month === month);
+    if (exist) { exist.amount = amount; exist.note = note; showToast('该月记录已存在，已更新营业额'); }
+    else bakeryRevenue.push({ id: uid(), year, month, amount, note, createdAt: Date.now() });
+  }
+  saveBakeryRevenue(); showToast('已保存'); bakeRender();
+}
+function bakeRenderRevenueList(body) {
+  const el = body.querySelector('#bakeRList');
+  if (!el) return;
+  const recs = bakeryRevenue.slice().sort((a, b) => b.year - a.year || b.month - a.month);
+  if (recs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有营业额记录，先在上方登记。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>月份</th><th>营业额</th><th>备注</th><th>操作</th></tr></thead><tbody>` +
+    recs.map(r => `<tr>
+      <td>${bakeMonthLabel(r.year, r.month)}</td>
+      <td>${saMoney(r.amount)}</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td>
+        <button class="df-btn" data-act="edit" data-id="${r.id}">编辑</button>
+        <button class="df-btn df-del" data-act="del" data-id="${r.id}">删除</button>
+      </td></tr>`).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    if (b.dataset.act === 'edit') { bakeryRevenueEdit = id; bakeRender(); }
+    else if (confirm('确定删除该营业额记录？')) { bakeryRevenue = bakeryRevenue.filter(x => x.id !== id); saveBakeryRevenue(); bakeRender(); }
+  }));
+}
+
+// ---- 毛利分析 ----
+function bakeRenderAnalysis(body) {
+  const rate = bakeryMargin;
+  const marginPct = Math.round(rate * 1000) / 10;
+  // 合并三个月度数据为 (年-月) 主键
+  const map = {};
+  const add = (arr, kind) => arr.forEach(r => {
+    const k = r.year + '-' + r.month;
+    if (!map[k]) map[k] = { year: r.year, month: r.month };
+    map[k][kind] = (kind === 'hours' ? Number(r.hours) : Number(r.amount)) || 0;
+  });
+  add(bakeryRevenue, 'revenue'); add(bakerySalary, 'wage'); add(bakeryHours, 'hours');
+  const rows = Object.values(map).sort((a, b) => b.year - a.year || b.month - a.month).map(r => {
+    const rev = r.revenue || 0, wage = r.wage || 0, hrs = r.hours || 0;
+    const gp = rev * rate, net = gp - wage;
+    const hrly = hrs > 0 ? wage / hrs : 0, perHr = hrs > 0 ? rev / hrs : 0;
+    return { year: r.year, month: r.month, rev, wage, hrs, gp, net, hrly, perHr };
+  });
+  const totRev = rows.reduce((s, r) => s + r.rev, 0);
+  const totWage = rows.reduce((s, r) => s + r.wage, 0);
+  const totHrs = rows.reduce((s, r) => s + r.hrs, 0);
+  const totGp = totRev * rate;
+  const totNet = totGp - totWage;
+  const avgHrly = totHrs > 0 ? totWage / totHrs : 0;
+
+  const stats = `
+    <div class="wt-stats">
+      ${statCard('总营业额', saMoney(totRev), '')}
+      ${statCard('总工资', saMoney(totWage), '')}
+      ${statCard('总毛利(' + marginPct + '%)', saMoney(totGp), '')}
+      ${statCard('总净毛利', saMoney(totNet), totNet >= 0 ? 'gp-pos' : 'gp-neg')}
+      ${statCard('总工时', totHrs + ' h', '')}
+      ${statCard('平均时薪', saMoney(avgHrly), '')}
+    </div>`;
+
+  const setting = `
+    <div class="df-card">
+      <h3>毛利率设置</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>毛利率（%）</label><input type="number" step="any" min="0" max="100" id="bakeMargin" value="${marginPct}" placeholder="如 60"/></div>
+      </div>
+      <div class="df-actions"><button class="btn-add" id="bakeMarginSave">保存毛利率</button></div>
+      <div class="df-empty">毛利 = 营业额 × 毛利率；净毛利 = 毛利 − 工资。修改后下方分析立即重算。</div>
+    </div>`;
+
+  const tableRows = rows.length ? rows.map(r => `<tr>
+      <td>${bakeMonthLabel(r.year, r.month)}</td>
+      <td>${saMoney(r.rev)}</td>
+      <td>${saMoney(r.wage)}</td>
+      <td>${r.hrs ? Number(r.hrs) + ' h' : '—'}</td>
+      <td>${saMoney(r.gp)}</td>
+      <td class="${r.net >= 0 ? 'gp-pos' : 'gp-neg'}">${saMoney(r.net)}</td>
+      <td>${r.hrs ? saMoney(r.hrly) : '—'}</td>
+      <td>${r.hrs ? saMoney(r.perHr) : '—'}</td>
+    </tr>`).join('')
+    : `<tr><td colspan="8"><div class="wt-empty">还没有任何月份数据，请先在「每月工资 / 每月工时 / 每月营业额」录入。</div></td></tr>`;
+
+  const table = `
+    <div class="df-card">
+      <h3>按月利润分析（${rows.length} 个月）</h3>
+      <table class="wt-cat"><thead><tr><th>月份</th><th>营业额</th><th>工资</th><th>工时</th><th>毛利</th><th>净毛利</th><th>时薪</th><th>人效</th></tr></thead><tbody>${tableRows}</tbody></table>
+    </div>`;
+
+  body.innerHTML = stats + setting + table;
+  const mSave = body.querySelector('#bakeMarginSave');
+  if (mSave) mSave.addEventListener('click', () => {
+    const v = Number(body.querySelector('#bakeMargin').value);
+    if (isNaN(v) || v < 0 || v > 100) { showToast('请输入 0–100 的毛利率'); return; }
+    bakeryMargin = v / 100; saveBakeryMargin();
+    showToast('毛利率已设为 ' + (Math.round(bakeryMargin * 1000) / 10) + '%');
+    bakeRender();
+  });
 }
 
 // ===================== 库存管理（香烟 / 酒水） =====================
