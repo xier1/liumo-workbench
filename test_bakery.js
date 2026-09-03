@@ -37,6 +37,10 @@ $('#bakeSSave').click();
 sal = JSON.parse(window.localStorage.getItem('liumo_bakery_salary'));
 check('同月工资再保存为更新(仍 1 条)', sal.length === 1 && sal[0].amount === 19000);
 check('列表显示更新后金额 19,000', $('#bakeSList').textContent.includes('19,000'));
+// 工资趋势曲线图（按年·每月，标注数据）
+check('工资页签含趋势曲线 svg', !!$('#bakeSChart svg'));
+check('工资图表含年度图例', $all('#bakeSChart .ce-legend-item').length >= 1);
+check('工资曲线标注数值文本', $('#bakeSChart svg').textContent.replace(/\s+/g, '').length > 0);
 
 // 3) 每月工时
 clickTab('每月工时');
@@ -53,6 +57,9 @@ $('#bakeRSave').click();
 check('营业额记录已添加(列表含 120,000)', $('#bakeRList').textContent.includes('120,000'));
 let rev = JSON.parse(window.localStorage.getItem('liumo_bakery_revenue'));
 check('营业额已存 localStorage', rev.length === 1 && rev[0].amount === 120000);
+// 营业额趋势曲线图（按年·每月，标注数据）
+check('营业额页签含趋势曲线 svg', !!$('#bakeRChart svg'));
+check('营业额图表含年度图例', $all('#bakeRChart .ce-legend-item').length >= 1);
 
 // 5) 毛利分析：汇总 + 联动表（默认毛利率 60%）
 clickTab('毛利分析');
