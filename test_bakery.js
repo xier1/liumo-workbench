@@ -21,7 +21,7 @@ window.eval("currentModule='bakery'; renderContent();");
 
 // 1) 模块与页签
 check('模块标题含 面包房利润分析', $('.page-title') && $('.page-title').textContent.includes('面包房利润分析'));
-check('页签共 4 个', $all('.df-tab').length === 4);
+check('页签共 5 个', $all('.df-tab').length === 5);
 check('默认页签=每月工资', $('.df-tab.on') && $('.df-tab.on').textContent.trim() === '每月工资');
 
 // 2) 每月工资：新增 + 同月更新
@@ -87,6 +87,30 @@ check('改率后总毛利=60,000', $('#bakeBody').textContent.includes('60,000')
 check('改率后总净毛利=41,000', $('#bakeBody').textContent.includes('41,000'));
 let marginSaved = window.localStorage.getItem('liumo_bakery_margin');
 check('毛利率已存 localStorage(0.5)', marginSaved === '0.5');
+
+// 7) 每月电费：按读数自动计算（实际 + 缺月估算）
+clickTab('每月电费');
+check('电费页签含录入表单', !!$('#bakeMAdd'));
+function addMeter(date, deg, note) {
+  $('#bakeMDate').value = date;
+  $('#bakeMDeg').value = String(deg);
+  $('#bakeMNote').value = note || '';
+  $('#bakeMAdd').click();
+}
+addMeter('2025-12-31', 700, '12月抄表');
+addMeter('2026-01-31', 1000, '1月抄表');
+addMeter('2026-02-28', 1300, '2月抄表');
+let meters = JSON.parse(window.localStorage.getItem('liumo_bakery_meter'));
+check('电表读数已存 localStorage(3条)', meters.length === 3);
+check('读数记录列表含 3 条', $all('#bakeMList tbody tr').length === 3);
+check('电费明细含 实际 计算方式', $('#bakeETable').textContent.includes('实际'));
+check('1月电费按实际=300', $('#bakeETable').textContent.includes('300'));
+check('3月缺读数→显示 估算', $('#bakeETable').textContent.includes('估算'));
+check('电费趋势图 svg 渲染', !!$('#bakeEChart svg'));
+check('趋势图含年度图例', $all('#bakeEChart .ce-legend-item').length >= 1);
+// 删除一条读数后重算
+$all('#bakeMList button[data-act="del"]')[0].click();
+check('删除后读数剩 2 条', JSON.parse(window.localStorage.getItem('liumo_bakery_meter')).length === 2);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
