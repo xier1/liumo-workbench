@@ -9588,11 +9588,14 @@ const BAKERY_SALARY_KEY = 'liumo_bakery_salary';
 const BAKERY_HOURS_KEY = 'liumo_bakery_hours';
 const BAKERY_REVENUE_KEY = 'liumo_bakery_revenue';
 const BAKERY_MARGIN_KEY = 'liumo_bakery_margin';
+const BAKERY_METER_KEY = 'liumo_bakery_meter';
 let bakerySalary = [];    // { id, year, month, amount, note }
 let bakeryHours = [];     // { id, year, month, hours, note }
 let bakeryRevenue = [];   // { id, year, month, amount, note }
+let bakeryMeters = [];    // { id, date:'YYYY-MM-DD', degree, note } 电表读数
+const BAKERY_ELEC_PRICE = 1; // 电费单价（元/度）
 let bakeryMargin = 0.6;   // 毛利率（0–1）
-let bakeryTab = 'salary'; // salary | hours | revenue | analysis
+let bakeryTab = 'salary'; // salary | hours | revenue | analysis | electric
 let bakerySalaryEdit = null, bakeryHoursEdit = null, bakeryRevenueEdit = null;
 let bakeContent = null, bakeMod = null;
 
@@ -9603,6 +9606,8 @@ function loadBakery() {
   if (!Array.isArray(bakeryHours)) bakeryHours = [];
   try { bakeryRevenue = JSON.parse(localStorage.getItem(BAKERY_REVENUE_KEY) || '[]'); } catch (e) { bakeryRevenue = []; }
   if (!Array.isArray(bakeryRevenue)) bakeryRevenue = [];
+  try { bakeryMeters = JSON.parse(localStorage.getItem(BAKERY_METER_KEY) || '[]'); } catch (e) { bakeryMeters = []; }
+  if (!Array.isArray(bakeryMeters)) bakeryMeters = [];
   const m = parseFloat(localStorage.getItem(BAKERY_MARGIN_KEY));
   if (!isNaN(m) && m >= 0) bakeryMargin = m;
 }
@@ -9610,6 +9615,7 @@ function saveBakerySalary() { localStorage.setItem(BAKERY_SALARY_KEY, JSON.strin
 function saveBakeryHours() { localStorage.setItem(BAKERY_HOURS_KEY, JSON.stringify(bakeryHours)); }
 function saveBakeryRevenue() { localStorage.setItem(BAKERY_REVENUE_KEY, JSON.stringify(bakeryRevenue)); }
 function saveBakeryMargin() { localStorage.setItem(BAKERY_MARGIN_KEY, String(bakeryMargin)); }
+function saveBakeryMeters() { localStorage.setItem(BAKERY_METER_KEY, JSON.stringify(bakeryMeters)); }
 
 const bakeCurY = () => new Date().getFullYear();
 const bakeCurM = () => new Date().getMonth() + 1;
@@ -9618,7 +9624,7 @@ const bakeYearOpts = sel => [bakeCurY() - 2, bakeCurY() - 1, bakeCurY(), bakeCur
 const bakeMonthOpts = sel => Array.from({ length: 12 }, (_, i) => i + 1).map(m => `<option value="${m}"${m === sel ? ' selected' : ''}>${m} 月</option>`).join('');
 
 function bakeTabsHtml() {
-  const tabs = [['salary', '每月工资'], ['hours', '每月工时'], ['revenue', '每月营业额'], ['analysis', '毛利分析']];
+  const tabs = [['salary', '每月工资'], ['hours', '每月工时'], ['revenue', '每月营业额'], ['electric', '每月电费'], ['analysis', '毛利分析']];
   return `<div class="df-tabs">` + tabs.map(([id, name]) =>
     `<button class="df-tab ${bakeryTab === id ? 'on' : ''}" data-tab="${id}" type="button">${name}</button>`
   ).join('') + `</div>`;
@@ -9652,6 +9658,7 @@ function renderBakeryBody() {
   if (bakeryTab === 'salary') bakeRenderSalary(body);
   else if (bakeryTab === 'hours') bakeRenderHours(body);
   else if (bakeryTab === 'revenue') bakeRenderRevenue(body);
+  else if (bakeryTab === 'electric') bakeRenderElectric(body);
   else bakeRenderAnalysis(body);
 }
 
@@ -9950,6 +9957,129 @@ function bakeTrendSVG(xLabels, series) {
     legend += `<span class="ce-legend-item"><i style="background:${s.color};height:12px;border-radius:3px;"></i>${s.name}</span>`;
   });
   return `<div class="ce-chart-legend" style="display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 8px;">${legend}</div><svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block;">${grid}${lines}${dots}${xlab}${labels}</svg>`;
+}
+
+// ---- 每月电费（按电表读数自动计算）----
+function bakeryElecRows() {
+  const meters = bakeryMeters.slice().sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (Number(a.degree) - Number(b.degree)));
+  if (meters.length === 0) return [];
+  const dayOf = d => { const p = d.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); };
+  const first = meters[0];
+  let y = +first.date.slice(0, 4), m = +first.date.slice(5, 7);
+  const now = new Date();
+  const endY = now.getFullYear(), endM = now.getMonth() + 1;
+  const dayMs = 86400000;
+  const out = [];
+  while (y < endY || (y === endY && m <= endM)) {
+    const inMonth = meters.filter(r => { const ry = +r.date.slice(0, 4), rm = +r.date.slice(5, 7); return ry === y && rm === m; });
+    let consumption = null, method = '—', src = '无基准';
+    if (inMonth.length > 0) {
+      const lastDeg = Number(inMonth[inMonth.length - 1].degree) || 0;
+      const prevArr = meters.filter(r => dayOf(r.date) < new Date(y, m - 1, 1));
+      const prevR = prevArr.length ? prevArr[prevArr.length - 1] : null;
+      if (prevR) { consumption = lastDeg - (Number(prevR.degree) || 0); method = '实际'; src = '当月读数 − 上期读数'; }
+      else { method = '无基准'; src = '首次读数，无上期基准'; }
+    } else {
+      const raArr = meters.filter(r => dayOf(r.date) < new Date(y, m - 1, 1));
+      const rA = raArr.length ? raArr[raArr.length - 1] : null;
+      if (rA) {
+        const rbArr = meters.filter(r => dayOf(r.date) < dayOf(rA.date));
+        const rB = rbArr.length ? rbArr[rbArr.length - 1] : null;
+        if (rB) {
+          const dBetween = Math.max(1, Math.round((dayOf(rA.date) - dayOf(rB.date)) / dayMs));
+          const daily = ((Number(rA.degree) || 0) - (Number(rB.degree) || 0)) / dBetween;
+          const daysInM = new Date(y, m, 0).getDate();
+          consumption = daily * daysInM; method = '估算'; src = '日均 × ' + daysInM + '天';
+        } else { method = '无基准'; src = '无上期读数'; }
+      } else { method = '无基准'; src = '无上期读数'; }
+    }
+    if (consumption !== null && consumption < 0) consumption = 0;
+    const fee = consumption === null ? null : consumption * BAKERY_ELEC_PRICE;
+    out.push({ year: y, month: m, consumption, fee, method, src, hasData: inMonth.length > 0 });
+    m++; if (m > 12) { m = 1; y++; }
+  }
+  return out;
+}
+function bakeRenderElectric(body) {
+  const today = new Date().toISOString().slice(0, 10);
+  body.innerHTML = `
+    <div class="wt-note">
+      按<b>日期</b>录入电表读数（累计度数）。系统自动计算每月电费：<b>当月最后读数 − 上一期读数</b>；
+      若某月<b>无读数</b>，则按「上一期读数 − 再上一期读数」的<b>日均</b> × 当月天数估算。电费按 <b>1 元/度</b> 计。
+    </div>
+    <div class="df-card">
+      <h3>录入电表读数</h3>
+      <div class="df-form">
+        <div class="wt-field"><label>日期</label><input type="date" id="bakeMDate" value="${today}"/></div>
+        <div class="wt-field"><label>电表度数（度）</label><input type="number" step="any" min="0" id="bakeMDeg" placeholder="如 12850.6"/></div>
+        <div class="wt-field" style="grid-column:1/-1;"><label>备注（选填）</label><input type="text" id="bakeMNote" placeholder="如 抄表"/></div>
+      </div>
+      <div class="df-actions"><button class="btn-add" id="bakeMAdd">添加读数</button></div>
+    </div>
+    <div class="df-card">
+      <h3>每月电费趋势（按年 · 每月）</h3>
+      <div class="wt-chart-subnote">每年一条曲线，点标注当月电费；悬停查看明细</div>
+      <div id="bakeEChart"></div>
+    </div>
+    <div class="df-card">
+      <h3>每月电费明细</h3>
+      <div id="bakeETable"></div>
+    </div>
+    <div class="df-card">
+      <h3>电表读数记录（${bakeryMeters.length}）</h3>
+      <div id="bakeMList"></div>
+    </div>
+  `;
+  body.querySelector('#bakeMAdd').addEventListener('click', bakeSaveMeter);
+  bakeRenderElectricTable(body);
+  bakeRenderMeterList(body);
+  bakeRenderElectricChart(body);
+}
+function bakeSaveMeter() {
+  const body = bakeContent.querySelector('#bakeBody');
+  const date = body.querySelector('#bakeMDate').value;
+  const degree = Number(body.querySelector('#bakeMDeg').value);
+  const note = body.querySelector('#bakeMNote').value.trim();
+  if (!date) { showToast('请选择日期'); return; }
+  if (!(degree >= 0)) { showToast('请输入有效电表度数'); return; }
+  bakeryMeters.push({ id: uid(), date, degree, note, createdAt: Date.now() });
+  saveBakeryMeters(); showToast('已添加读数'); bakeRender();
+}
+function bakeRenderElectricTable(body) {
+  const el = body.querySelector('#bakeETable');
+  if (!el) return;
+  const rows = bakeryElecRows();
+  if (rows.length === 0) { el.innerHTML = `<div class="wt-empty">还没有电表读数，先在上方录入；系统将自动计算每月电费。</div>`; return; }
+  const fmtYuan = v => (Math.round(v * 100) / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' 元';
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>月份</th><th>当月度数</th><th>电费(1元/度)</th><th>计算方式</th></tr></thead><tbody>` +
+    rows.map(r => `<tr>
+      <td>${bakeMonthLabel(r.year, r.month)}</td>
+      <td>${r.consumption === null ? '—' : (Math.round(r.consumption * 100) / 100) + ' 度'}</td>
+      <td>${r.fee === null ? '—' : fmtYuan(r.fee)}</td>
+      <td>${r.method}${r.src ? '（' + r.src + '）' : ''}</td>
+    </tr>`).join('') + `</tbody></table>`;
+}
+function bakeRenderMeterList(body) {
+  const el = body.querySelector('#bakeMList');
+  if (!el) return;
+  const recs = bakeryMeters.slice().sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+  if (recs.length === 0) { el.innerHTML = `<div class="wt-empty">还没有读数记录。</div>`; return; }
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>日期</th><th>电表度数</th><th>备注</th><th>操作</th></tr></thead><tbody>` +
+    recs.map(r => `<tr>
+      <td>${r.date}</td>
+      <td>${Number(r.degree)} 度</td>
+      <td>${escapeHtml(r.note || '')}</td>
+      <td><button class="df-btn df-del" data-act="del" data-id="${r.id}">删除</button></td>
+    </tr>`).join('') + `</tbody></table>`;
+  el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('确定删除该电表读数？')) { bakeryMeters = bakeryMeters.filter(x => x.id !== b.dataset.id); saveBakeryMeters(); bakeRender(); }
+  }));
+}
+function bakeRenderElectricChart(body) {
+  const el = body && body.querySelector('#bakeEChart');
+  if (!el) return;
+  const recs = bakeryElecRows().filter(r => r.fee !== null).map(r => ({ year: r.year, month: r.month, amount: Math.round(r.fee) }));
+  el.innerHTML = recs.length ? bakeLineChartByYear(recs, r => r.amount) : `<div class="wt-empty">暂无电费数据</div>`;
 }
 
 // ---- 毛利分析 ----
