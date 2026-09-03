@@ -95,6 +95,7 @@ $('#ivCat').value = 'liquor';
 $('#ivPrice').value = '900';
 $('#ivStock').value = '8';
 $('#ivWarn').value = '2';
+$('#ivUnit').value = '瓶';
 $('#ivSaveBtn').click();
 check('新增后列表 3 个', $all('#ivList .iv-item').length === 3);
 check('新增后商品信息卡片保持展开(不自动折叠)', !$('#ivFormCard').classList.contains('co-collapsed'));
@@ -104,6 +105,7 @@ check('新增商品已保存', window.eval("inventoryItems.length") === 3);
 check('新增商品进价已保存', window.eval("inventoryItems.find(i=>i.name==='五粮液').price") === 900);
 check('新增商品 needWarn=true', window.eval("inventoryItems.find(i=>i.name==='五粮液').needWarn") === true);
 check('新增商品 warn 默认 2', window.eval("inventoryItems.find(i=>i.name==='五粮液').warn") === 2);
+check('新增商品单位已保存(瓶)', window.eval("inventoryItems.find(i=>i.name==='五粮液').unit") === '瓶');
 check('表单已重置', $('#ivName').value === '');
 
 // 5) 新增商品不勾选预警 -> needWarn=false, warn=0, 列表显示不预警
@@ -138,13 +140,23 @@ check('茅台库存变 26', window.eval("inventoryItems.find(i=>i.id==='i2').sto
 check('流水新增为 2 条', window.eval("inventoryLogs.length") === 2);
 check('最后流水为入库 6', window.eval("inventoryLogs[inventoryLogs.length-1].qty") === 6);
 
+// 6.5) 入库带单位商品（五粮液·瓶）-> 流水显示具体数量+单位
+$all('#ivList .iv-item').forEach(el => {
+  if (el.textContent.includes('五粮液')) el.querySelector('[data-act="in"]').click();
+});
+$('#ivModalQty').value = '4';
+$('#ivModalNote').value = '补货';
+$('#ivModalOk').click();
+check('流水显示具体数量+单位(+4 瓶)', $('#ivLogs').textContent.includes('+4 瓶'));
+check('流水记录 unit 字段=瓶', window.eval("inventoryLogs[inventoryLogs.length-1].unit") === '瓶');
+
 // 7) 出库超过库存应被拦截
 $all('#ivList .iv-item').forEach(el => {
   if (el.textContent.includes('五粮液')) el.querySelector('[data-act="out"]').click();
 });
 $('#ivModalQty').value = '999';
 $('#ivModalOk').click();
-check('超量出库被拦截（库存不变 8）', window.eval("inventoryItems.find(i=>i.name==='五粮液').stock") === 8);
+check('超量出库被拦截（库存不变 12）', window.eval("inventoryItems.find(i=>i.name==='五粮液').stock") === 12);
 
 // 8) 编辑商品：切换预警开关
 $all('#ivList .iv-item').forEach(el => {
