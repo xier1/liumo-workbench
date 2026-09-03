@@ -74,6 +74,10 @@ check('总毛利(60%)=72,000', $('#bakeBody').textContent.includes('72,000'));
 check('总净毛利=53,000', $('#bakeBody').textContent.includes('53,000'));
 check('按月分析表含 1 个月', $all('#bakeBody table.wt-cat tbody tr').length === 1);
 check('分析表含 毛利 列与 人效 列', $('#bakeBody').textContent.includes('毛利') && $('#bakeBody').textContent.includes('人效'));
+// 毛利分析趋势图（毛利 vs 工资，按月时间轴，标注数据）
+check('毛利分析含趋势图 svg', !!$('#bakeTrendChart svg'));
+check('趋势图含 毛利 图例', $('#bakeTrendChart').textContent.includes('毛利'));
+check('趋势图含 工资 图例', $('#bakeTrendChart').textContent.includes('工资'));
 
 // 6) 修改毛利率 → 联动重算
 $('#bakeMargin').value = '50';
