@@ -9676,6 +9676,11 @@ function bakeRenderSalary(body) {
       </div>
     </div>
     <div class="df-card">
+      <h3>工资趋势（按年 · 每月）</h3>
+      <div class="wt-chart-subnote">每年一条曲线，点标注当月工资；悬停查看明细</div>
+      <div id="bakeSChart"></div>
+    </div>
+    <div class="df-card">
       <h3>工资记录（${bakerySalary.length}）</h3>
       <div id="bakeSList"></div>
     </div>
@@ -9723,6 +9728,7 @@ function bakeRenderSalaryList(body) {
     if (b.dataset.act === 'edit') { bakerySalaryEdit = id; bakeRender(); }
     else if (confirm('确定删除该工资记录？')) { bakerySalary = bakerySalary.filter(x => x.id !== id); saveBakerySalary(); bakeRender(); }
   }));
+  bakeRenderSalaryChart(body);
 }
 
 // ---- 每月工时 ----
@@ -9816,6 +9822,11 @@ function bakeRenderRevenue(body) {
       </div>
     </div>
     <div class="df-card">
+      <h3>营业额趋势（按年 · 每月）</h3>
+      <div class="wt-chart-subnote">每年一条曲线，点标注当月营业额；悬停查看明细</div>
+      <div id="bakeRChart"></div>
+    </div>
+    <div class="df-card">
       <h3>营业额记录（${bakeryRevenue.length}）</h3>
       <div id="bakeRList"></div>
     </div>
@@ -9863,6 +9874,34 @@ function bakeRenderRevenueList(body) {
     if (b.dataset.act === 'edit') { bakeryRevenueEdit = id; bakeRender(); }
     else if (confirm('确定删除该营业额记录？')) { bakeryRevenue = bakeryRevenue.filter(x => x.id !== id); saveBakeryRevenue(); bakeRender(); }
   }));
+  bakeRenderRevenueChart(body);
+}
+
+// ---- 面包房：按年趋势曲线图（每年一条曲线，标注数据）----
+const BAKERY_LINE_COLORS = ['#f59e0b', '#6366f1', '#10b981', '#ef4444', '#8b5cf6', '#0ea5e9'];
+function bakeLineChartByYear(records, accessor) {
+  const byYear = {};
+  records.forEach(r => {
+    const v = accessor(r);
+    if (!isFinite(v)) return;
+    if (!byYear[r.year]) byYear[r.year] = { year: r.year, vals: {} };
+    byYear[r.year].vals[r.month] = (byYear[r.year].vals[r.month] || 0) + v;
+  });
+  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+  const series = years.map((y, i) => ({ year: y, color: BAKERY_LINE_COLORS[i % BAKERY_LINE_COLORS.length], vals: byYear[y].vals }));
+  if (series.length === 0) return `<div class="wt-empty">暂无数据</div>`;
+  const legend = `<div class="ce-chart-legend">` + series.map(s => `<span class="ce-legend-item"><i style="background:${s.color}"></i>${s.year}年</span>`).join('') + `</div>`;
+  return legend + buildYearLinesSVG(series);
+}
+function bakeRenderSalaryChart(body) {
+  const el = body && body.querySelector('#bakeSChart');
+  if (!el) return;
+  el.innerHTML = bakerySalary.length ? bakeLineChartByYear(bakerySalary, r => Number(r.amount) || 0) : `<div class="wt-empty">暂无工资数据，先在上方登记</div>`;
+}
+function bakeRenderRevenueChart(body) {
+  const el = body && body.querySelector('#bakeRChart');
+  if (!el) return;
+  el.innerHTML = bakeryRevenue.length ? bakeLineChartByYear(bakeryRevenue, r => Number(r.amount) || 0) : `<div class="wt-empty">暂无营业额数据，先在上方登记</div>`;
 }
 
 // ---- 毛利分析 ----
