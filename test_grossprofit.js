@@ -102,7 +102,7 @@ check('对比含变化原因段', $('#gpCompare').textContent.includes('同比�
 check('对比含改进方案段', $('#gpCompare').textContent.includes('今年改进方案'));
 // 2026-08 净利润=100000*0.18-24200=-6200；2026-07=-5600 → 今年同区间(1–8月)合计 -11,800
 // 2025-08=70000*0.18-21500=-8900；2025-07=-9600 → 去年同区间合计 -18,500；同比 +6,700（+36.2%）
-check('主口径卡片含 1–8月净利润', $('#gpCompare').textContent.includes('1–8月净利润'));
+check('主口径卡片含 同区间净利润', $('#gpCompare').textContent.includes('1–' + (new Date().getMonth() + 1) + '月净利润'));
 check('同区间今年净利润 -11,800', $('#gpCompare').textContent.includes('-11,800'));
 check('同区间去年净利润 -18,500', $('#gpCompare').textContent.includes('-18,500'));
 check('同区间同比增长 +6,700', $('#gpCompare').textContent.includes('6,700'));
