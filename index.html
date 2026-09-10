@@ -2338,23 +2338,37 @@
 
   /* ============ 任务管理模块 ============ */
   .tm-progress-card {
-    background: var(--card);
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow);
     margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* 顶部渐细的品牌色装饰条 */
+  .tm-progress-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--brand-grad);
   }
   .tm-progress-main {
     display: flex;
     align-items: baseline;
     gap: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   .tm-progress-rate {
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 700;
-    color: var(--primary);
+    letter-spacing: -0.5px;
+    background: var(--brand-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     line-height: 1;
   }
   .tm-progress-text { font-size: 13px; color: var(--text-soft); }
@@ -2363,26 +2377,45 @@
     background: var(--bg-soft);
     border-radius: 999px;
     overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(16,24,40,0.06);
   }
   .tm-progress-fill {
     height: 100%;
     background: var(--brand-grad);
     border-radius: 999px;
-    transition: width var(--transition);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .tm-kind-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-top: 14px;
+    margin-top: 16px;
   }
   .tm-kind-stat {
-    background: var(--bg-soft);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 8px 10px;
+    padding: 9px 11px;
+    transition: all 0.2s;
   }
-  .tm-kind-stat-name { font-size: 12px; color: var(--text-soft); margin-bottom: 4px; }
-  .tm-kind-stat-num { font-size: 16px; font-weight: 600; color: var(--text); }
+  .tm-kind-stat:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  .tm-kind-stat-name {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tm-kind-stat-num {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
 
   .tm-sections { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
 
@@ -2392,6 +2425,9 @@
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .tm-section:hover { box-shadow: var(--shadow); }
   }
   .tm-section-head {
     display: flex;
@@ -2400,11 +2436,13 @@
     gap: 10px;
     padding: 13px 16px;
     cursor: pointer;
-    background: var(--bg-soft);
+    background: linear-gradient(180deg, #fafbfd 0%, #f5f7fa 100%);
+    border-bottom: 1px solid transparent;
     user-select: none;
     flex-wrap: wrap;
+    transition: background 0.2s;
   }
-  .tm-section-head:hover { background: var(--bg); }
+  .tm-section-head:hover { background: var(--bg-soft); }
   .tm-section-title-wrap { display: flex; align-items: center; gap: 8px; }
   .tm-section-arrow {
     display: inline-block;
@@ -2413,33 +2451,42 @@
     transition: transform var(--transition);
   }
   .tm-section-arrow.open { transform: rotate(90deg); }
-  .tm-section-title { font-size: 15px; font-weight: 600; }
+  .tm-section-title { font-size: 15px; font-weight: 650; letter-spacing: -0.1px; }
   .tm-section-count {
     font-size: 12px;
+    font-weight: 600;
     color: var(--text-soft);
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 1px 8px;
+    padding: 1px 9px;
+    font-variant-numeric: tabular-nums;
   }
   .tm-section-right { display: flex; align-items: center; gap: 10px; }
   .tm-section-desc { font-size: 12px; color: var(--text-muted); }
   .tm-add-btn {
-    border: 1px solid var(--primary);
+    border: 1px solid rgba(59,130,246,0.35);
     background: var(--primary-soft);
     color: var(--primary);
     border-radius: var(--radius-sm);
-    padding: 5px 12px;
+    padding: 5px 13px;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.18s;
     white-space: nowrap;
   }
-  .tm-add-btn:hover { background: var(--primary); color: #fff; }
+  .tm-add-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+  }
+  .tm-add-btn:active { transform: scale(0.97); }
 
-  .tm-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .tm-list { padding: 11px 12px; display: flex; flex-direction: column; gap: 8px; }
   .tm-empty {
-    padding: 18px;
+    padding: 20px;
     text-align: center;
     color: var(--text-muted);
     font-size: 13px;
@@ -2447,25 +2494,44 @@
 
   .tm-task {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    gap: 11px;
     background: var(--card);
     border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 11px 12px;
-    transition: all 0.18s;
+    padding: 11px 13px;
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.18s;
   }
-  .tm-task:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+  .tm-task:hover {
+    border-color: rgba(59,130,246,0.45);
+    border-left-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateX(1px);
+  }
 
   /* 已完成：置灰 + 划掉 + 排到末尾 */
-  .tm-task.done { opacity: 0.55; background: var(--bg-soft); }
+  .tm-task.done {
+    opacity: 0.55;
+    background: var(--bg-soft);
+    border-left-color: var(--border) !important;
+  }
+  .tm-task.done:hover { transform: none; box-shadow: none; }
   .tm-task.done .tm-task-title { text-decoration: line-through; color: var(--text-muted); }
   .tm-task.done .tm-check { background: var(--text-muted); border-color: var(--text-muted); }
 
-  /* 未完成（含今天及以前仍未完成）：标题红字 + 左侧红线 */
+  /* 未完成（逾期）：标题红字 + 左侧红线 */
   .tm-task.tm-overdue {
-    border-left: 3px solid var(--danger);
     background: var(--danger-soft);
+    border-top-color: rgba(239,68,68,0.22);
+    border-right-color: rgba(239,68,68,0.22);
+    border-bottom-color: rgba(239,68,68,0.22);
+    border-left: 3px solid var(--danger);
+  }
+  .tm-task.tm-overdue:hover {
+    border-color: rgba(239,68,68,0.45);
+    border-left-color: var(--danger);
+    box-shadow: 0 2px 10px rgba(239,68,68,0.12);
   }
   .tm-task.tm-overdue .tm-task-title {
     color: var(--danger);
@@ -2483,7 +2549,7 @@
   /* 已完成任务优先使用置灰样式，绝不被标红覆盖 */
   .tm-task.done.tm-overdue,
   .tm-task.done.tm-overdue .tm-task-title {
-    border-left-color: var(--border);
+    border-left-color: var(--border) !important;
     background: var(--bg-soft);
     color: var(--text-muted);
     font-weight: 400;
@@ -2496,10 +2562,21 @@
     font-size: 15px;
     line-height: 1.4;
     user-select: none;
+    opacity: 0.6;
+    transition: opacity 0.18s;
   }
+  .tm-drag-handle:hover { opacity: 1; }
   .tm-drag-handle:active { cursor: grabbing; }
-  .tm-task.tm-dragging { opacity: 0.4; }
-  .tm-task.tm-drop-over { border-color: var(--primary); background: var(--primary-soft); }
+  .tm-task.tm-dragging {
+    opacity: 0.45;
+    box-shadow: var(--shadow-md);
+    transform: scale(1.01);
+  }
+  .tm-task.tm-drop-over {
+    border-color: var(--primary);
+    border-left-color: var(--primary);
+    background: var(--primary-soft);
+  }
 
   .tm-check {
     flex-shrink: 0;
@@ -2511,20 +2588,32 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 1px;
     transition: all 0.18s;
     color: #fff;
+    background: var(--card);
   }
-  .tm-check:hover { border-color: var(--primary); }
-  .tm-check.checked { background: var(--success); border-color: var(--success); }
+  .tm-check:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  }
+  .tm-check.checked {
+    background: var(--success);
+    border-color: var(--success);
+    box-shadow: 0 2px 6px rgba(16,185,129,0.3);
+  }
   .tm-check svg { width: 12px; height: 12px; }
+  /* 标红任务的勾选框悬停时也用红色 */
+  .tm-task.tm-overdue .tm-check:hover {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+  }
 
   .tm-task-body { flex: 1; min-width: 0; }
   /* 标题 + 计划时间 + 完成时间同一行显示，不换行 */
   .tm-task-line {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     min-width: 0;
   }
   .tm-task-title {
@@ -2538,90 +2627,111 @@
     white-space: nowrap;
   }
   .tm-plan-tag {
-    font-size: 12px;
+    font-size: 11.5px;
+    font-weight: 500;
     color: var(--primary);
     background: var(--primary-soft);
-    border: 1px solid rgba(59,130,246,0.25);
+    border: 1px solid rgba(59,130,246,0.22);
     border-radius: 999px;
-    padding: 1px 9px;
+    padding: 2px 9px;
     cursor: pointer;
     transition: all 0.18s;
     flex-shrink: 0;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
-  .tm-plan-tag:hover { background: var(--primary); color: #fff; }
-  .tm-done-tag { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+  .tm-plan-tag:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(59,130,246,0.28);
+  }
+  .tm-done-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 
-  .tm-task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .tm-task-actions { display: flex; gap: 2px; flex-shrink: 0; }
   .tm-task-btn {
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 14px;
-    padding: 3px 5px;
+    font-size: 13px;
+    padding: 4px 6px;
     border-radius: 6px;
     opacity: 0.65;
     transition: all 0.18s;
     line-height: 1;
   }
   .tm-task-btn:hover { opacity: 1; background: var(--bg-soft); }
+  .tm-task-btn:active { transform: scale(0.92); }
+  .tm-task-actions .tm-task-btn:hover { background: var(--primary-soft); }
 
   /* 行内编辑 */
   .tm-edit-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tm-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .tm-edit-actions { display: flex; gap: 8px; margin-top: 9px; }
   .tm-input {
     flex: 1;
     min-width: 160px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 7px 10px;
+    padding: 8px 11px;
     font-size: 14px;
     color: var(--text);
     background: var(--card);
     outline: none;
     transition: all 0.18s;
   }
+  .tm-input::placeholder { color: var(--text-muted); }
   .tm-input:focus { border-color: var(--primary); box-shadow: var(--ring); }
   .tm-select {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 7px 10px;
+    padding: 8px 11px;
     font-size: 14px;
     color: var(--text);
     background: var(--card);
     outline: none;
     cursor: pointer;
+    transition: all 0.18s;
   }
   .tm-select:focus { border-color: var(--primary); box-shadow: var(--ring); }
 
   .tm-btn-primary {
     border: none;
-    background: var(--primary);
+    background: var(--brand-grad);
     color: #fff;
     border-radius: var(--radius-sm);
-    padding: 7px 16px;
+    padding: 8px 18px;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.28);
   }
-  .tm-btn-primary:hover { background: var(--primary-hover); }
+  .tm-btn-primary:hover { filter: brightness(1.06); box-shadow: 0 4px 12px rgba(99,102,241,0.36); }
+  .tm-btn-primary:active { transform: scale(0.98); }
   .tm-btn-ghost {
     border: 1px solid var(--border);
     background: var(--card);
     color: var(--text-soft);
     border-radius: var(--radius-sm);
-    padding: 7px 16px;
+    padding: 8px 18px;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.18s;
   }
-  .tm-btn-ghost:hover { background: var(--bg-soft); }
+  .tm-btn-ghost:hover { background: var(--bg-soft); color: var(--text); }
 
   /* 新增弹层 */
   .tm-modal-mask {
     position: fixed;
     inset: 0;
     background: rgba(17,24,39,0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -13879,15 +13989,12 @@ function tmApplyCycles() {
 // 返回规则：未完成在前 → 已完成在后（各自内部按 kind 规则排）
 function tmSortList(list, kind) {
   const arr = list.slice();
-  if (kind === 'daily') {
-    // 每日任务：手动拖动顺序
+  if (kind === 'daily' || kind === 'urgent') {
+    // 每日任务 / 紧急任务：手动拖动顺序
     arr.sort((a,b) => (a.order||0) - (b.order||0));
   } else if (kind === 'weekly' || kind === 'monthly') {
     // 周/月任务：默认按计划时间数字升序
     arr.sort((a,b) => (a.plan||0) - (b.plan||0));
-  } else {
-    // 紧急任务：按创建时间（新的在前）
-    arr.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
   }
   // 未完成在前，已完成置后
   const undone = arr.filter(t => !t.done);
@@ -13898,12 +14005,15 @@ function tmListOf(kind) {
   return tmSortList(tmTasks.filter(t => t.kind === kind), kind);
 }
 
-// 每日任务拖动后，重算 order
-function tmRenumberDaily() {
-  tmTasks.filter(t => t.kind === 'daily')
+// 拖动后重算某个类型的 order（每日任务 / 紧急任务支持手动排序）
+function tmRenumberKind(kind) {
+  if (!kind) kind = 'daily';
+  tmTasks.filter(t => t.kind === kind)
     .sort((a,b) => (a.order||0) - (b.order||0))
     .forEach((t,i) => { t.order = i; });
 }
+// 兼容旧调用
+function tmRenumberDaily() { tmRenumberKind('daily'); }
 
 // ---------- 渲染 ----------
 function tmRerender() {
@@ -13984,6 +14094,30 @@ function tmRenderSection(kind) {
   `;
 }
 
+// 判断任务是否应标红（逾期未完成）
+//   每日任务：今天未完成 → 标红
+//   每周任务：计划星期 早于 今天（不含今天） → 标红
+//   每月任务：计划日 小于等于 今天（含今天） → 标红
+//   紧急任务：未完成 → 标红
+function tmIsOverdue(t) {
+  if (!t || t.done) return false;
+  const now = new Date();
+  if (t.kind === 'weekly') {
+    const todayWd = now.getDay();                 // 0=周日, 1=周一 ...
+    const todayIso = todayWd === 0 ? 7 : todayWd; // 转为 1~7（周一~周日）
+    const p = parseInt(t.plan, 10);
+    if (!(p >= 1 && p <= 7)) return false;
+    return p < todayIso;                          // 严格早于今天才标红
+  }
+  if (t.kind === 'monthly') {
+    const p = parseInt(t.plan, 10);
+    if (!(p >= 1 && p <= 31)) return false;
+    return p <= now.getDate();                    // 含今天
+  }
+  // 每日任务 / 紧急任务：未完成即标红
+  return true;
+}
+
 function tmRenderTask(t, kind) {
   const isDaily = kind.id === 'daily';
   const isUrgent = kind.id === 'urgent';
@@ -13996,13 +14130,15 @@ function tmRenderTask(t, kind) {
   }
 
   const editorOpen = (tmEditingId === t.id);
-  // 未完成任务标红（含今天及以前仍未完成的，以及所有未完成的紧急任务）
-  const overdueCls = t.done ? '' : 'tm-overdue';
+  // 未完成任务标红判定（已完成的一律不标红）
+  const overdueCls = tmIsOverdue(t) ? 'tm-overdue' : '';
+  // 每日任务 / 紧急任务 支持手动拖动排序
+  const draggable = (isDaily || kind.id === 'urgent');
 
   return `
     <div class="tm-task ${t.done ? 'done' : ''} ${overdueCls}" data-tm-id="${t.id}"
-         ${isDaily ? 'draggable="true"' : ''}>
-      ${isDaily ? '<span class="tm-drag-handle" title="拖动排序">⠿</span>' : ''}
+         ${draggable ? 'draggable="true"' : ''}>
+      ${draggable ? '<span class="tm-drag-handle" title="拖动排序">⠿</span>' : ''}
       <div class="tm-check ${t.done ? 'checked' : ''}" data-tm-action="toggle" data-tm-id="${t.id}" title="标记完成/未完成">
         ${t.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
       </div>
@@ -14265,8 +14401,9 @@ function tmHandleKeydown(e) {
   }
 }
 
-// 每日任务拖动排序
+// 拖动排序（每日任务 / 紧急任务）
 function tmBindDrag(listEl) {
+  const kind = listEl.dataset.tmList;   // daily | urgent
   let dragEl = null;
   listEl.querySelectorAll('.tm-task[draggable="true"]').forEach(el => {
     // 已完成任务不允许拖动排序（它们固定在末尾）
@@ -14287,11 +14424,11 @@ function tmBindDrag(listEl) {
       dragEl = null; tmDragId = null;
       // 落位后回写 order
       const ids = Array.from(listEl.querySelectorAll('.tm-task:not(.done)')).map(x => x.dataset.tmId);
-      tmTasks.filter(t => t.kind === 'daily').forEach(t => {
+      tmTasks.filter(t => t.kind === kind).forEach(t => {
         const idx = ids.indexOf(t.id);
         if (idx >= 0) t.order = idx;
       });
-      tmRenumberDaily();
+      tmRenumberKind(kind);
       tmSave();
       tmRerender();
     });
@@ -14327,14 +14464,16 @@ function bindTaskMgrEvents() {
     if (!content || !content.contains(e.target)) return;
     tmHandleKeydown(e);
   });
-  // 拖动排序：每次重新渲染后为每个每日列表绑定
+  // 拖动排序：每次重新渲染后为支持拖动的列表绑定
   const observer = new MutationObserver(() => {
     if (currentModule !== 'taskmgr') return;
-    const listEl = document.querySelector('[data-tm-list="daily"]');
-    if (listEl && !listEl.dataset.tmDragBound) {
-      listEl.dataset.tmDragBound = '1';
-      tmBindDrag(listEl);
-    }
+    ['daily', 'urgent'].forEach(kind => {
+      const listEl = document.querySelector(`[data-tm-list="${kind}"]`);
+      if (listEl && listEl.dataset.tmDragBound !== '1') {
+        listEl.dataset.tmDragBound = '1';
+        tmBindDrag(listEl);
+      }
+    });
   });
   observer.observe(document.getElementById('content'), { childList: true, subtree: true });
 }
