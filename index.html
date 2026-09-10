@@ -2384,7 +2384,7 @@
   .tm-kind-stat-name { font-size: 12px; color: var(--text-soft); margin-bottom: 4px; }
   .tm-kind-stat-num { font-size: 16px; font-weight: 600; color: var(--text); }
 
-  .tm-sections { display: flex; flex-direction: column; gap: 14px; }
+  .tm-sections { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
 
   .tm-section {
     background: var(--card);
@@ -2462,6 +2462,33 @@
   .tm-task.done .tm-task-title { text-decoration: line-through; color: var(--text-muted); }
   .tm-task.done .tm-check { background: var(--text-muted); border-color: var(--text-muted); }
 
+  /* 未完成（含今天及以前仍未完成）：标题红字 + 左侧红线 */
+  .tm-task.tm-overdue {
+    border-left: 3px solid var(--danger);
+    background: var(--danger-soft);
+  }
+  .tm-task.tm-overdue .tm-task-title {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .tm-task.tm-overdue .tm-check { border-color: var(--danger); }
+  .tm-task.tm-overdue .tm-plan-tag {
+    color: var(--danger);
+    background: #fff;
+    border-color: rgba(239,68,68,0.35);
+  }
+  .tm-task.tm-overdue .tm-plan-tag:hover { background: var(--danger); color: #fff; }
+  .tm-task.tm-overdue .tm-drag-handle { color: var(--danger); }
+
+  /* 已完成任务优先使用置灰样式，绝不被标红覆盖 */
+  .tm-task.done.tm-overdue,
+  .tm-task.done.tm-overdue .tm-task-title {
+    border-left-color: var(--border);
+    background: var(--bg-soft);
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
   .tm-drag-handle {
     flex-shrink: 0;
     color: var(--text-muted);
@@ -2493,18 +2520,22 @@
   .tm-check svg { width: 12px; height: 12px; }
 
   .tm-task-body { flex: 1; min-width: 0; }
-  .tm-task-title {
-    font-size: 14px;
-    color: var(--text);
-    word-break: break-word;
-    line-height: 1.5;
-  }
-  .tm-task-meta {
+  /* 标题 + 计划时间 + 完成时间同一行显示，不换行 */
+  .tm-task-line {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 5px;
-    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .tm-task-title {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .tm-plan-tag {
     font-size: 12px;
@@ -2515,9 +2546,11 @@
     padding: 1px 9px;
     cursor: pointer;
     transition: all 0.18s;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .tm-plan-tag:hover { background: var(--primary); color: #fff; }
-  .tm-done-tag { font-size: 11px; color: var(--text-muted); }
+  .tm-done-tag { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
 
   .tm-task-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .tm-task-btn {
@@ -13895,6 +13928,13 @@ function renderTaskMgrModule(content, mod) {
       <div class="page-desc">${mod.desc} · ${today} ${weekday}</div>
     </div>
 
+    ${tmFormKind !== null ? tmRenderForm(tmFormKind) : ''}
+
+    <div class="tm-sections">
+      ${TASKMGR_KINDS.map(k => tmRenderSection(k)).join('')}
+    </div>
+
+    <!-- 任务完成情况统计（置于页面底部） -->
     <div class="tm-progress-card">
       <div class="tm-progress-main">
         <div class="tm-progress-rate">${rate}%</div>
@@ -13913,12 +13953,6 @@ function renderTaskMgrModule(content, mod) {
           </div>`;
         }).join('')}
       </div>
-    </div>
-
-    ${tmFormKind !== null ? tmRenderForm(tmFormKind) : ''}
-
-    <div class="tm-sections">
-      ${TASKMGR_KINDS.map(k => tmRenderSection(k)).join('')}
     </div>
   `;
 }
@@ -13962,9 +13996,11 @@ function tmRenderTask(t, kind) {
   }
 
   const editorOpen = (tmEditingId === t.id);
+  // 未完成任务标红（含今天及以前仍未完成的，以及所有未完成的紧急任务）
+  const overdueCls = t.done ? '' : 'tm-overdue';
 
   return `
-    <div class="tm-task ${t.done ? 'done' : ''}" data-tm-id="${t.id}"
+    <div class="tm-task ${t.done ? 'done' : ''} ${overdueCls}" data-tm-id="${t.id}"
          ${isDaily ? 'draggable="true"' : ''}>
       ${isDaily ? '<span class="tm-drag-handle" title="拖动排序">⠿</span>' : ''}
       <div class="tm-check ${t.done ? 'checked' : ''}" data-tm-action="toggle" data-tm-id="${t.id}" title="标记完成/未完成">
@@ -13972,8 +14008,8 @@ function tmRenderTask(t, kind) {
       </div>
       <div class="tm-task-body">
         ${editorOpen ? tmRenderInlineEditor(t, kind) : `
-          <div class="tm-task-title">${escapeHtml(t.title)}</div>
-          <div class="tm-task-meta">
+          <div class="tm-task-line">
+            <span class="tm-task-title">${escapeHtml(t.title)}</span>
             ${planHtml}
             ${t.done && t.doneAt ? `<span class="tm-done-tag">完成于 ${formatDate(t.doneAt)}</span>` : ''}
           </div>
