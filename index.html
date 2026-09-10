@@ -3822,6 +3822,15 @@ function renderNav() {
   if (navReorder) attachNavReorder(nav);
 }
 
+// 默认选中顺序中的第 1 个可用菜单
+function selectFirstModule() {
+  const first = orderedModules().find(m => !m.hidden && m.enabled);
+  if (!first) return;
+  currentModule = first.id;
+  currentSub = (first.children && first.children.length) ? first.children[0].id : null;
+  renderContent();
+}
+
 // 侧边栏「调整菜单顺序」开关
 function bindNavReorder() {
   const btn = document.getElementById('navReorderBtn');
@@ -3829,10 +3838,15 @@ function bindNavReorder() {
   if (!btn || !sidebar) return;
   const syncRefresh = () => { renderNav(); };
   btn.addEventListener('click', () => {
+    const finishing = navReorder;   // 当前处于排序模式，点击即完成排序
     navReorder = !navReorder;
     sidebar.classList.toggle('reorder-on', navReorder);
     btn.classList.toggle('active', navReorder);
     btn.textContent = navReorder ? '✓ 完成排序' : '⇅ 调整菜单顺序';
+    if (finishing) {
+      // 调整顺序完成后，默认选中第 1 个菜单
+      selectFirstModule();
+    }
     renderNav();
   });
   // 若已存在自定义顺序，提示用户可调整（无需强制开启）
