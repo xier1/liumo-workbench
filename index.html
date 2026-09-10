@@ -1062,732 +1062,124 @@
     .quotes-stats { grid-template-columns: repeat(2, 1fr); }
   }
 
-  /* ========== 学习管理模块 ========== */
-  .study-gamified {
-    --pvz-sun: #f59e0b;
-    --pvz-plant: #10b981;
-    --pvz-zombie: #8b5cf6;
-    --pvz-today: #3b82f6;
-    --pvz-wrong: #ef4444;
-    --pvz-bg: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 50%, #faf5ff 100%);
-  }
-
-  .study-gamified .page-header {
-    margin-bottom: 16px;
-  }
-
-  /* 游戏化统计卡片 */
-  .pvz-stats {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .pvz-stat-card {
-    border-radius: 16px;
-    padding: 14px 16px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .pvz-stat-card:hover {
-    transform: translateY(-2px);
-  }
-
-  .pvz-stat-card.sun  { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-  .pvz-stat-card.plant { background: linear-gradient(135deg, #34d399, #10b981); }
-  .pvz-stat-card.zombie { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
-  .pvz-stat-card.today { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
-  .pvz-stat-card.wrong { background: linear-gradient(135deg, #f87171, #ef4444); }
-
-  .pvz-stat-icon {
-    font-size: 28px;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .pvz-stat-info {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .pvz-stat-label {
-    font-size: 11px;
-    opacity: 0.9;
-    white-space: nowrap;
-  }
-
-  .pvz-stat-value {
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  @media (max-width: 768px) {
-    .pvz-stats { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* 顶部操作按钮 */
-  .pvz-top-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .pvz-top-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-top-btn.add {
-    background: linear-gradient(135deg, #34d399, #10b981);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(16,185,129,0.3);
-  }
-
-  .pvz-top-btn.add:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(16,185,129,0.4);
-  }
-
-  .pvz-top-btn.refresh {
-    background: linear-gradient(135deg, #60a5fa, #3b82f6);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
-  }
-
-  .pvz-top-btn.refresh:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(59,130,246,0.4);
-  }
-
-  .pvz-top-btn.manage {
-    background: var(--card);
-    color: var(--text-soft);
-    border: 1px solid var(--border);
-  }
-
-  .pvz-top-btn.manage:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-
-  .pvz-top-btn.print {
-    background: var(--card);
-    color: var(--text-soft);
-    border: 1px solid var(--border);
-  }
-
-  .pvz-top-btn.print:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-
-  .pvz-date-nav {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 3px;
-    margin-left: auto;
-  }
-
-  .pvz-date-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-soft);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-date-btn:hover {
-    background: var(--bg-soft);
-    color: var(--text);
-  }
-
-  .pvz-date-btn.today-btn {
-    width: auto;
-    padding: 0 10px;
-    font-size: 12px;
-    color: var(--primary);
-    font-weight: 500;
-  }
-
-  .pvz-date-input {
-    border: none;
-    background: transparent;
-    color: var(--text);
-    font-weight: 500;
-    font-size: 13px;
-    text-align: center;
-    min-width: 120px;
-    cursor: pointer;
-  }
-
-  .pvz-date-input:focus { outline: none; }
-
-  /* 彩色折叠面板 */
-  .pvz-category {
-    border-radius: 16px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    transition: all 0.2s ease;
-  }
-
-  .pvz-category.collapsed .pvz-cat-body {
-    display: none;
-  }
-
-  .pvz-cat-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 18px;
-    cursor: pointer;
-    transition: filter 0.2s ease;
-    color: #fff;
-  }
-
-  .pvz-cat-header:hover {
-    filter: brightness(1.05);
-  }
-
-  .pvz-cat-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .pvz-cat-name {
-    font-weight: 700;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-
-  .pvz-cat-stats {
-    display: flex;
-    gap: 8px;
-    margin-left: auto;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .pvz-cat-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 3px 10px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .pvz-cat-badge.progress {
-    background: rgba(255,255,255,0.3);
-  }
-
-  .pvz-cat-badge.rate {
-    background: rgba(255,255,255,0.15);
-  }
-
-  .pvz-cat-toggle {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
-    flex-shrink: 0;
-    opacity: 0.8;
-  }
-
-  .pvz-category.collapsed .pvz-cat-toggle {
-    transform: rotate(-90deg);
-  }
-
-  .pvz-cat-actions {
-    display: flex;
-    gap: 2px;
-    margin-left: 4px;
-  }
-
-  .pvz-cat-action {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    opacity: 0.7;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-cat-action:hover {
-    opacity: 1;
-    background: rgba(255,255,255,0.2);
-  }
-
-  .pvz-cat-body {
-    padding: 14px 18px;
-    background: var(--card);
-  }
-
-  /* 任务分组标题 */
-  .pvz-section-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    margin-top: 4px;
-  }
-
-  .pvz-section-label:first-child {
-    margin-top: 0;
-  }
-
-  /* 每日任务 */
-  .pvz-task {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
-    margin-bottom: 4px;
-  }
-
-  .pvz-task:hover {
-    background: var(--bg-soft);
-  }
-
-  .pvz-task.done {
-    opacity: 0.6;
-  }
-
-  .pvz-check {
-    width: 24px;
-    height: 24px;
-    border: 2.5px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-  }
-
-  .pvz-check:hover {
-    border-color: var(--primary);
-    transform: scale(1.1);
-  }
-
-  .pvz-task.done .pvz-check {
-    background: var(--success);
-    border-color: var(--success);
-  }
-
-  .pvz-check svg {
-    width: 14px;
-    height: 14px;
-    color: #fff;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .pvz-task.done .pvz-check svg {
-    opacity: 1;
-  }
-
-  .pvz-task-name {
-    flex: 1;
-    font-size: 14px;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .pvz-task:hover .pvz-task-name {
-    color: var(--primary);
-  }
-
-  .pvz-task.done .pvz-task-name {
-    text-decoration: line-through;
-    color: var(--text-muted);
-  }
-
-  .pvz-task-points {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--warning);
-    background: var(--warning-soft);
-    padding: 3px 8px;
-    border-radius: 8px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .pvz-task.done .pvz-task-points {
-    color: var(--success);
-    background: #ecfdf5;
-  }
-
-  .pvz-task-actions {
-    display: flex;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-
-  .pvz-task-action {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-task-action:hover {
-    background: var(--bg-soft);
-    color: var(--text);
-  }
-
-  .pvz-task-action.delete:hover {
-    background: var(--danger-soft);
-    color: var(--danger);
-  }
-
-  /* 周期任务 */
-  .pvz-cycle-task {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
-    margin-bottom: 4px;
-  }
-
-  .pvz-cycle-task:hover {
-    background: var(--bg-soft);
-  }
-
-  .pvz-cycle-tag {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--primary);
-    background: var(--primary-soft);
-    padding: 3px 8px;
-    border-radius: 8px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .pvz-cycle-count {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-soft);
-    min-width: 40px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .pvz-cycle-count.done {
-    color: var(--success);
-  }
-
-  .pvz-cycle-status {
-    font-size: 11px;
-    color: var(--text-muted);
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: var(--bg-soft);
-    flex-shrink: 0;
-  }
-
-  .pvz-cycle-status.checked {
-    color: var(--success);
-    background: #ecfdf5;
-  }
-
-  .pvz-punch-btn {
-    padding: 5px 14px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(245,158,11,0.3);
-  }
-
-  .pvz-punch-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 3px 10px rgba(245,158,11,0.4);
-  }
-
-  .pvz-punch-btn:active {
-    transform: scale(0.95);
-  }
-
-  /* 添加任务按钮 */
-  .pvz-add-task-btn {
-    width: 100%;
-    margin-top: 8px;
-    padding: 8px;
-    border: 1.5px dashed var(--border);
-    border-radius: 10px;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-add-task-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--primary-soft);
-  }
-
-  /* 内联编辑 */
-  .pvz-edit-inline {
-    flex: 1;
-    padding: 6px 10px;
-    border: 1px solid var(--primary);
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    font-size: 14px;
-  }
-
-  .pvz-edit-inline:focus { outline: none; }
-
-  /* 积分 Toast (飘动效果) */
-  .pvz-points-toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.5);
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: #fff;
-    padding: 20px 36px;
-    border-radius: 20px;
-    font-size: 28px;
-    font-weight: 700;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 200;
-    box-shadow: 0 8px 30px rgba(245,158,11,0.4);
-  }
-
-  .pvz-points-toast.show {
-    opacity: 1;
-    transform: translate(-50%, -80%) scale(1);
-  }
-
-  /* 打卡动画 */
-  @keyframes pvzPunch {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.3) rotate(-5deg); }
-    100% { transform: scale(1) rotate(0deg); }
-  }
-
-  .pvz-punch-anim {
-    animation: pvzPunch 0.4s ease;
-  }
-
-  /* 任务管理面板 */
-  .pvz-manage-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 16px;
-  }
-
-  .pvz-manage-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-  }
-
-  .pvz-manage-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 120px;
-  }
-
-  .pvz-manage-field label {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .pvz-manage-field input,
-  .pvz-manage-field select {
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    font-size: 13px;
-    transition: all 0.2s ease;
-  }
-
-  .pvz-manage-field input:focus,
-  .pvz-manage-field select:focus {
-    outline: none;
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-  }
-
-  .pvz-manage-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px dashed var(--border);
-  }
-
-  .pvz-reset-btn {
-    color: var(--danger);
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    background: none;
-    border: 1px solid transparent;
-  }
-
-  .pvz-reset-btn:hover {
-    background: var(--danger-soft);
-    border-color: var(--danger);
-  }
-
-  /* 近期打卡记录 */
-  .pvz-history {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
-    margin-top: 8px;
-  }
-
-  .pvz-history-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .pvz-history-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-    gap: 8px;
-  }
-
-  .pvz-history-day {
-    text-align: center;
-    padding: 8px 4px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .pvz-history-day:hover {
-    border-color: var(--primary);
-  }
-
-  .pvz-history-day.today {
-    border-color: var(--primary);
-    background: var(--primary-soft);
-  }
-
-  .pvz-history-day.future {
-    opacity: 0.4;
-  }
-
-  .pvz-history-date {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  .pvz-history-rate {
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 2px;
-  }
-
-  .pvz-rate-full { color: var(--success); }
-  .pvz-rate-partial { color: var(--warning); }
-  .pvz-rate-zero { color: var(--text-muted); }
-
-  @media print {
-    .sidebar, .menu-toggle, .filter-bar, .toolbar,
-    .pvz-date-nav, .pvz-top-btn, .toast, .pvz-points-toast { display: none !important; }
-    .main { padding: 0 !important; max-width: 100% !important; }
-    .app { display: block !important; }
-    .pvz-category, .pvz-history {
-      break-inside: avoid;
-      box-shadow: none !important;
-      border: 1px solid #ccc !important;
-    }
-    body { background: #fff !important; }
-  }
-
+  /* ========== 学习管理模块（v2 · 任务明细 / 计划明细） ========== */
+  .study2 { padding: 4px 2px 24px; }
+  .study2 .page-header { margin-bottom: 10px; }
+
+  /* 页签 */
+  .study2-tabs { display: flex; gap: 6px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .study2-tab {
+    flex: 0 0 auto; padding: 8px 14px; font-size: 14px; font-weight: 600;
+    color: var(--text-muted); background: none; border: none; border-bottom: 2px solid transparent;
+    cursor: pointer; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 6px;
+  }
+  .study2-tab:hover { color: var(--text-soft); background: var(--bg-soft); }
+  .study2-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .study2-tab-badge {
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    background: var(--danger); color: #fff; font-size: 11px; line-height: 18px; text-align: center;
+  }
+
+  /* 工具栏 */
+  .study2-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .study2-spacer { flex: 1; }
+  .study2-select {
+    padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; background: var(--card); color: inherit;
+  }
+  .study2-btn {
+    padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 13px; color: var(--text-soft); white-space: nowrap;
+  }
+  .study2-btn:hover { filter: brightness(.97); }
+  .study2-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* 科目分组 */
+  .study2-subject {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden;
+  }
+  .study2-subject-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-soft); }
+  .study2-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+  .study2-subject-name { font-weight: 600; font-size: 14px; }
+  .study2-subject-count { font-size: 12px; color: var(--text-muted); background: var(--border); border-radius: 10px; padding: 0 7px; }
+  .study2-subject-actions { margin-left: auto; display: flex; gap: 4px; }
+
+  /* 通用小按钮 */
+  .study2-mini {
+    border: 1px solid var(--border); background: var(--card); border-radius: 6px;
+    padding: 3px 7px; font-size: 12px; cursor: pointer; color: var(--text-soft); line-height: 1.4; white-space: nowrap;
+  }
+  .study2-mini:hover { border-color: var(--primary); color: var(--primary); }
+  .study2-mini.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .study2-mini.done { background: var(--success); color: #fff; border-color: var(--success); }
+
+  /* 任务行 */
+  .study2-tasks { padding: 4px 6px 6px; }
+  .study2-subtask-empty { color: var(--text-muted); font-size: 12px; padding: 6px; }
+  .study2-task { display: flex; align-items: flex-start; gap: 8px; padding: 7px 6px; border-radius: 8px; }
+  .study2-task:hover { background: var(--bg-soft); }
+  .study2-stripe { width: 3px; align-self: stretch; border-radius: 2px; flex: 0 0 auto; min-height: 18px; }
+  .study2-task-main { flex: 1; min-width: 0; }
+  .study2-task-title { font-size: 14px; font-weight: 500; word-break: break-word; }
+  .study2-task-note { font-size: 12px; color: var(--text-muted); margin-top: 1px; word-break: break-word; }
+  .study2-task-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+  .study2-task-actions { display: flex; gap: 4px; flex: 0 0 auto; align-items: center; }
+
+  /* 标签 */
+  .study2-badge {
+    font-size: 11px; padding: 1px 7px; border-radius: 10px;
+    background: var(--bg-soft); color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap;
+  }
+  .study2-badge.date { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
+  .study2-badge.weekly { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+  .study2-badge.none { color: var(--text-muted); }
+  .study2-badge.cont { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+  .study2-badge.overdue { color: #fff; background: var(--danger); border-color: var(--danger); }
+  .study2-badge.sub { color: var(--text-soft); }
+
+  .study2-empty {
+    text-align: center; color: var(--text-muted); padding: 30px 16px; font-size: 13px;
+    background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  }
+
+  /* 计划明细 */
+  .study2-plan-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .study2-plan-summary { font-size: 13px; color: var(--text-muted); }
+  .study2-plan-summary b { color: var(--primary); font-size: 15px; }
+  .study2-plan-today { font-size: 12px; color: var(--text-muted); }
+  .study2-plan-group { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden; }
+  .study2-plan-group.is-today { border-color: var(--primary); }
+  .study2-plan-date { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg-soft); font-size: 13px; }
+  .study2-plan-date-main { font-weight: 700; }
+  .study2-plan-date-wd { color: var(--text-muted); }
+  .study2-plan-today-tag { margin-left: auto; font-size: 11px; color: #fff; background: var(--primary); border-radius: 10px; padding: 1px 8px; }
+  .study2-plan-row { display: flex; align-items: flex-start; gap: 8px; padding: 7px 8px; }
+  .study2-plan-row:hover { background: var(--bg-soft); }
+  .study2-plan-row.is-overdue .study2-task-title { color: var(--danger); }
+
+  /* 弹窗 */
+  .study2-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+  }
+  .study2-modal-card {
+    background: var(--card); border-radius: 14px; width: 100%; max-width: 380px;
+    padding: 16px; box-shadow: var(--shadow-sm); max-height: 90vh; overflow: auto;
+  }
+  .study2-modal-title { font-weight: 700; font-size: 16px; margin-bottom: 12px; }
+  .study2-form { display: flex; flex-direction: column; gap: 10px; }
+  .study2-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-soft); }
+  .study2-field > span { font-weight: 500; }
+  .study2-field input[type=text], .study2-field input[type=date], .study2-field select, .study2-field input[type=color] {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; background: var(--card); color: inherit;
+  }
+  .study2-field input[type=color] { padding: 2px; height: 38px; }
+  .study2-field.cont { flex-direction: row; align-items: center; gap: 8px; }
+  .study2-field.cont input { width: auto; }
+  .study2-hidden { display: none !important; }
+  .study2-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   /* ========== 果然鲜模块 ========== */
   .fresh-grid {
     display: grid;
@@ -5001,1104 +4393,516 @@ function bindQuoteEvents() {
 }
 
 /* ========================================================
-   学习管理模块
+   学习管理模块（v2 · 任务明细 / 计划明细）
+   数据模型：
+     科目 subjects: [{id, name, icon, color}]
+     任务 tasks:    [{id, subjectId, title, note,
+                      planMode:'none'|'date'|'weekly',
+                      planDate:'YYYY-MM-DD', weekday:1-7,
+                      continueAfterOverdue:bool, createdAt, updatedAt}]
+     计划完成 studyPlan: { done:{ 'taskId__YYYY-MM-DD':true }, allCycle:{ taskId:true } }
+   计划明细 = 由「任务 + 计划设置」推导生成，按日期聚合未完成的计划项。
    ======================================================== */
 
-// ---------- 学习管理:任务定义(默认配置,可被用户修改) ----------
-const DEFAULT_STUDY_CATEGORIES = [
-  {
-    id: 'cat_chinese',
-    name: '语文',
-    color: '#ef4444',
-    icon: '📖',
-    tasks: [
-      { id: 't_cn1', name: '背诵六上必背内容', type: 'daily', points: 20 },
-      { id: 't_cn2', name: '写字', type: 'daily', points: 20 },
-      { id: 't_cn3', name: '阅读书单', type: 'daily', points: 20 }
-    ]
-  },
-  {
-    id: 'cat_math',
-    name: '数学',
-    color: '#3b82f6',
-    icon: '📐',
-    tasks: [
-      { id: 't_mt1', name: '小升初数学试卷', type: 'daily', points: 20 },
-      { id: 't_mt2', name: '打印老版本六上第三单元,预习六上内容', type: 'daily', points: 20 }
-    ]
-  },
-  {
-    id: 'cat_english',
-    name: '英语',
-    color: '#10b981',
-    icon: '🔤',
-    tasks: [
-      { id: 't_en1', name: '单词机', type: 'daily', points: 20 },
-      { id: 't_en2', name: '格林英语试卷', type: 'daily', points: 20 }
-    ]
-  },
-  {
-    id: 'cat_exercise',
-    name: '锻炼',
-    color: '#f59e0b',
-    icon: '💪',
-    tasks: [
-      { id: 't_ex1', name: '一分钟跳绳', type: 'daily', points: 20 },
-      { id: 't_ex2', name: '一分钟仰卧起坐', type: 'daily', points: 20 }
-    ]
-  }
-];
+// ---------- 存储键 ----------
+const STUDY_CONFIG_KEY = 'liumo_study_v2_config';   // 科目 + 任务
+const STUDY_STORAGE_KEY = 'liumo_study_v2_plan';    // 计划完成记录
+const STUDY_POINTS_KEY  = 'liumo_study_v2_points';  // 兼容占位（v2 不再启用积分）
 
-const DEFAULT_STUDY_EXTRA_TASKS = [
-  { id: 't_print1', name: '打印计划表', type: 'daily', points: 20 },
-  { id: 't_print2', name: '打印天锻炼数据表', type: 'daily', points: 20 }
-];
+// ---------- 状态 ----------
+let studySubjects = [];
+let studyTasks = [];
+let studyPlan = { done: {}, allCycle: {} };
+let studyTab = 'tasks';            // 'tasks' | 'plans'
+let studySubjectFilter = '';       // 任务明细页签的科目筛选
+let studyEdit = null;              // {type:'subject'} | {type:'subject',id} | {type:'task',subjectId?} | {type:'task',id}
+let studyEventsBound = false;
 
-const DEFAULT_STUDY_CYCLE_TASKS = [
-  { id: 'cyc1', name: '复习错题本', type: 'cycle', points: 30, cycle: '每周2次' },
-  { id: 'cyc2', name: '课外阅读', type: 'cycle', points: 30, cycle: '每周3次' }
-];
-
-// 运行时可变的任务配置
-let studyCategories = [];
-let studyExtraTasks = [];
-let studyCycleTasks = [];
-let studyExtraHidden = false;  // 打印任务分类是否已删除
-let studyCycleHidden = false;  // 周期任务分类是否已删除
-
-const STUDY_CONFIG_KEY = 'liumo_workbench_study_config';
-const STUDY_CAT_COLORS = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#6366f1','#14b8a6','#f97316'];
-const STUDY_CAT_ICONS = ['📖','📐','🔤','💪','🖨️','📚','✏️','🎯','🎵','🎨','🔬','🧩'];
-
-// 默认分类背景色(渐变)
-function studyCatBg(color) {
-  return `linear-gradient(135deg, ${color}, ${color}dd)`;
-}
-
-// 数据迁移:确保每个任务都有 type/points/cycle 字段
-function migrateStudyTask(t, defaultType) {
-  return {
-    id: t.id,
-    name: t.name,
-    type: t.type || defaultType,
-    points: t.points != null ? t.points : 20,
-    cycle: t.cycle || (t.type === 'cycle' ? '每周2次' : undefined)
-  };
-}
-
-function loadStudyConfig() {
-  try {
-    const data = localStorage.getItem(STUDY_CONFIG_KEY);
-    if (data) {
-      const cfg = JSON.parse(data);
-      studyCategories = (cfg.categories || JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES))).map(c => ({
-        ...c,
-        tasks: c.tasks.map(t => migrateStudyTask(t, 'daily'))
-      }));
-      studyExtraTasks = (cfg.extraTasks || JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS))).map(t => migrateStudyTask(t, 'daily'));
-      studyCycleTasks = (cfg.cycleTasks || JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS))).map(t => migrateStudyTask(t, 'cycle'));
-      studyExtraHidden = cfg.extraHidden || false;
-      studyCycleHidden = cfg.cycleHidden || false;
-      return;
-    }
-  } catch (e) {}
-  studyCategories = JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES));
-  studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
-  studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
-}
-
-function saveStudyConfig() {
-  localStorage.setItem(STUDY_CONFIG_KEY, JSON.stringify({
-    categories: studyCategories,
-    extraTasks: studyExtraTasks,
-    cycleTasks: studyCycleTasks,
-    extraHidden: studyExtraHidden,
-    cycleHidden: studyCycleHidden
-  }));
-}
-
-// 获取所有每日任务(计入进度)
-function getDailyTasks() {
-  const list = [];
-  studyCategories.forEach(c => c.tasks.forEach(t => {
-    if (t.type !== 'cycle') list.push(t);
-  }));
-  studyExtraTasks.forEach(t => {
-    if (t.type !== 'cycle') list.push(t);
-  });
-  return list;
-}
-
-// 获取所有周期任务
-function getCycleTasks() {
-  const list = [];
-  studyCategories.forEach(c => c.tasks.forEach(t => {
-    if (t.type === 'cycle') list.push(t);
-  }));
-  studyCycleTasks.forEach(t => list.push(t));
-  return list;
-}
-
-function getDailyTotalCount() {
-  return getDailyTasks().length;
-}
-
-// ---------- 学习管理:状态与存储 ----------
-const STUDY_STORAGE_KEY = 'liumo_workbench_study';
-const STUDY_POINTS_KEY = 'liumo_workbench_study_points';
-let studyRecords = {};   // { 'YYYY-MM-DD': { taskId: { done: bool, note: '' }, ... } }
-let studyDate = todayStr();
-let studyCollapsedCats = {};  // { catId: true }
-let studyPoints = { total: 0, todayDate: '', todayEarned: 0 };
-
-function todayStr() {
+// ---------- 工具 ----------
+function studyTodayStr() {
   const d = new Date();
   const m = (d.getMonth() + 1).toString().padStart(2, '0');
   const day = d.getDate().toString().padStart(2, '0');
   return `${d.getFullYear()}-${m}-${day}`;
 }
-
-function loadStudyRecords() {
-  try {
-    const data = localStorage.getItem(STUDY_STORAGE_KEY);
-    studyRecords = data ? JSON.parse(data) : {};
-  } catch (e) {
-    studyRecords = {};
-  }
+function studyFmtDate(d) {
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
 }
+function studyAddDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); x.setHours(0, 0, 0, 0); return x; }
+function studyWeekdayName(n) { return ['周一','周二','周三','周四','周五','周六','周日'][n - 1]; }
+function studyGetSubject(id) { return studySubjects.find(s => s.id === id) || null; }
+function studyPlanKey(taskId, date) { return taskId + '__' + date; }
 
-function saveStudyRecords() {
-  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(studyRecords));
-}
-
-function loadStudyPoints() {
+// ---------- 加载 / 保存 ----------
+function loadStudyConfig() {
   try {
-    const data = localStorage.getItem(STUDY_POINTS_KEY);
-    if (data) {
-      studyPoints = JSON.parse(data);
-      // 如果不是今天,重置今日积分
-      if (studyPoints.todayDate !== todayStr()) {
-        studyPoints.todayEarned = 0;
-        studyPoints.todayDate = todayStr();
-      }
+    const raw = localStorage.getItem(STUDY_CONFIG_KEY);
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      studySubjects = cfg.subjects || [];
+      studyTasks = cfg.tasks || [];
+      return;
     }
   } catch (e) {}
-  if (!studyPoints.total) studyPoints.total = 0;
-  if (!studyPoints.todayDate) studyPoints.todayDate = todayStr();
-  if (studyPoints.todayDate !== todayStr()) {
-    studyPoints.todayEarned = 0;
-    studyPoints.todayDate = todayStr();
+  // 首次进入：写入示例数据
+  studySubjects = [
+    { id: uid(), name: '语文', icon: '📖', color: '#ef4444' },
+    { id: uid(), name: '数学', icon: '📐', color: '#3b82f6' },
+    { id: uid(), name: '英语', icon: '🔤', color: '#10b981' },
+    { id: uid(), name: '锻炼', icon: '💪', color: '#f59e0b' }
+  ];
+  const sid = name => studySubjects.find(x => x.name === name).id;
+  const now = Date.now();
+  studyTasks = [
+    { id: uid(), subjectId: sid('语文'), title: '背诵课文段落', note: '', planMode: 'weekly', planDate: '', weekday: 1, continueAfterOverdue: true,  createdAt: now, updatedAt: now },
+    { id: uid(), subjectId: sid('英语'), title: '单词打卡',     note: '', planMode: 'weekly', planDate: '', weekday: 1, continueAfterOverdue: true,  createdAt: now, updatedAt: now },
+    { id: uid(), subjectId: sid('数学'), title: '错题整理',     note: '', planMode: 'weekly', planDate: '', weekday: 3, continueAfterOverdue: false, createdAt: now, updatedAt: now },
+    { id: uid(), subjectId: sid('锻炼'), title: '跳绳 1000 个', note: '', planMode: 'weekly', planDate: '', weekday: 6, continueAfterOverdue: true,  createdAt: now, updatedAt: now },
+    { id: uid(), subjectId: sid('语文'), title: '单元测试复习', note: '', planMode: 'date',   planDate: '2026-09-20', weekday: 1, continueAfterOverdue: false, createdAt: now, updatedAt: now },
+    { id: uid(), subjectId: sid('数学'), title: '模拟卷一套',   note: '', planMode: 'none',   planDate: '', weekday: 1, continueAfterOverdue: false, createdAt: now, updatedAt: now }
+  ];
+  saveStudyConfig();
+}
+function saveStudyConfig() {
+  localStorage.setItem(STUDY_CONFIG_KEY, JSON.stringify({ subjects: studySubjects, tasks: studyTasks }));
+}
+function loadStudyRecords() {
+  try {
+    const raw = localStorage.getItem(STUDY_STORAGE_KEY);
+    studyPlan = raw ? JSON.parse(raw) : { done: {}, allCycle: {} };
+  } catch (e) { studyPlan = { done: {}, allCycle: {} }; }
+  if (!studyPlan.done) studyPlan.done = {};
+  if (!studyPlan.allCycle) studyPlan.allCycle = {};
+}
+function saveStudyRecords() {
+  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(studyPlan));
+}
+function loadStudyPoints() { /* 兼容占位：v2 不启用积分系统 */ }
+
+// ---------- 计划推导 ----------
+// 计算某个每周任务「当前应显示的这一期」日期
+function studyComputeWeekly(task) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const todayJs = now.getDay();                 // 0=周日 .. 6=周六
+  const targetJs = task.weekday === 7 ? 0 : task.weekday;
+  let diff = (targetJs - todayJs + 7) % 7;       // 距下一个该星期几的天数（0=今天）
+  let occ = studyAddDays(now, diff);
+  const occStr = studyFmtDate(occ);
+  if (studyPlan.done[studyPlanKey(task.id, occStr)]) {
+    // 本期已完成 → 顺延到下一周期
+    occ = studyAddDays(occ, 7);
+    return { date: studyFmtDate(occ), overdue: false };
   }
-  if (!studyPoints.todayEarned) studyPoints.todayEarned = 0;
-}
-
-function saveStudyPoints() {
-  localStorage.setItem(STUDY_POINTS_KEY, JSON.stringify(studyPoints));
-}
-
-function addStudyPoints(pts) {
-  studyPoints.total += pts;
-  if (studyPoints.todayDate === todayStr()) {
-    studyPoints.todayEarned += pts;
-  } else {
-    studyPoints.todayDate = todayStr();
-    studyPoints.todayEarned = pts;
+  // 本期未完成：若开启「超期续显」且本周该日已过去 → 显示已逾期的那一期
+  if (diff > 0 && task.continueAfterOverdue) {
+    const past = studyAddDays(now, diff - 7);
+    const pastStr = studyFmtDate(past);
+    if (!studyPlan.done[studyPlanKey(task.id, pastStr)]) {
+      return { date: pastStr, overdue: true };
+    }
   }
-  saveStudyPoints();
+  return { date: occStr, overdue: false };
 }
 
-function getDayRecord(date) {
-  if (!studyRecords[date]) studyRecords[date] = {};
-  return studyRecords[date];
-}
-
-function getDayProgress(date) {
-  const rec = studyRecords[date] || {};
-  const dailyTasks = getDailyTasks();
-  let done = 0;
-  dailyTasks.forEach(t => { if (rec[t.id] && rec[t.id].done) done++; });
-  return { done, total: dailyTasks.length };
-}
-
-// 获取周期任务本周打卡次数
-function getCycleWeekCount(taskId) {
-  const now = new Date();
-  const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 周一=1...周日=7
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dayOfWeek - 1));
-  monday.setHours(0, 0, 0, 0);
-
-  let count = 0;
-  Object.keys(studyRecords).forEach(ds => {
-    const d = new Date(ds);
-    if (d >= monday) {
-      if (studyRecords[ds][taskId] && studyRecords[ds][taskId].done) {
-        count++;
-      }
+// 汇总所有未完成的计划项，按日期升序
+function studyGetPlanItems() {
+  const today = studyTodayStr();
+  const items = [];
+  studyTasks.forEach(task => {
+    if (task.planMode === 'none') return;
+    const subject = studyGetSubject(task.subjectId);
+    if (task.planMode === 'date') {
+      const d = task.planDate;
+      if (!d) return;
+      if (studyPlan.done[studyPlanKey(task.id, d)]) return;        // 已完成 → 隐藏
+      const overdue = d < today;
+      if (overdue && !task.continueAfterOverdue) return;           // 逾期未续显 → 丢弃
+      items.push({ task, subject, date: d, kind: 'date', overdue });
+    } else if (task.planMode === 'weekly') {
+      if (studyPlan.allCycle[task.id]) return;                     // 已全周期完成 → 隐藏
+      const o = studyComputeWeekly(task);
+      items.push({ task, subject, date: o.date, kind: 'weekly', overdue: o.overdue });
     }
   });
-  return count;
+  items.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return (b.overdue ? 1 : 0) - (a.overdue ? 1 : 0);
+  });
+  return items;
 }
 
-// 从周期字符串提取次数
-function parseCycleTimes(cycleStr) {
-  if (!cycleStr) return 0;
-  const m = cycleStr.match(/(\d+)次/);
-  return m ? parseInt(m[1]) : 0;
-}
-
-// ---------- 渲染:学习管理模块 ----------
+// ---------- 渲染：主入口 ----------
 function renderStudyModule(content, mod) {
   content.innerHTML = `
-    <div class="study-gamified">
+    <div class="study2">
       <div class="page-header">
         <div class="page-title">${mod.name}</div>
         <div class="page-desc">${mod.desc}</div>
       </div>
-
-      <!-- 游戏化统计卡片 -->
-      <div class="pvz-stats" id="pvzStats"></div>
-
-      <!-- 顶部操作按钮 -->
-      <div class="pvz-top-bar">
-        <button class="pvz-top-btn add" id="pvzAddTaskBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          添加任务
-        </button>
-        <button class="pvz-top-btn refresh" id="pvzRefreshBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          刷新每日
-        </button>
-        <button class="pvz-top-btn manage" id="pvzManageBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          管理任务
-        </button>
-        <button class="pvz-top-btn" id="pvzRestoreBtn" style="display:none;background:#10b981;color:#fff;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 3 3 12 12 12"/></svg>
-          恢复已删除分类
-        </button>
-        <button class="pvz-top-btn print" id="pvzPrintBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          打印
-        </button>
-        <div class="pvz-date-nav">
-          <button class="pvz-date-btn" id="studyPrevDay" title="前一天">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <input type="date" class="pvz-date-input" id="studyDateInput" value="${studyDate}" />
-          <button class="pvz-date-btn" id="studyNextDay" title="后一天">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button class="pvz-date-btn today-btn" id="studyToday">今天</button>
-        </div>
+      <div class="study2-tabs">
+        <button class="study2-tab ${studyTab === 'tasks' ? 'active' : ''}" data-study-action="tab" data-tab="tasks">📋 任务明细</button>
+        <button class="study2-tab ${studyTab === 'plans' ? 'active' : ''}" data-study-action="tab" data-tab="plans">📅 计划明细 <span class="study2-tab-badge" id="studyPlanBadge"></span></button>
       </div>
-
-      <!-- 任务管理面板(默认隐藏) -->
-      <div id="studyManagePanel"></div>
-
-      <!-- 分类折叠面板列表 -->
-      <div id="pvzCategories"></div>
-
-      <!-- 周期任务面板 -->
-      <div id="pvzCyclePanel"></div>
-
-      <!-- 近期打卡记录 -->
-      <div class="pvz-history" id="studyHistory"></div>
-    </div>
-    <div class="pvz-points-toast" id="pvzPointsToast"></div>
-  `;
-
+      <div id="study2-body"></div>
+    </div>`;
   bindStudyEvents();
-  renderPvzStats();
-  renderPvzCategories();
-  renderPvzCyclePanel();
-  renderStudyHistory();
-  renderStudyManagePanel();
+  renderStudyTab();
 }
 
-// ---------- 渲染:游戏化统计卡片 ----------
-function renderPvzStats() {
-  const { done, total } = getDayProgress(studyDate);
-  const cycleTasks = getCycleTasks();
-  const cycleDone = cycleTasks.filter(t => getCycleWeekCount(t.id) >= parseCycleTimes(t.cycle)).length;
-  const isToday = studyDate === todayStr();
-
-  document.getElementById('pvzStats').innerHTML = `
-    <div class="pvz-stat-card sun">
-      <div class="pvz-stat-icon">☀️</div>
-      <div class="pvz-stat-info">
-        <div class="pvz-stat-label">阳光积分</div>
-        <div class="pvz-stat-value">${studyPoints.total}</div>
-      </div>
-    </div>
-    <div class="pvz-stat-card plant">
-      <div class="pvz-stat-icon">🌱</div>
-      <div class="pvz-stat-info">
-        <div class="pvz-stat-label">植物(今日)</div>
-        <div class="pvz-stat-value">${isToday ? studyPoints.todayEarned : 0}</div>
-      </div>
-    </div>
-    <div class="pvz-stat-card today">
-      <div class="pvz-stat-icon">📋</div>
-      <div class="pvz-stat-info">
-        <div class="pvz-stat-label">今日完成</div>
-        <div class="pvz-stat-value">${done}/${total}</div>
-      </div>
-    </div>
-    <div class="pvz-stat-card zombie">
-      <div class="pvz-stat-icon">🧟</div>
-      <div class="pvz-stat-info">
-        <div class="pvz-stat-label">周期任务</div>
-        <div class="pvz-stat-value">${cycleDone}/${cycleTasks.length}</div>
-      </div>
-    </div>
-  `;
-}
-
-// ---------- 渲染:分类折叠面板 ----------
-function renderPvzCategories() {
-  const rec = getDayRecord(studyDate);
-  const dailyTasks = getDailyTasks();
-
-  // 渲染每个分类
-  let html = studyCategories.map(cat => {
-    const dailyCatTasks = cat.tasks.filter(t => t.type !== 'cycle');
-    const cycleCatTasks = cat.tasks.filter(t => t.type === 'cycle');
-    const doneCount = dailyCatTasks.filter(t => rec[t.id] && rec[t.id].done).length;
-    const rate = dailyCatTasks.length === 0 ? 0 : Math.round(doneCount / dailyCatTasks.length * 100);
-    const cycleCount = cycleCatTasks.length;
-    const isCollapsed = studyCollapsedCats[cat.id];
-
-    return `
-      <div class="pvz-category ${isCollapsed ? 'collapsed' : ''}" data-cat-id="${cat.id}">
-        <div class="pvz-cat-header" style="background:${studyCatBg(cat.color)};" data-study-action="toggle-cat" data-cat-id="${cat.id}">
-          <div class="pvz-cat-icon">${cat.icon}</div>
-          <span class="pvz-cat-name">${escapeHtml(cat.name)}</span>
-          <div class="pvz-cat-stats">
-            <span class="pvz-cat-badge progress">每日 ${doneCount}/${dailyCatTasks.length}</span>
-            <span class="pvz-cat-badge rate">${rate}%</span>
-            ${cycleCount > 0 ? `<span class="pvz-cat-badge">周期 ${cycleCount}</span>` : ''}
-          </div>
-          ${studyManageVisible ? `
-            <div class="pvz-cat-actions">
-              <button class="pvz-cat-action" data-study-action="edit-cat" data-cat-id="${cat.id}" title="编辑分类">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="pvz-cat-action" data-study-action="del-cat" data-cat-id="${cat.id}" title="删除分类">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-              </button>
-            </div>
-          ` : ''}
-          <div class="pvz-cat-toggle">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-        </div>
-        <div class="pvz-cat-body">
-          ${dailyCatTasks.length > 0 ? `
-            <div class="pvz-section-label">每日任务(计入进度)</div>
-            ${dailyCatTasks.map(t => renderPvzTask(t, rec, cat.id)).join('')}
-          ` : ''}
-          ${cycleCatTasks.length > 0 ? `
-            <div class="pvz-section-label">周期任务(独立打卡)</div>
-            ${cycleCatTasks.map(t => renderPvzCycleTask(t, cat.id)).join('')}
-          ` : ''}
-          ${dailyCatTasks.length === 0 && cycleCatTasks.length === 0 ? '<div style="text-align:center;color:var(--text-muted);padding:12px;font-size:13px;">暂无任务,点击下方按钮添加</div>' : ''}
-          ${studyManageVisible ? `
-            <button class="pvz-add-task-btn" data-study-action="add-daily-task" data-cat-id="${cat.id}">+ 添加每日任务</button>
-            <button class="pvz-add-task-btn" data-study-action="add-cycle-task" data-cat-id="${cat.id}">+ 添加周期任务</button>
-          ` : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // 打印任务分类(视为每日任务) - 已删除则不渲染
-  if (!studyExtraHidden) {
-  const extraDone = studyExtraTasks.filter(t => rec[t.id] && rec[t.id].done).length;
-  const extraRate = studyExtraTasks.length === 0 ? 0 : Math.round(extraDone / studyExtraTasks.length * 100);
-  const isExtraCollapsed = studyCollapsedCats['_extra'];
-  html += `
-    <div class="pvz-category ${isExtraCollapsed ? 'collapsed' : ''}">
-      <div class="pvz-cat-header" style="background:${studyCatBg('#6366f1')};" data-study-action="toggle-cat" data-cat-id="_extra">
-        <div class="pvz-cat-icon">🖨️</div>
-        <span class="pvz-cat-name">打印任务</span>
-        <div class="pvz-cat-stats">
-          <span class="pvz-cat-badge progress">每日 ${extraDone}/${studyExtraTasks.length}</span>
-          <span class="pvz-cat-badge rate">${extraRate}%</span>
-        </div>
-        ${studyManageVisible ? `
-          <div class="pvz-cat-actions">
-            <button class="pvz-cat-action" data-study-action="edit-extra-cat" data-cat-id="_extra" title="编辑分类">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="pvz-cat-action" data-study-action="del-extra-cat" data-cat-id="_extra" title="删除分类">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
-          </div>
-        ` : ''}
-        <div class="pvz-cat-toggle">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-      <div class="pvz-cat-body">
-        ${studyExtraTasks.length > 0 ? `
-          <div class="pvz-section-label">每日任务(计入进度)</div>
-          ${studyExtraTasks.map(t => renderPvzTask(t, rec, null)).join('')}
-        ` : '<div style="text-align:center;color:var(--text-muted);padding:12px;font-size:13px;">暂无任务</div>'}
-        ${studyManageVisible ? `<button class="pvz-add-task-btn" data-study-action="add-extra-task">+ 添加每日任务</button>` : ''}
-      </div>
-    </div>
-  `;
-  } // end if (!studyExtraHidden)
-
-  document.getElementById('pvzCategories').innerHTML = html;
-}
-
-// 渲染单个每日任务
-function renderPvzTask(t, rec, catId) {
-  const isDone = rec[t.id] && rec[t.id].done;
-  const isEditing = studyEditingTask && studyEditingTask.id === t.id;
-  const points = t.points || 20;
-  return `
-    <div class="pvz-task ${isDone ? 'done' : ''}" data-task-id="${t.id}">
-      <div class="pvz-check" data-study-action="toggle" data-task-id="${t.id}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      ${isEditing ? `
-        <input type="text" class="pvz-edit-inline" data-study-action="save-task-name" data-task-id="${t.id}" value="${escapeAttr(t.name)}" />
-      ` : `
-        <div class="pvz-task-name" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}">${escapeHtml(t.name)}</div>
-      `}
-      <span class="pvz-task-points">+${points}</span>
-      ${studyManageVisible ? `
-        <div class="pvz-task-actions">
-          ${!isEditing ? `
-            <button class="pvz-task-action" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="编辑">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-          ` : ''}
-          <button class="pvz-task-action delete" data-study-action="del-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="删除">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-// 渲染周期任务
-function renderPvzCycleTask(t, catId) {
-  const weekCount = getCycleWeekCount(t.id);
-  const targetTimes = parseCycleTimes(t.cycle);
-  const isDone = weekCount >= targetTimes && targetTimes > 0;
-  const rec = getDayRecord(studyDate);
-  const checkedToday = rec[t.id] && rec[t.id].done;
-  const points = t.points || 30;
-  const isEditing = studyEditingTask && studyEditingTask.id === t.id;
-
-  return `
-    <div class="pvz-cycle-task" data-task-id="${t.id}">
-      <div class="pvz-check ${checkedToday ? 'pvz-task done' : ''}" style="${checkedToday ? 'background:var(--success);border-color:var(--success);' : ''}" data-study-action="toggle-cycle" data-task-id="${t.id}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:${checkedToday ? 1 : 0};"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      ${isEditing ? `
-        <input type="text" class="pvz-edit-inline" data-study-action="save-task-name" data-task-id="${t.id}" value="${escapeAttr(t.name)}" />
-      ` : `
-        <div class="pvz-task-name" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}">${escapeHtml(t.name)}</div>
-      `}
-      <span class="pvz-cycle-tag">${escapeHtml(t.cycle || '每周2次')}</span>
-      <span class="pvz-cycle-count ${isDone ? 'done' : ''}">${weekCount}/${targetTimes}</span>
-      <span class="pvz-cycle-status ${checkedToday ? 'checked' : ''}">${checkedToday ? '已打卡' : '未打卡'}</span>
-      <span class="pvz-task-points">+${points}</span>
-      <button class="pvz-punch-btn" data-study-action="punch-cycle" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="打卡">打卡</button>
-      ${studyManageVisible ? `
-        <div class="pvz-task-actions">
-          ${!isEditing ? `
-            <button class="pvz-task-action" data-study-action="edit-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="编辑">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-          ` : ''}
-          <button class="pvz-task-action delete" data-study-action="del-task" data-task-id="${t.id}" data-cat-id="${catId || ''}" title="删除">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-// ---------- 渲染:独立周期任务面板 ----------
-function renderPvzCyclePanel() {
-  const el = document.getElementById('pvzCyclePanel');
-  if (!el) return;
-  if (studyCycleHidden || studyCycleTasks.length === 0) { el.innerHTML = ''; return; }
-  const rec = getDayRecord(studyDate);
-  const html = `
-    <div class="pvz-category">
-      <div class="pvz-cat-header" style="background:${studyCatBg('#8b5cf6')};" data-study-action="toggle-cat" data-cat-id="_cycle">
-        <div class="pvz-cat-icon">🧟</div>
-        <span class="pvz-cat-name">周期任务</span>
-        <div class="pvz-cat-stats">
-          <span class="pvz-cat-badge">${studyCycleTasks.length} 个任务</span>
-        </div>
-        ${studyManageVisible ? `
-          <div class="pvz-cat-actions">
-            <button class="pvz-cat-action" data-study-action="del-cycle-cat" data-cat-id="_cycle" title="删除分类">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
-          </div>
-        ` : ''}
-        <div class="pvz-cat-toggle">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-      <div class="pvz-cat-body" style="${studyCollapsedCats['_cycle'] ? 'display:none;' : ''}">
-        <div class="pvz-section-label">周期任务(独立打卡)</div>
-        ${studyCycleTasks.map(t => renderPvzCycleTask(t, '_cycle')).join('')}
-        ${studyManageVisible ? `<button class="pvz-add-task-btn" data-study-action="add-cycle-task" data-cat-id="_cycle">+ 添加周期任务</button>` : ''}
-      </div>
-    </div>
-  `;
-  document.getElementById('pvzCyclePanel').innerHTML = html;
-}
-
-// ---------- 渲染:打卡历史 ----------
-function renderStudyHistory() {
-  const days = [];
-  const today = new Date();
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const ds = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
-    const { done, total } = getDayProgress(ds);
-    const rate = total === 0 ? 0 : Math.round(done / total * 100);
-    days.push({ ds, done, total, rate, isToday: ds === todayStr() });
-  }
-
-  const html = days.map(d => {
-    const rateClass = d.rate === 100 ? 'pvz-rate-full' : (d.rate > 0 ? 'pvz-rate-partial' : 'pvz-rate-zero');
-    const label = d.ds.slice(5).replace('-', '/');
-    return `
-      <div class="pvz-history-day ${d.isToday ? 'today' : ''}" data-study-action="goto-date" data-date="${d.ds}" title="${d.ds}: ${d.done}/${d.total}">
-        <div class="pvz-history-date">${label}</div>
-        <div class="pvz-history-rate ${rateClass}">${d.rate === 100 ? '✓' : d.done + '/' + d.total}</div>
-      </div>
-    `;
-  }).join('');
-
-  document.getElementById('studyHistory').innerHTML = `
-    <div class="pvz-history-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      近 14 天打卡记录
-    </div>
-    <div class="pvz-history-grid">${html}</div>
-  `;
-}
-
-// ---------- 渲染:任务管理面板 ----------
-let studyManageVisible = false;
-
-function renderStudyManagePanel() {
-  const el = document.getElementById('studyManagePanel');
-  if (!studyManageVisible) {
-    el.innerHTML = '';
-    return;
-  }
-
-  const catCount = studyCategories.length;
-  const taskCount = getDailyTotalCount() + getCycleTasks().length;
-
-  el.innerHTML = `
-    <div class="pvz-manage-panel">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="font-weight:600;font-size:15px;">任务管理</div>
-        <div style="font-size:12px;color:var(--text-muted);">${catCount} 个分类 · ${taskCount} 个任务</div>
-      </div>
-
-      <!-- 新增分类 -->
-      <div style="margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:500;color:var(--text-soft);margin-bottom:8px;">添加新分类</div>
-        <div class="pvz-manage-row">
-          <div class="pvz-manage-field">
-            <label>分类名称</label>
-            <input type="text" id="newCatName" placeholder="如:科学" />
-          </div>
-          <div class="pvz-manage-field" style="max-width:100px;min-width:80px;">
-            <label>图标</label>
-            <select id="newCatIcon">
-              ${STUDY_CAT_ICONS.map((ic,i) => `<option value="${ic}" ${i===0?'selected':''}>${ic}</option>`).join('')}
-            </select>
-          </div>
-          <div class="pvz-manage-field" style="max-width:100px;min-width:80px;">
-            <label>颜色</label>
-            <select id="newCatColor">
-              ${STUDY_CAT_COLORS.map((c,i) => `<option value="${c}" ${i===0?'selected':''} style="background:${c};color:#fff;">颜色${i+1}</option>`).join('')}
-            </select>
-          </div>
-          <button class="pvz-top-btn add" data-study-action="add-cat" style="height:36px;padding:0 16px;font-size:13px;">添加分类</button>
-        </div>
-      </div>
-
-      <div class="pvz-manage-actions">
-        <button class="pvz-reset-btn" data-study-action="reset-config">恢复默认任务配置</button>
-        <span style="flex:1;"></span>
-        <button class="pvz-top-btn manage" data-study-action="close-manage" style="font-size:13px;padding:6px 14px;">收起管理面板</button>
-      </div>
-    </div>
-  `;
-}
-
-// ---------- 学习管理:任务编辑(内联) ----------
-let studyEditingTask = null;
-
-// ---------- 积分 Toast 动画 ----------
-function showPointsToast(pts) {
-  const el = document.getElementById('pvzPointsToast');
-  if (!el) return;
-  el.textContent = `+${pts} ☀️`;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 1000);
-}
-
-// ---------- 学习管理:事件绑定 ----------
 function studyRefreshAll() {
-  renderPvzStats();
-  renderPvzCategories();
-  renderPvzCyclePanel();
-  renderStudyHistory();
-  renderStudyManagePanel();
+  const content = document.getElementById('content');
+  const mod = MODULES.find(m => m.id === 'study');
+  if (mod && currentModule === 'study') renderStudyModule(content, mod);
+}
+function renderPvzStats() { studyRefreshAll(); }
+
+function renderStudyTab() {
+  const body = document.getElementById('study2-body');
+  if (!body) return;
+  if (studyTab === 'tasks') renderTasksTab(body);
+  else renderPlansTab(body);
+  updatePlanBadge();
 }
 
-function studyChangeDate(delta) {
-  const d = new Date(studyDate);
-  d.setDate(d.getDate() + delta);
-  studyDate = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
-  document.getElementById('studyDateInput').value = studyDate;
-  studyRefreshAll();
+function updatePlanBadge() {
+  const el = document.getElementById('studyPlanBadge');
+  if (!el) return;
+  const n = studyGetPlanItems().length;
+  el.textContent = n ? String(n) : '';
+  el.style.display = n ? '' : 'none';
 }
 
-function findTaskById(taskId) {
-  for (const c of studyCategories) {
-    const t = c.tasks.find(t => t.id === taskId);
-    if (t) return { task: t, cat: c };
+// ---------- 渲染：任务明细 ----------
+function renderTasksTab(body) {
+  const subjects = studySubjectFilter ? studySubjects.filter(s => s.id === studySubjectFilter) : studySubjects;
+  const opts = `<option value="">全部科目</option>` +
+    studySubjects.map(s => `<option value="${s.id}" ${studySubjectFilter === s.id ? 'selected' : ''}>${escapeHtml(s.icon || '')} ${escapeHtml(s.name)}</option>`).join('');
+
+  let html = `
+    <div class="study2-toolbar">
+      <select class="study2-select" data-study-action="filter-subject">${opts}</select>
+      <span class="study2-spacer"></span>
+      <button class="study2-btn primary" data-study-action="add-subject">＋ 科目</button>
+      <button class="study2-btn primary" data-study-action="add-task">＋ 任务</button>
+    </div>`;
+
+  if (studySubjects.length === 0) {
+    html += `<div class="study2-empty">还没有科目，先点击「＋ 科目」添加一个吧。</div>`;
   }
-  let t = studyExtraTasks.find(t => t.id === taskId);
-  if (t) return { task: t, cat: null };
-  t = studyCycleTasks.find(t => t.id === taskId);
-  if (t) return { task: t, cat: null };
-  return null;
+
+  subjects.forEach(sub => {
+    const tasks = studyTasks.filter(t => t.subjectId === sub.id);
+    html += `
+      <div class="study2-subject">
+        <div class="study2-subject-head">
+          <span class="study2-dot" style="background:${sub.color}"></span>
+          <span class="study2-subject-name">${escapeHtml(sub.icon || '')} ${escapeHtml(sub.name)}</span>
+          <span class="study2-subject-count">${tasks.length}</span>
+          <span class="study2-subject-actions">
+            <button class="study2-mini" data-study-action="add-task" data-subject="${sub.id}" title="添加任务">＋</button>
+            <button class="study2-mini" data-study-action="edit-subject" data-id="${sub.id}" title="编辑科目">✎</button>
+            <button class="study2-mini danger" data-study-action="del-subject" data-id="${sub.id}" title="删除科目">🗑</button>
+          </span>
+        </div>
+        <div class="study2-tasks">
+          ${tasks.length === 0 ? '<div class="study2-subtask-empty">暂无任务，点击右上角 ＋ 添加</div>' : tasks.map(t => renderTaskRow(t, sub)).join('')}
+        </div>
+      </div>`;
+  });
+
+  html += renderStudyModal();
+  body.innerHTML = html;
+  bindModalToggle();
 }
 
-function deleteTaskById(taskId, catId) {
-  if (catId && catId !== '_extra' && catId !== '_cycle') {
-    const cat = studyCategories.find(c => c.id === catId);
-    if (cat) {
-      cat.tasks = cat.tasks.filter(t => t.id !== taskId);
-      return true;
-    }
-  }
-  // 尝试从 extraTasks 删除
-  const extraIdx = studyExtraTasks.findIndex(t => t.id === taskId);
-  if (extraIdx >= 0) {
-    studyExtraTasks.splice(extraIdx, 1);
-    return true;
-  }
-  // 尝试从 cycleTasks 删除
-  const cycIdx = studyCycleTasks.findIndex(t => t.id === taskId);
-  if (cycIdx >= 0) {
-    studyCycleTasks.splice(cycIdx, 1);
-    return true;
-  }
-  return false;
+function renderTaskRow(t, sub) {
+  let badge;
+  if (t.planMode === 'date') badge = `<span class="study2-badge date">单日 ${escapeHtml(t.planDate || '—')}</span>`;
+  else if (t.planMode === 'weekly') badge = `<span class="study2-badge weekly">每周 ${studyWeekdayName(t.weekday || 1)}</span>`;
+  else badge = `<span class="study2-badge none">不生成计划</span>`;
+  const cont = t.continueAfterOverdue ? `<span class="study2-badge cont">超期续显</span>` : '';
+  return `
+    <div class="study2-task">
+      <span class="study2-stripe" style="background:${sub.color}"></span>
+      <div class="study2-task-main">
+        <div class="study2-task-title">${escapeHtml(t.title)}</div>
+        ${t.note ? `<div class="study2-task-note">${escapeHtml(t.note)}</div>` : ''}
+        <div class="study2-task-badges">${badge}${cont}</div>
+      </div>
+      <span class="study2-task-actions">
+        <button class="study2-mini" data-study-action="edit-task" data-id="${t.id}" title="编辑">✎</button>
+        <button class="study2-mini danger" data-study-action="del-task" data-id="${t.id}" title="删除">🗑</button>
+      </span>
+    </div>`;
 }
 
+// ---------- 渲染：计划明细 ----------
+function renderPlansTab(body) {
+  const today = studyTodayStr();
+  const items = studyGetPlanItems();
+  const groups = {};
+  items.forEach(it => { (groups[it.date] = groups[it.date] || []).push(it); });
+  const dates = Object.keys(groups).sort();
+
+  const todayWd = studyWeekdayName(((new Date()).getDay() + 6) % 7 + 1);
+
+  let html = `
+    <div class="study2-plan-head">
+      <div class="study2-plan-summary">待完成计划 <b>${items.length}</b> 项</div>
+      <div class="study2-plan-today">今天 ${today} ${todayWd}</div>
+    </div>`;
+
+  if (items.length === 0) {
+    html += `<div class="study2-empty">🎉 当前没有未完成的计划。<br/>去「任务明细」给任务设置「单日 / 每周」计划即可在此生成。</div>`;
+  } else {
+    html += dates.map(d => {
+      const isToday = d === today;
+      const dt = new Date(d + 'T00:00:00');
+      const wd = studyWeekdayName(((dt.getDay() + 6) % 7) + 1);
+      const rows = groups[d].map(it => renderPlanRow(it, isToday)).join('');
+      return `
+        <div class="study2-plan-group ${isToday ? 'is-today' : ''}">
+          <div class="study2-plan-date">
+            <span class="study2-plan-date-main">${d.slice(5)}</span>
+            <span class="study2-plan-date-wd">${wd}</span>
+            ${isToday ? '<span class="study2-plan-today-tag">今天</span>' : ''}
+          </div>
+          ${rows}
+        </div>`;
+    }).join('');
+  }
+  html += renderStudyModal();
+  body.innerHTML = html;
+  bindModalToggle();
+}
+
+function renderPlanRow(it, isToday) {
+  const sub = it.subject;
+  const color = sub ? sub.color : '#999';
+  const typeBadge = it.kind === 'weekly'
+    ? `<span class="study2-badge weekly">每周 ${studyWeekdayName(it.task.weekday || 1)}</span>`
+    : `<span class="study2-badge date">单日</span>`;
+  const overdueTag = it.overdue ? `<span class="study2-badge overdue">逾期</span>` : '';
+  const allCycleBtn = it.kind === 'weekly'
+    ? `<button class="study2-mini" data-study-action="plan-allcycle" data-id="${it.task.id}" title="全部周期完成">全周期</button>` : '';
+  const subTag = sub ? `<span class="study2-badge sub">${escapeHtml(sub.icon || '')}${escapeHtml(sub.name)}</span>` : '';
+  return `
+    <div class="study2-plan-row ${it.overdue ? 'is-overdue' : ''}">
+      <span class="study2-stripe" style="background:${color}"></span>
+      <div class="study2-task-main">
+        <div class="study2-task-title">${escapeHtml(it.task.title)}</div>
+        <div class="study2-task-badges">${typeBadge}${overdueTag}${subTag}</div>
+      </div>
+      <span class="study2-task-actions">
+        <button class="study2-mini done" data-study-action="plan-done" data-id="${it.task.id}" data-date="${it.date}" title="标记当日完成">完成</button>
+        ${allCycleBtn}
+        <button class="study2-mini" data-study-action="edit-task" data-id="${it.task.id}" title="编辑">✎</button>
+        <button class="study2-mini danger" data-study-action="del-task" data-id="${it.task.id}" title="删除">🗑</button>
+      </span>
+    </div>`;
+}
+
+// ---------- 渲染：弹窗（添加 / 编辑 科目或任务） ----------
+function renderStudyModal() {
+  if (!studyEdit) return '';
+  let inner = '';
+  if (studyEdit.type === 'subject') {
+    const sub = studyEdit.id ? studyGetSubject(studyEdit.id) : null;
+    inner = `
+      <div class="study2-modal-title">${sub ? '编辑科目' : '添加科目'}</div>
+      <div class="study2-form">
+        <label class="study2-field"><span>科目名称</span><input type="text" id="se-name" value="${sub ? escapeAttr(sub.name) : ''}" placeholder="如：物理" /></label>
+        <label class="study2-field"><span>图标（Emoji）</span><input type="text" id="se-icon" value="${sub ? escapeAttr(sub.icon || '') : '📚'}" placeholder="📚" maxlength="4" /></label>
+        <label class="study2-field"><span>颜色</span><input type="color" id="se-color" value="${sub ? sub.color : '#3b82f6'}" /></label>
+        <div class="study2-form-actions">
+          <button class="study2-btn" data-study-action="modal-cancel">取消</button>
+          <button class="study2-btn primary" data-study-action="save-subject" data-id="${sub ? sub.id : ''}">保存</button>
+        </div>
+      </div>`;
+  } else {
+    const t = studyEdit.id ? studyTasks.find(x => x.id === studyEdit.id) : null;
+    const selSubj = t ? t.subjectId : (studyEdit.subjectId || (studySubjects[0] && studySubjects[0].id) || '');
+    const subjOpts = studySubjects.map(s => `<option value="${s.id}" ${s.id === selSubj ? 'selected' : ''}>${escapeHtml(s.icon || '')} ${escapeHtml(s.name)}</option>`).join('');
+    inner = `
+      <div class="study2-modal-title">${t ? '编辑任务' : '添加任务'}</div>
+      <div class="study2-form">
+        <label class="study2-field"><span>所属科目</span><select id="tk-subject">${subjOpts}</select></label>
+        <label class="study2-field"><span>任务名称</span><input type="text" id="tk-title" value="${t ? escapeAttr(t.title) : ''}" placeholder="如：背诵课文" /></label>
+        <label class="study2-field"><span>备注</span><input type="text" id="tk-note" value="${t ? escapeAttr(t.note || '') : ''}" placeholder="选填" /></label>
+        <label class="study2-field"><span>计划方式</span>
+          <select id="tk-planmode">
+            <option value="none" ${t && t.planMode === 'none' ? 'selected' : (!t ? 'selected' : '')}>不生成计划</option>
+            <option value="date" ${t && t.planMode === 'date' ? 'selected' : ''}>单日计划</option>
+            <option value="weekly" ${t && t.planMode === 'weekly' ? 'selected' : ''}>每周计划</option>
+          </select>
+        </label>
+        <div class="study2-field study2-field-date" style="display:${t && t.planMode === 'date' ? '' : 'none'}">
+          <span>计划日期</span><input type="date" id="tk-date" value="${t && t.planDate ? t.planDate : studyTodayStr()}" />
+        </div>
+        <div class="study2-field study2-field-weekly" style="display:${t && t.planMode === 'weekly' ? '' : 'none'}">
+          <span>每</span>
+          <select id="tk-weekday">
+            ${[1, 2, 3, 4, 5, 6, 7].map(w => `<option value="${w}" ${t && t.weekday === w ? 'selected' : ''}>${studyWeekdayName(w)}</option>`).join('')}
+          </select>
+        </div>
+        <label class="study2-field cont ${t && (t.planMode === 'date' || t.planMode === 'weekly') ? '' : 'study2-hidden'}">
+          <input type="checkbox" id="tk-cont" ${t && t.continueAfterOverdue ? 'checked' : ''} /> 超期后继续显示
+        </label>
+        <div class="study2-form-actions">
+          <button class="study2-btn" data-study-action="modal-cancel">取消</button>
+          <button class="study2-btn primary" data-study-action="save-task" data-id="${t ? t.id : ''}">保存</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="study2-modal-overlay" data-study-action="modal-cancel">
+      <div class="study2-modal-card">${inner}</div>
+    </div>`;
+}
+
+// 计划方式切换时联动显示子字段（不重渲染，保留已输入内容）
+function bindModalToggle() {
+  const pm = document.getElementById('tk-planmode');
+  if (!pm) return;
+  pm.addEventListener('change', () => {
+    const v = pm.value;
+    const fDate = document.querySelector('.study2-field-date');
+    const fWeek = document.querySelector('.study2-field-weekly');
+    const fCont = document.querySelector('.study2-field.cont');
+    if (fDate) fDate.style.display = v === 'date' ? '' : 'none';
+    if (fWeek) fWeek.style.display = v === 'weekly' ? '' : 'none';
+    if (fCont) fCont.classList.toggle('study2-hidden', !(v === 'date' || v === 'weekly'));
+  });
+}
+
+// ---------- 事件绑定（在 #content 上委托，整模块只绑定一次） ----------
 function bindStudyEvents() {
-  const container = document.getElementById('content');
+  if (studyEventsBound) return;
+  studyEventsBound = true;
+  const content = document.getElementById('content');
 
-  // 日期切换
-  document.getElementById('studyPrevDay').addEventListener('click', () => studyChangeDate(-1));
-  document.getElementById('studyNextDay').addEventListener('click', () => studyChangeDate(1));
-  document.getElementById('studyToday').addEventListener('click', () => {
-    studyDate = todayStr();
-    document.getElementById('studyDateInput').value = studyDate;
-    studyRefreshAll();
-  });
-  document.getElementById('studyDateInput').addEventListener('change', (e) => {
-    studyDate = e.target.value || todayStr();
-    studyRefreshAll();
-  });
+  content.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-study-action]');
+    if (!t) return;
+    const action = t.dataset.studyAction;
+    const id = t.dataset.id;
 
-  // 打印
-  document.getElementById('pvzPrintBtn').addEventListener('click', () => window.print());
+    if (action === 'tab') { studyTab = t.dataset.tab; renderStudyTab(); return; }
+    if (action === 'filter-subject') return; // 由 change 事件处理
 
-  // 管理面板切换
-  document.getElementById('pvzManageBtn').addEventListener('click', () => {
-    studyManageVisible = !studyManageVisible;
-    const btn = document.getElementById('pvzManageBtn');
-    btn.innerHTML = studyManageVisible
-      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> 取消管理`
-      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 管理任务`;
-    btn.classList.toggle('active', studyManageVisible);
-    const restoreBtn = document.getElementById('pvzRestoreBtn');
-    if (restoreBtn) restoreBtn.style.display = studyManageVisible ? '' : 'none';
-    renderStudyManagePanel();
-    renderPvzCategories();
-    renderPvzCyclePanel();
-  });
-
-  // 恢复已删除分类
-  document.getElementById('pvzRestoreBtn').addEventListener('click', () => {
-    if (!confirm('恢复已删除的【打印任务】和【周期任务】分类吗？')) return;
-    studyExtraHidden = false;
-    studyCycleHidden = false;
-    // 如果任务列表为空，恢复默认任务
-    if (studyExtraTasks.length === 0) {
-      studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
+    // 关闭弹窗：仅当直接点击遮罩本身时生效（点卡片内不关闭）
+    if (action === 'modal-cancel') {
+      // 仅当直接点击遮罩本身时关闭；点击卡片内部元素不触发任何动作（避免误重渲染弹窗、丢失输入）
+      if (e.target === t) { studyEdit = null; renderStudyTab(); }
+      return;
     }
-    if (studyCycleTasks.length === 0) {
-      studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
-    }
-    saveStudyConfig();
-    renderPvzCategories();
-    renderPvzCyclePanel();
-    showToast('已恢复打印任务和周期任务分类');
+
+    if (action === 'add-subject') { studyEdit = { type: 'subject' }; renderStudyTab(); return; }
+    if (action === 'edit-subject') { studyEdit = { type: 'subject', id }; renderStudyTab(); return; }
+    if (action === 'del-subject') { delSubject(id); return; }
+
+    if (action === 'add-task') { studyEdit = { type: 'task', subjectId: t.dataset.subject || (studySubjects[0] && studySubjects[0].id) || '' }; renderStudyTab(); return; }
+    if (action === 'edit-task') { studyEdit = { type: 'task', id }; renderStudyTab(); return; }
+    if (action === 'del-task') { delTask(id); return; }
+
+    if (action === 'save-subject') { saveSubject(id); return; }
+    if (action === 'save-task') { saveTask(id); return; }
+
+    if (action === 'plan-done') { markPlanDone(id, t.dataset.date); return; }
+    if (action === 'plan-allcycle') { markAllCycle(id); return; }
   });
 
-  // 刷新每日(清除今日打卡)
-  document.getElementById('pvzRefreshBtn').addEventListener('click', () => {
-    if (!confirm('刷新每日?将清除今天的所有打卡记录。')) return;
-    const today = todayStr();
-    delete studyRecords[today];
-    saveStudyRecords();
-    // 不清除积分总数,但重置今日获得
-    studyPoints.todayEarned = 0;
-    studyPoints.todayDate = today;
-    saveStudyPoints();
-    studyRefreshAll();
-    showToast('每日已刷新');
-  });
-
-  // 添加任务(顶部按钮 -> 弹出选择)
-  document.getElementById('pvzAddTaskBtn').addEventListener('click', () => {
-    const type = confirm('点击"确定"添加每日任务,点击"取消"添加周期任务');
-    const name = prompt('输入任务名称:');
-    if (!name || !name.trim()) return;
-    if (type) {
-      // 每日任务 -> 放到第一个分类
-      const targetCat = studyCategories[0];
-      if (targetCat) {
-        targetCat.tasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
-      } else {
-        studyExtraTasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
-      }
-    } else {
-      // 周期任务 -> 放到独立周期任务
-      const cycle = prompt('打卡周期(如:每周2次):', '每周2次');
-      studyCycleTasks.push({ id: 'c_' + uid(), name: name.trim(), type: 'cycle', points: 30, cycle: cycle || '每周2次' });
-    }
-    saveStudyConfig();
-    studyRefreshAll();
-    showToast('任务已添加');
-  });
-
-  // 点击事件委托
-  container.addEventListener('click', (e) => {
-    const target = e.target.closest('[data-study-action]');
-    if (!target) return;
-    const action = target.dataset.studyAction;
-    const taskId = target.dataset.taskId;
-    const catId = target.dataset.catId;
-
-    // 折叠/展开分类
-    if (action === 'toggle-cat') {
-      const id = target.dataset.catId;
-      studyCollapsedCats[id] = !studyCollapsedCats[id];
-      studyRefreshAll();
-      return;
-    }
-
-    // 每日任务打卡切换
-    if (action === 'toggle') {
-      const rec = getDayRecord(studyDate);
-      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
-      rec[taskId].done = !rec[taskId].done;
-      saveStudyRecords();
-      const found = findTaskById(taskId);
-      if (found && rec[taskId].done) {
-        const pts = found.task.points || 20;
-        if (studyDate === todayStr()) {
-          addStudyPoints(pts);
-          showPointsToast(pts);
-        }
-      }
-      studyRefreshAll();
-      return;
-    }
-
-    // 周期任务打卡(通过复选框)
-    if (action === 'toggle-cycle') {
-      const rec = getDayRecord(studyDate);
-      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
-      rec[taskId].done = !rec[taskId].done;
-      saveStudyRecords();
-      const found = findTaskById(taskId);
-      if (found && rec[taskId].done && studyDate === todayStr()) {
-        const pts = found.task.points || 30;
-        addStudyPoints(pts);
-        showPointsToast(pts);
-      }
-      studyRefreshAll();
-      return;
-    }
-
-    // 周期任务打卡按钮
-    if (action === 'punch-cycle') {
-      const rec = getDayRecord(studyDate);
-      if (!rec[taskId]) rec[taskId] = { done: false, note: '' };
-      rec[taskId].done = !rec[taskId].done;
-      saveStudyRecords();
-      const found = findTaskById(taskId);
-      if (found && rec[taskId].done && studyDate === todayStr()) {
-        const pts = found.task.points || 30;
-        addStudyPoints(pts);
-        showPointsToast(pts);
-        // 打卡动画
-        target.classList.add('pvz-punch-anim');
-        setTimeout(() => target.classList.remove('pvz-punch-anim'), 400);
-      }
-      studyRefreshAll();
-      return;
-    }
-
-    // 跳转日期
-    if (action === 'goto-date') {
-      studyDate = target.dataset.date;
-      document.getElementById('studyDateInput').value = studyDate;
-      studyRefreshAll();
-      return;
-    }
-
-    // 收起管理面板
-    if (action === 'close-manage') {
-      studyManageVisible = false;
-      renderStudyManagePanel();
-      return;
-    }
-
-    // 添加分类
-    if (action === 'add-cat') {
-      const name = document.getElementById('newCatName').value.trim();
-      if (!name) { showToast('请输入分类名称'); return; }
-      const icon = document.getElementById('newCatIcon').value;
-      const color = document.getElementById('newCatColor').value;
-      studyCategories.push({
-        id: 'cat_' + uid(),
-        name, icon, color,
-        tasks: []
-      });
-      saveStudyConfig();
-      document.getElementById('newCatName').value = '';
-      studyRefreshAll();
-      showToast('分类已添加');
-      return;
-    }
-
-    // 添加每日任务到分类
-    if (action === 'add-daily-task') {
-      const cat = studyCategories.find(c => c.id === catId);
-      if (!cat) return;
-      const name = prompt('输入每日任务名称:');
-      if (name && name.trim()) {
-        cat.tasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
-        saveStudyConfig();
-        studyRefreshAll();
-        showToast('任务已添加');
-      }
-      return;
-    }
-
-    // 添加周期任务到分类
-    if (action === 'add-cycle-task') {
-      const name = prompt('输入周期任务名称:');
-      if (!name || !name.trim()) return;
-      const cycle = prompt('打卡周期(如:每周2次):', '每周2次');
-      const newTask = { id: 'c_' + uid(), name: name.trim(), type: 'cycle', points: 30, cycle: cycle || '每周2次' };
-      if (catId && catId !== '_extra' && catId !== '_cycle') {
-        const cat = studyCategories.find(c => c.id === catId);
-        if (cat) {
-          cat.tasks.push(newTask);
-        }
-      } else {
-        studyCycleTasks.push(newTask);
-      }
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('周期任务已添加');
-      return;
-    }
-
-    // 添加打印任务
-    if (action === 'add-extra-task') {
-      const name = prompt('输入每日任务名称:');
-      if (name && name.trim()) {
-        studyExtraTasks.push({ id: 't_' + uid(), name: name.trim(), type: 'daily', points: 20 });
-        saveStudyConfig();
-        studyRefreshAll();
-        showToast('任务已添加');
-      }
-      return;
-    }
-
-    // 删除分类
-    if (action === 'del-cat') {
-      if (!confirm('删除该分类及其所有任务?历史打卡记录不受影响。')) return;
-      studyCategories = studyCategories.filter(c => c.id !== catId);
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('分类已删除');
-      return;
-    }
-
-    // 清空打印任务分类下的所有任务
-    if (action === 'del-extra-cat') {
-      if (!confirm('确定删除【打印任务】分类吗？分类下的任务将被清空，历史打卡记录不受影响。')) return;
-      studyExtraTasks = [];
-      studyExtraHidden = true;
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('打印任务分类已删除');
-      return;
-    }
-
-    // 清空周期任务分类下的所有任务
-    if (action === 'del-cycle-cat') {
-      if (!confirm('确定删除【周期任务】分类吗？分类下的任务将被清空，历史打卡记录不受影响。')) return;
-      studyCycleTasks = [];
-      studyCycleHidden = true;
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('周期任务分类已删除');
-      return;
-    }
-
-    // 编辑打印任务分类名称
-    if (action === 'edit-extra-cat') {
-      const newName = prompt('分类名称:', '打印任务');
-      if (newName === null) return;
-      showToast('打印任务分类名称暂不支持修改');
-      return;
-    }
-
-    // 恢复已删除的分类
-    if (action === 'restore-cats') {
-      studyExtraHidden = false;
-      studyCycleHidden = false;
-      if (studyExtraTasks.length === 0) {
-        studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
-      }
-      if (studyCycleTasks.length === 0) {
-        studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
-      }
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('已恢复打印任务和周期任务分类');
-      return;
-    }
-
-    // 删除任务
-    if (action === 'del-task') {
-      deleteTaskById(taskId, catId);
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('任务已删除');
-      return;
-    }
-
-    // 编辑分类(弹窗)
-    if (action === 'edit-cat') {
-      const cat = studyCategories.find(c => c.id === catId);
-      if (!cat) return;
-      const newName = prompt('分类名称:', cat.name);
-      if (newName === null) return;
-      const newIcon = prompt('图标(emoji):', cat.icon);
-      if (newIcon === null) return;
-      cat.name = newName.trim() || cat.name;
-      cat.icon = newIcon.trim() || cat.icon;
-      saveStudyConfig();
-      studyRefreshAll();
-      showToast('分类已更新');
-      return;
-    }
-
-    // 编辑任务名(进入内联编辑)
-    if (action === 'edit-task') {
-      studyEditingTask = { id: taskId, action };
-      renderPvzCategories();
-      renderPvzCyclePanel();
-      const input = container.querySelector('[data-study-action="save-task-name"]');
-      if (input) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      }
-      return;
-    }
-
-    // 保存编辑后的任务名
-    if (action === 'save-task-name') {
-      return;
-    }
-
-    // 恢复默认配置
-    if (action === 'reset-config') {
-      if (!confirm('恢复默认任务配置?你自定义的分类和任务将被替换回默认设置。')) return;
-      studyCategories = JSON.parse(JSON.stringify(DEFAULT_STUDY_CATEGORIES));
-      studyExtraTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_EXTRA_TASKS));
-      studyCycleTasks = JSON.parse(JSON.stringify(DEFAULT_STUDY_CYCLE_TASKS));
-      saveStudyConfig();
-      studyExtraHidden = false;
-      studyCycleHidden = false;
-      studyRefreshAll();
-      showToast('已恢复默认配置');
-      return;
+  content.addEventListener('change', (e) => {
+    const t = e.target.closest('[data-study-action]');
+    if (t && t.dataset.studyAction === 'filter-subject') {
+      studySubjectFilter = t.value;
+      renderStudyTab();
     }
   });
+}
 
-  // 任务名内联编辑:回车保存、ESC取消
-  container.addEventListener('keydown', (e) => {
-    if (e.target.dataset.studyAction === 'save-task-name') {
-      if (e.key === 'Enter' || e.key === 'Escape') {
-        e.preventDefault();
-        const input = e.target;
-        const taskId = input.dataset.taskId;
-        if (e.key === 'Enter' && input.value.trim()) {
-          const found = findTaskById(taskId);
-          if (found) {
-            found.task.name = input.value.trim();
-            saveStudyConfig();
-            showToast('已保存');
-          }
-        }
-        studyEditingTask = null;
-        studyRefreshAll();
-      }
-    }
-  });
+// ---------- 操作：科目 ----------
+function saveSubject(id) {
+  const name = (document.getElementById('se-name').value || '').trim();
+  if (!name) { showToast('请输入科目名称'); return; }
+  const icon = (document.getElementById('se-icon').value || '').trim();
+  const color = document.getElementById('se-color').value;
+  if (id) {
+    const sub = studyGetSubject(id);
+    if (sub) { sub.name = name; sub.icon = icon; sub.color = color; }
+  } else {
+    studySubjects.push({ id: uid(), name, icon, color });
+  }
+  saveStudyConfig();
+  studyEdit = null;
+  renderStudyTab();
+  showToast('已保存');
+}
 
-  // 失焦保存
-  container.addEventListener('focusout', (e) => {
-    if (e.target.dataset.studyAction === 'save-task-name') {
-      const input = e.target;
-      const taskId = input.dataset.taskId;
-      const found = findTaskById(taskId);
-      if (found && input.value.trim() && input.value.trim() !== found.task.name) {
-        found.task.name = input.value.trim();
-        saveStudyConfig();
-      }
-      studyEditingTask = null;
-      setTimeout(() => studyRefreshAll(), 50);
-    }
-  });
+function delSubject(id) {
+  const sub = studyGetSubject(id);
+  if (!sub) return;
+  const cnt = studyTasks.filter(t => t.subjectId === id).length;
+  if (!confirm(`删除科目「${sub.name}」？该科目下的 ${cnt} 个任务也会一并删除。`)) return;
+  studyTasks = studyTasks.filter(t => t.subjectId !== id);
+  studySubjects = studySubjects.filter(s => s.id !== id);
+  saveStudyConfig();
+  renderStudyTab();
+  showToast('科目已删除');
+}
+
+// ---------- 操作：任务 ----------
+function saveTask(id) {
+  const subjectId = document.getElementById('tk-subject').value;
+  const title = (document.getElementById('tk-title').value || '').trim();
+  if (!subjectId) { showToast('请先添加科目'); return; }
+  if (!title) { showToast('请输入任务名称'); return; }
+  const note = (document.getElementById('tk-note').value || '').trim();
+  const planMode = document.getElementById('tk-planmode').value;
+  const planDate = document.getElementById('tk-date').value;
+  const weekday = parseInt(document.getElementById('tk-weekday').value, 10) || 1;
+  const cont = document.getElementById('tk-cont').checked;
+  if (id) {
+    const t = studyTasks.find(x => x.id === id);
+    if (t) Object.assign(t, { subjectId, title, note, planMode, planDate, weekday, continueAfterOverdue: cont, updatedAt: Date.now() });
+  } else {
+    studyTasks.push({ id: uid(), subjectId, title, note, planMode, planDate, weekday, continueAfterOverdue: cont, createdAt: Date.now(), updatedAt: Date.now() });
+  }
+  saveStudyConfig();
+  studyEdit = null;
+  renderStudyTab();
+  showToast('已保存');
+}
+
+function delTask(id) {
+  const t = studyTasks.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm(`删除任务「${t.title}」？对应的计划也会消失。`)) return;
+  studyTasks = studyTasks.filter(x => x.id !== id);
+  delete studyPlan.allCycle[id];
+  Object.keys(studyPlan.done).forEach(k => { if (k.indexOf(id + '__') === 0) delete studyPlan.done[k]; });
+  saveStudyConfig();
+  saveStudyRecords();
+  renderStudyTab();
+  showToast('任务已删除');
+}
+
+// ---------- 操作：计划完成 ----------
+function markPlanDone(id, date) {
+  studyPlan.done[studyPlanKey(id, date)] = true;
+  saveStudyRecords();
+  renderStudyTab();
+  showToast('已完成');
+}
+
+function markAllCycle(id) {
+  if (!confirm('将该周期任务标记为「全部周期完成」？之后不再生成计划。')) return;
+  studyPlan.allCycle[id] = true;
+  saveStudyRecords();
+  renderStudyTab();
+  showToast('已全部周期完成');
 }
 
 /* ========================================================
