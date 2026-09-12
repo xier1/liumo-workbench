@@ -11599,7 +11599,8 @@ const POSTER_THEMES = {
   sale:      { name: '红黄大促', bg1: '#fff1f0', bg2: '#ffe3e3', banner: '#e11d48', accent: '#f59e0b', text: '#7f1d1d', price: '#e11d48', old: '#9ca3af', badge: '#fbbf24', tag: '限时特惠', motif: 'star' },
   clearance: { name: '清仓甩卖', bg1: '#fff7ed', bg2: '#ffedd5', banner: '#ea580c', accent: '#111827', text: '#431407', price: '#ea580c', old: '#9ca3af', badge: '#111827', tag: '清仓甩卖', motif: 'stripe' },
   fresh:     { name: '生鲜新品', bg1: '#ecfdf5', bg2: '#d1fae5', banner: '#059669', accent: '#10b981', text: '#064e3b', price: '#059669', old: '#9ca3af', badge: '#34d399', tag: '新鲜上架', motif: 'leaf' },
-  festival:  { name: '节庆狂欢', bg1: '#faf5ff', bg2: '#ede9fe', banner: '#7c3aed', accent: '#f59e0b', text: '#4c1d95', price: '#7c3aed', old: '#9ca3af', badge: '#f59e0b', tag: '节日狂欢', motif: 'heart' }
+  festival:  { name: '节庆狂欢', bg1: '#faf5ff', bg2: '#ede9fe', banner: '#7c3aed', accent: '#f59e0b', text: '#4c1d95', price: '#7c3aed', old: '#9ca3af', badge: '#f59e0b', tag: '节日狂欢', motif: 'heart' },
+  flashsale: { name: '低价抢先', bg1: '#dcfce7', bg2: '#bbf7d0', banner: '#15803d', accent: '#facc15', text: '#14532d', price: '#dc2626', old: '#9ca3af', badge: '#facc15', tag: '降价到底', motif: 'flash' }
 };
 const POSTER_KEY = 'liumo_poster_v1';
 const POSTER_PF = '"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif';
@@ -11683,6 +11684,25 @@ function pDrawMotif(ctx, W, H, pal) {
   }
 }
 
+// 绘制星爆/太阳花价格标签
+function drawStarBurst(ctx, cx, cy, r, color) {
+  const points = 12;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const rad = i % 2 === 0 ? r : r * 0.55;
+    const x = Math.cos(angle) * rad, y = Math.sin(angle) * rad;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color; ctx.fill();
+  // 描边
+  ctx.strokeStyle = '#b45309'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.restore();
+}
+
 function posterDraw() {
   const cv = document.getElementById('posterCanvas');
   if (!cv) return;
@@ -11701,7 +11721,146 @@ function posterDraw() {
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   pDrawMotif(ctx, W, H, pal);
 
-  // 顶部标题带
+  // ========== 「低价抢先」专用布局（参考图风格）==========
+  if (p.theme === 'flashsale') {
+    const FP = POSTER_PF;
+    // --- 顶部深绿横条：店名 + 右侧标签 ---
+    const hdrH = 88;
+    ctx.fillStyle = pal.banner;
+    pRoundRect(ctx, 0, 0, W, hdrH, 0); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold 42px ' + FP;
+    ctx.fillText(p.store || '超市名称', PAD, hdrH / 2);
+    // 右侧标签（如"双12降价到底"）
+    const tagW = ctx.measureText(pal.tag || '').width + 48;
+    const tagX = W - PAD - tagW;
+    ctx.fillStyle = pal.accent;
+    pRoundRect(ctx, tagX, hdrH / 2 - 24, tagW, 48, 10); ctx.fill();
+    ctx.fillStyle = '#15803d'; ctx.font = 'bold 30px ' + FP; ctx.textAlign = 'center';
+    ctx.fillText(pal.tag || '', tagX + tagW / 2, hdrH / 2);
+
+    // --- 大标题区域：绿色底 + "低价抢先" 3D 立体字 ---
+    let ty = hdrH + 20;
+    const titleH = 200;
+    // 标题区绿色背景
+    ctx.fillStyle = '#22c55e';
+    pRoundRect(ctx, PAD - 8, ty, W - 2 * PAD + 16, titleH, 18); ctx.fill();
+    // 左上角小圆标"100%正品"
+    ctx.save(); ctx.translate(PAD + 60, ty + 50); ctx.rotate(-0.35);
+    ctx.fillStyle = '#86efac'; ctx.beginPath(); ctx.arc(0, 0, 44, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#15803d'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#14532d'; ctx.font = 'bold 20px ' + FP; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('100%', 0, -6); ctx.fillText('正品', 0, 14);
+    ctx.restore();
+
+    // "ON SALE" 小标
+    ctx.save(); ctx.translate(W - PAD - 90, ty + 50);
+    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.ellipse(0, 0, 70, 34, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#b45309'; ctx.font = 'bold 22px ' + FP; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('ON SALE', 0, 0);
+    ctx.restore();
+
+    // 主标题 "低价抢先" 3D 效果
+    const mainTitle = p.tagline || '低价抢先';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // 阴影层（偏移+深色）
+    ctx.font = 'bold 96px ' + FP;
+    ctx.fillStyle = '#166534';
+    ctx.fillText(mainTitle, W / 2 + 4, ty + titleH / 2 + 4);
+    // 主字（白/黄渐变感，用白色+描边模拟）
+    ctx.fillStyle = '#fef08a';
+    ctx.fillText(mainTitle, W / 2, ty + titleH / 2);
+    // 再叠一层白色核心让字更亮
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 92px ' + FP;
+    ctx.fillText(mainTitle, W / 2, ty + titleH / 2);
+
+    // --- 黄色时间胶囊："限时秒杀：日期" ---
+    let dy = ty + titleH + 28;
+    ctx.font = 'bold 36px ' + FP;
+    const dr = '限时秒杀：' + (p.dateRange || '活动时间');
+    const dw = ctx.measureText(dr).width + 80;
+    const dx = W / 2 - dw / 2, dh = 58;
+    ctx.fillStyle = pal.accent;
+    pRoundRect(ctx, dx, dy, dw, dh, dh / 2); ctx.fill();
+    ctx.fillStyle = '#7c2d12'; ctx.font = 'bold 34px ' + FP; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText(dr, W / 2, dy + dh / 2);
+
+    // --- 商品 3 列网格 ---
+    const cols = 3, gap = 16;
+    const cardW = (W - 2 * PAD - (cols - 1) * gap) / cols;
+    const cardH = 260;
+    const items = (p.items || []).filter(it => it && (it.name || it.price)).slice(0, 9);
+    const startY = dy + dh + 36;
+    if (items.length === 0) {
+      ctx.fillStyle = pal.text; ctx.font = '32px ' + FP; ctx.textAlign = 'center';
+      ctx.fillText('在左侧添加促销商品', W / 2, startY + 130);
+    } else {
+      items.forEach((it, idx) => {
+        const r = Math.floor(idx / cols), c = idx % cols;
+        const x = PAD + c * (cardW + gap), y = startY + r * (cardH + gap);
+        // 卡片阴影
+        ctx.fillStyle = 'rgba(0,0,0,0.07)';
+        pRoundRect(ctx, x + 3, y + 5, cardW, cardH, 14); ctx.fill();
+        // 白色卡片
+        ctx.fillStyle = '#ffffff';
+        pRoundRect(ctx, x, y, cardW, cardH, 14); ctx.fill();
+        // 商品名（顶部）
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#1f2937';
+        ctx.font = 'bold 30px ' + FP;
+        const nm = pWrap(ctx, it.name || '未命名', cardW - 16, 2);
+        nm.forEach((ln, i) => ctx.fillText(ln, x + cardW / 2, y + 14 + i * 36));
+        // 商品图占位区（中间浅色块）
+        const imgY = y + (nm.length > 1 ? 86 : 56);
+        const imgH = cardH - (imgY - y) - 90;
+        if (imgH > 20) {
+          ctx.fillStyle = '#f0fdf4';
+          pRoundRect(ctx, x + 10, imgY, cardW - 20, imgH, 10); ctx.fill();
+          // 占位文字
+          ctx.fillStyle = '#86efac'; ctx.font = '22px ' + FP; ctx.textBaseline = 'middle';
+          ctx.fillText('📦', x + cardW / 2, imgY + imgH / 2);
+        }
+        // 价格星爆标签（右下角）
+        const priceR = Math.min(cardW / 2.4, 72);
+        const px = x + cardW - priceR - 10, py = y + cardH - priceR - 8;
+        drawStarBurst(ctx, px, py, priceR, pal.badge || '#facc15');
+        // 价格文字
+        ctx.fillStyle = '#dc2626'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = 'bold 28px ' + FP;
+        ctx.fillText('¥' + (it.price || '0'), px, py - 4);
+        if (it.unit) {
+          ctx.fillStyle = '#b45309'; ctx.font = '20px ' + FP;
+          ctx.fillText('/' + it.unit, px, py + 22);
+        }
+        // 原价划线（星爆下方）
+        if (it.old) {
+          const oy = py + priceR + 8;
+          ctx.fillStyle = '#9ca3af'; ctx.font = '22px ' + FP; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+          const ot = '¥' + it.old; const ow = ctx.measureText(ot).width;
+          ctx.fillText(ot, x + cardW / 2, oy);
+          ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x + cardW / 2 - ow / 2, oy - 8); ctx.lineTo(x + cardW / 2 + ow / 2, oy - 8); ctx.stroke();
+        }
+      });
+    }
+
+    // --- 底部绿色信息栏 ---
+    const fy = H - PAD - 100;
+    ctx.fillStyle = pal.banner;
+    pRoundRect(ctx, PAD, fy, W - 2 * PAD, 100, 18); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = '28px ' + FP; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const cl = p.contact || '';
+    ctx.fillText(cl, PAD + 24, fy + 50);
+    // 二维码占位（右下角）
+    const qrSize = 68;
+    ctx.fillStyle = '#ffffff';
+    pRoundRect(ctx, W - PAD - qrSize - 16, fy + 16, qrSize, qrSize, 8); ctx.fill();
+    ctx.fillStyle = pal.banner; ctx.font = '18px ' + FP; ctx.textAlign = 'center';
+    ctx.fillText('扫码关注', W - PAD - qrSize / 2 - 16, fy + 100 + 16);
+    return; // flashsale 绘制完毕
+  }
+
+  // 顶部标题带（其他 4 套主题的通用绘制）
   const bandH = 250;
   ctx.fillStyle = pal.banner;
   pRoundRect(ctx, PAD, PAD, W - 2 * PAD, bandH, 28); ctx.fill();
