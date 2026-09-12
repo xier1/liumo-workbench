@@ -2172,366 +2172,6 @@
     .tm-progress-rate { font-size: 24px; }
   }
 
-  /* ============ 工作清单模块 ============ */
-  .wl-progress-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .wl-progress-main {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .wl-progress-rate {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--primary);
-  }
-
-  .wl-progress-text {
-    font-size: 14px;
-    color: var(--text-soft);
-  }
-
-  .wl-progress-bar {
-    height: 8px;
-    background: var(--bg-soft);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
-
-  .wl-progress-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.3s;
-  }
-
-  .wl-quad-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
-
-  .wl-quad-stat {
-    background: var(--bg-soft);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .wl-quad-stat:hover {
-    background: var(--bg);
-    transform: translateY(-2px);
-  }
-
-  .wl-quad-name {
-    font-size: 11px;
-    color: var(--text-soft);
-    margin-bottom: 4px;
-  }
-
-  .wl-quad-num {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .wl-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .wl-filters {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .wl-filter-btn {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    color: var(--text-soft);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .wl-filter-btn:hover { background: var(--bg); }
-
-  .wl-filter-btn.active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-
-  .wl-add-btn {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .wl-add-btn:hover { background: var(--primary-dark); }
-
-  .wl-form {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .wl-form-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
-
-  .wl-input, .wl-select {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    font-size: 14px;
-    margin-bottom: 12px;
-    background: var(--bg);
-    color: var(--text);
-    box-sizing: border-box;
-  }
-
-  .wl-form-row {
-    margin-bottom: 12px;
-  }
-
-  .wl-check-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-right: 20px;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  .wl-weekdays {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .wl-wd {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 13px;
-  }
-
-  .wl-form-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 8px;
-  }
-
-  .wl-btn-cancel {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    color: var(--text-soft);
-    border-radius: var(--radius-sm);
-    padding: 8px 18px;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  .wl-btn-save {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 8px 18px;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  .wl-task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .wl-task {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s;
-  }
-
-  .wl-task:hover { box-shadow: var(--shadow-md); }
-
-  .wl-task.done { opacity: 0.6; }
-
-  .wl-check {
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--border);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 2px;
-    transition: all 0.2s;
-  }
-
-  .wl-check svg { width: 14px; height: 14px; color: #fff; }
-
-  .wl-check.checked {
-    background: var(--success);
-    border-color: var(--success);
-  }
-
-  .wl-task-body { flex: 1; min-width: 0; }
-
-  .wl-task-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.5;
-    word-break: break-word;
-  }
-
-  .wl-task-title.done {
-    text-decoration: line-through;
-    color: var(--text-muted);
-  }
-
-  .wl-task-meta {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-  }
-
-  .wl-repeat-tag {
-    font-size: 12px;
-    color: var(--text-soft);
-    background: var(--bg-soft);
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-
-  .wl-quad-tag {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
-  }
-
-  .wl-note-tag {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .wl-task-actions {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .wl-task-btn {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .wl-task-btn:hover { background: var(--bg-soft); }
-
-  .wl-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-    background: var(--card);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-  }
-
-  .wl-reminder {
-    margin-top: 16px;
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-    border: 1px solid #fed7aa;
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    font-size: 14px;
-    color: #9a3412;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .wl-remind-btn {
-    background: #f59e0b;
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 6px 14px;
-    font-size: 13px;
-    cursor: pointer;
-    margin-left: auto;
-  }
-
-  @media (max-width: 768px) {
-    .wl-quad-stats { grid-template-columns: repeat(2, 1fr); }
-    .wl-toolbar { flex-direction: column; align-items: stretch; }
-    .wl-add-btn { width: 100%; }
-  }
-
-
-  /* 视图切换: 当日任务 / 全部任务 */
-  .wl-view-seg { display:inline-flex; background:var(--bg-soft); border:1px solid var(--border); border-radius:20px; padding:3px; gap:4px; }
-  .wl-view-btn { background:transparent; border:none; color:var(--text-soft); cursor:pointer; padding:6px 16px; border-radius:16px; font-size:13px; font-weight:500; transition:all .2s; }
-  .wl-view-btn.active { background:var(--primary); color:#fff; }
-
-  /* 四象限任务清单网格 */
-  .wl-quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px; }
-  .wl-quad-cell { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; min-height:160px; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); }
-  .wl-quad-head { margin-bottom:10px; }
-  .wl-quad-title { font-weight:700; font-size:15px; }
-  .wl-quad-sub { color:var(--text-soft); font-size:12px; margin-top:3px; }
-  .wl-quad-list { display:flex; flex-direction:column; gap:8px; flex:1; }
-  .wl-quad-empty { color:var(--text-soft); font-size:12px; text-align:center; padding:18px 0; }
-  @media (max-width:720px){ .wl-quad-grid { grid-template-columns:1fr; } }
   /* 云端同步面板 */
   .sync-box { margin-top: 12px; }
   .sync-row { display: flex; align-items: center; gap: 8px; }
@@ -2552,47 +2192,6 @@
   .sync-tip { font-size: 10px; color: rgba(255,255,255,0.55); line-height: 1.45; }
 
 
-  /* 学做店长 */
-  .mg-intro { background: var(--primary-soft); border: 1px solid #dbeafe; color: #1d4ed8; border-radius: var(--radius); padding: 12px 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 8px; }
-  .mg-intro b { color: var(--primary-hover); }
-  .mg-section { font-size: 16px; margin: 22px 0 12px; color: var(--text); }
-  .mg-knowledge { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mg-kcard { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: var(--radius); padding: 13px 16px; box-shadow: var(--shadow-sm); }
-  .mg-kcard.mg-first { border-left-color: var(--danger); }
-  .mg-kcard.mg-second { border-left-color: var(--warning); }
-  .mg-kcard.mg-third { border-left-color: var(--success); }
-  .mg-khead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .mg-pri { font-size: 12px; color: var(--text-soft); background: var(--bg-soft); border-radius: 10px; padding: 1px 8px; }
-  .mg-ktitle { font-weight: 700; font-size: 15px; }
-  .mg-why { font-size: 12.5px; color: var(--text-soft); margin: 6px 0 9px; line-height: 1.5; }
-  .mg-points { display: flex; flex-wrap: wrap; gap: 6px; }
-  .mg-chip { font-size: 11.5px; color: var(--text-soft); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 2px 9px; }
-  .mg-skills { display: flex; flex-direction: column; gap: 12px; }
-  .mg-skill { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-sm); }
-  .mg-skill-title { font-weight: 700; font-size: 14.5px; color: var(--primary-hover); margin-bottom: 6px; }
-  .mg-skill-body { font-size: 13px; line-height: 1.7; color: var(--text); }
-  .mg-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .mg-progress-bar { flex: 1; height: 8px; background: var(--bg-soft); border-radius: 20px; overflow: hidden; }
-  .mg-progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--success)); border-radius: 20px; transition: width .35s ease; }
-  .mg-progress-label { font-size: 12.5px; color: var(--text-soft); white-space: nowrap; }
-  .mg-tasks { display: flex; flex-direction: column; gap: 10px; }
-  .mg-task { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: all .2s; }
-  .mg-task:hover { border-color: var(--primary); }
-  .mg-task.done { background: #f0fdf4; border-color: #bbf7d0; }
-  .mg-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); background: #fff; color: #16a34a; font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-  .mg-task.done .mg-check { background: var(--success); border-color: var(--success); color: #fff; }
-  .mg-task-body { flex: 1; min-width: 0; }
-  .mg-task-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
-  .mg-task.done .mg-task-text { text-decoration: line-through; color: var(--text-muted); }
-  .mg-task-goal { font-size: 12px; color: var(--text-soft); margin-top: 3px; }
-  .mg-phase { font-size: 11.5px; color: var(--text-muted); background: var(--bg-soft); border-radius: 10px; padding: 2px 10px; flex-shrink: 0; }
-  .mg-tools { display: flex; flex-direction: column; gap: 8px; }
-  .mg-tool { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--text); line-height: 1.5; }
-  @media (max-width: 640px) {
-    .mg-knowledge { grid-template-columns: 1fr; }
-    .mg-phase { display: none; }
-  }
-
   /* ========== 全局润色 ========== */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -2608,114 +2207,6 @@
   }
   .placeholder-icon { font-size: 40px; margin-bottom: 10px; }
 
-  /* ========== 果然鲜 · 每日检查 ========== */
-  .dc-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
-  .dc-progress { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 10px; }
-  .dc-progress-bar { flex: 1; height: 8px; background: var(--bg-soft); border-radius: 999px; overflow: hidden; }
-  .dc-progress-fill { height: 100%; width: 0; background: var(--brand-grad); border-radius: 999px; transition: var(--transition); }
-  .dc-progress-text { font-size: 13px; color: var(--text-soft); white-space: nowrap; }
-  .dc-actions { display: flex; gap: 8px; flex-shrink: 0; }
-  .dc-add-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .dc-add-row[hidden] { display: none; }
-  .dc-add-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; transition: var(--transition); }
-  .dc-add-input:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
-  .dc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
-  .dc-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition); }
-  .dc-item:hover { box-shadow: var(--shadow); }
-  .dc-item.done { opacity: 0.62; }
-  .dc-check { flex-shrink: 0; width: 30px; height: 30px; border: none; background: transparent; font-size: 20px; line-height: 1; cursor: pointer; border-radius: 8px; transition: var(--transition); }
-  .dc-check:hover { background: var(--bg-soft); }
-  .dc-text { flex: 1; font-size: 14.5px; color: var(--text); }
-  .dc-item.done .dc-text { text-decoration: line-through; color: var(--text-soft); }
-  .dc-del { flex-shrink: 0; width: 28px; height: 28px; border: none; background: transparent; color: var(--text-soft); font-size: 15px; cursor: pointer; border-radius: 8px; transition: var(--transition); }
-  .dc-del:hover { background: #fee2e2; color: #dc2626; }
-  .dc-empty { list-style: none; padding: 28px; text-align: center; color: var(--text-muted); background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius); }
-
-  /* ========== 店员巡检 ========== */
-  .insp-rolebar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-  .insp-role-switch { display: inline-flex; background: var(--bg-soft); border-radius: 999px; padding: 4px; }
-  .insp-role-btn { border: none; background: transparent; color: var(--text-soft); font-size: 14px; padding: 7px 18px; border-radius: 999px; cursor: pointer; transition: var(--transition); }
-  .insp-role-btn.active { background: var(--brand-grad); color: #fff; box-shadow: var(--shadow-sm); }
-  .insp-emp-pick { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; color: var(--text-soft); }
-  .insp-select { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; transition: var(--transition); }
-  .insp-select:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
-  .insp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-  .insp-stats { display: flex; gap: 14px; font-size: 13px; color: var(--text-soft); }
-  .insp-stats b { color: var(--text); font-size: 15px; }
-  .insp-filters { display: flex; gap: 8px; flex: 1; min-width: 0; flex-wrap: wrap; }
-  .insp-list { display: flex; flex-direction: column; gap: 12px; }
-  .insp-card { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 14px 16px; transition: var(--transition); }
-  .insp-card:hover { box-shadow: var(--shadow); }
-  .insp-card.status-pending { border-left-color: #f59e0b; }
-  .insp-card.status-rectified { border-left-color: #3b82f6; }
-  .insp-card.status-confirmed { border-left-color: #16a34a; }
-  .insp-card.status-rejected { border-left-color: #dc2626; }
-  .insp-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  .insp-badge { background: var(--bg-soft); color: var(--text-soft); font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600; }
-  .insp-area { font-size: 12px; color: var(--text-muted); }
-  .insp-status { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; }
-  .insp-status.status-pending { background: #fff7ed; color: #c2410c; }
-  .insp-status.status-rectified { background: #eff6ff; color: #1d4ed8; }
-  .insp-status.status-confirmed { background: #f0fdf4; color: #15803d; }
-  .insp-status.status-rejected { background: #fef2f2; color: #b91c1c; }
-  .insp-card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .insp-card-desc { font-size: 13.5px; color: var(--text-soft); margin-bottom: 8px; white-space: pre-wrap; }
-  .insp-card-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-  .insp-card-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
-  .insp-card-foot { display: flex; align-items: center; gap: 10px; }
-  .insp-last { flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .insp-open-btn { flex-shrink: 0; border: 1px solid var(--border); background: var(--card); color: var(--primary-2); font-size: 13px; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); }
-  .insp-open-btn:hover { background: var(--bg-soft); }
-  .insp-field { margin-bottom: 14px; }
-  .insp-label { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 6px; font-weight: 600; }
-  .insp-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; transition: var(--transition); }
-  .insp-input:focus { outline: none; border-color: var(--primary-2); box-shadow: var(--ring); }
-  textarea.insp-input { resize: vertical; }
-  .insp-imgs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .insp-img-add { border: 1px dashed var(--border); background: var(--bg-soft); color: var(--text-soft); font-size: 13px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); }
-  .insp-img-add:hover { color: var(--primary-2); border-color: var(--primary-2); }
-  .insp-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
-  .insp-thumb { position: relative; width: 60px; height: 60px; }
-  .insp-thumb img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
-  .insp-thumb-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: #fff; font-size: 12px; line-height: 1; cursor: pointer; }
-  .insp-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
-  .insp-detail-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-  .insp-detail-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-  .insp-detail-desc { font-size: 14px; color: var(--text-soft); margin-bottom: 10px; white-space: pre-wrap; }
-  .insp-detail-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .insp-detail-img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
-  .insp-thread-title { font-size: 13px; font-weight: 700; color: var(--text-soft); margin: 6px 0 8px; }
-  .insp-thread { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 12px; }
-  .insp-thread-empty { font-size: 13px; color: var(--text-muted); padding: 8px 0; }
-  .insp-reply { background: var(--bg-soft); border-radius: var(--radius-sm); padding: 10px 12px; }
-  .insp-reply.from-manager { border-left: 3px solid var(--primary-2); }
-  .insp-reply.from-employee { border-left: 3px solid #16a34a; }
-  .insp-reply-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-  .insp-reply-from { font-weight: 600; color: var(--text-soft); }
-  .insp-reply-text { font-size: 14px; color: var(--text); white-space: pre-wrap; }
-  .insp-reply-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .insp-reply-img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
-  .insp-reply-tag { display: inline-block; margin-top: 6px; font-size: 11px; color: #1d4ed8; background: #eff6ff; padding: 2px 8px; border-radius: 999px; }
-  .insp-reply-box { border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 12px; }
-  .insp-reply-box .insp-input { margin-bottom: 8px; }
-  .insp-actions { display: flex; gap: 8px; }
-  .insp-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .insp-modal.open { display: flex; }
-  .insp-modal-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(2px); }
-  .insp-modal-dialog { position: relative; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lg); outline: none; animation: inspPop .2s ease; }
-  .insp-modal-sm { max-width: 380px; }
-  @keyframes inspPop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
-  .insp-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); z-index: 1; }
-  .insp-modal-title { font-size: 17px; font-weight: 700; }
-  .insp-modal-x { width: 32px; height: 32px; border-radius: 8px; color: var(--text-soft); font-size: 16px; cursor: pointer; border: none; background: transparent; transition: var(--transition); }
-  .insp-modal-x:hover { background: var(--bg-soft); color: var(--text); }
-  #inspNewForm, #inspDetailBody, #inspEmpBody { padding: 18px 20px 20px; }
-  .insp-emp-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-  .insp-emp-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-soft); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); }
-  .insp-emp-del { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-soft); cursor: pointer; transition: var(--transition); }
-  .insp-emp-del:hover { background: #fee2e2; color: #dc2626; }
-  .insp-emp-add { display: flex; gap: 8px; }
-  .insp-emp-add .insp-input { flex: 1; }
   /* ========== 减肥打卡 ========== */
   .wt-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .wt-note { margin: 0 0 18px; padding: 12px 16px; background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-2); border-radius: var(--radius-sm); color: var(--text-soft); font-size: 12.5px; line-height: 1.7; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8); }
@@ -3065,6 +2556,44 @@
 .sp-pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
 .sp-pill.g { background: #dcfce7; color: #15803d; }
 .sp-pill.r { background: #fee2e2; color: #b91c1c; }
+  /* ========== 超市海报模块 ========== */
+  .poster-app { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  .poster-form { flex: 1 1 340px; min-width: 300px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); }
+  .poster-field { margin-bottom: 14px; }
+  .poster-field > label { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 7px; }
+  .poster-field input[type="text"], .poster-field input:not([type="color"]), .poster-field textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14px; background: #fff; color: var(--text); outline: none;
+  }
+  .poster-field input:focus, .poster-field textarea:focus { border-color: var(--primary); box-shadow: var(--ring); }
+  .poster-field textarea { resize: vertical; }
+  .poster-themes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .poster-theme { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); background: #fff; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--text-soft); transition: var(--transition); }
+  .poster-theme .sw { width: 16px; height: 16px; border-radius: 5px; flex: none; }
+  .poster-theme.active { border-color: var(--tc); color: var(--text); box-shadow: var(--ring);
+    background: color-mix(in srgb, var(--ta) 14%, #fff); }
+  .poster-items { display: flex; flex-direction: column; gap: 8px; }
+  .poster-item { position: relative; display: flex; flex-direction: column; gap: 6px;
+    padding: 10px 30px 10px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-soft); }
+  .poster-item .pi-name { font-weight: 600; }
+  .poster-item .pi-prices { display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 6px; }
+  .poster-item input { padding: 7px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 100%; background: #fff; }
+  .poster-item .pi-price { color: var(--danger); font-weight: 700; }
+  .poster-item .pi-del { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border: none;
+    border-radius: 50%; background: var(--danger-soft); color: var(--danger); cursor: pointer; font-size: 12px; line-height: 1; }
+  .poster-add { background: var(--primary-soft); color: var(--primary); border: none; border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .poster-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .poster-actions .btn-primary { flex: 1; min-width: 90px; background: var(--brand-grad); color: #fff; border: none;
+    border-radius: var(--radius-sm); padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .poster-actions .btn-ghost { background: #fff; color: var(--text-soft); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; cursor: pointer; }
+  .poster-preview { flex: 1 1 360px; min-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .poster-preview-label { font-size: 13px; color: var(--text-soft); align-self: flex-start; font-weight: 600; }
+  #posterCanvas { width: 100%; max-width: 420px; height: auto; border-radius: var(--radius);
+    box-shadow: var(--shadow-md); background: #fff; }
 </style>
 </head>
 <body>
@@ -3137,13 +2666,6 @@
 
 // ---------- 模块配置 ----------
 const MODULES = [
-  {
-    id: 'todo',
-    name: '待办清单',
-    desc: '记录待办事项,随手拖拽排序',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-    enabled: true
-  },
   {
     id: 'weight',
     name: '减肥打卡',
@@ -3244,13 +2766,6 @@ const MODULES = [
     enabled: true
   },
   {
-    id: 'worklist',
-    name: '工作清单',
-    desc: '循环任务管理 · 四象限调度 · 实时进度',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-    enabled: true
-  },
-  {
     id: 'quotes',
     name: '心灵鸡汤',
     desc: '收藏温暖治愈的句子,给生活加点光',
@@ -3272,22 +2787,7 @@ const MODULES = [
     enabled: true,
     children: [
       { id: 'activities', name: '活动列表', icon: '📝' },
-      { id: 'dailycheck', name: '每日检查', icon: '✅' }
     ]
-  },
-  {
-    id: 'manager',
-    name: '学做店长',
-    desc: '超市店长实用知识地图 · 损耗/报表/陈列 · 30–90 天学习打卡',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'inspect',
-    name: '店员巡检',
-    desc: '每日门店检查 · 问题图文记录 · 店员整改闭环',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-    enabled: true
   },
   {
     id: 'notes',
@@ -3337,21 +2837,26 @@ const MODULES = [
     desc: '每日任务 · 每周任务 · 每月任务 · 紧急任务，支持增删改与完成标记',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     enabled: true
+  },
+  {
+    id: 'poster',
+    name: '超市海报',
+    desc: '一键生成促销海报 · 多套模板 · 实时预览 · 导出图片',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
+    enabled: true
   }
 ];
 
 // ---------- 状态 ----------
-let currentModule = 'todo';
+let currentModule = 'weight';
+
+// ---------- 超市海报状态 ----------
+let poster = defaultPoster();
 let currentSub = null;        // 当前二级类目 id（仅对带 children 的模块有效）
 const expandedModules = {};   // moduleId -> 侧边栏是否展开其子分类
 let navReorder = false;        // 是否处于菜单排序模式
 const NAV_ORDER_KEY = 'liumo_nav_order';
-let todos = [];
-let filter = 'all';        // all | active | done
-let search = '';
 let editingId = null;
-let memoSortMode = localStorage.getItem('liumo_memo_sort') || 'priority';  // priority | custom
-let _todoEscapeBound = false;  // 待办添加弹窗的 Esc 监听是否已全局绑定(避免重复)
 
 // ---------- 减肥打卡状态 ----------
 let weightLogs = [];                                   // { id, date:'YYYY-MM-DD', weight:Number, createdAt, updatedAt }
@@ -3370,32 +2875,12 @@ let scrapSettled = {};         // { 'YYYY-MM': { date:'YYYY-MM-DD' 结算截止�
 let scrapSettleMonth = null;   // 当前正在选择结算截止日的月份(null 表示无)
 let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
 
-// 待办优先级 = 时间管理四象限
-const TODO_PRIORITIES = [
-  { value: 'iq',  label: '重要且紧急', desc: '立即做' },
-  { value: 'inq', label: '重要不紧急', desc: '计划做' },
-  { value: 'uq',  label: '紧急不重要', desc: '委托做' },
-  { value: 'nuq', label: '不重要不紧急', desc: '减少做' }
-];
 
-// ---------- 工作清单状态 ----------
-const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
-const QUADRANT_INFO = {
-  iq:  { name: '重要且紧急', desc: '立即做', color: '#ef4444' },
-  inq: { name: '重要不紧急', desc: '计划做', color: '#3b82f6' },
-  uq:  { name: '紧急不重要', desc: '委托做', color: '#f59e0b' },
-  nuq: { name: '不重要不紧急', desc: '减少做', color: '#10b981' }
-};
-let workTasks = [];           // 任务定义列表
-let workDone = {};            // 完成记录: { "2026-07-29:taskId": true }
-let workFilterQuadrant = 'all';  // all | iq | inq | uq | nuq
-let workView = 'today';          // today | all  (当日任务 / 全部任务)
-let workShowAddForm = false;
-let workEditingTaskId = null;
 
 // ---------- 任务管理状态 ----------
 // 四类任务：daily 每日 / weekly 每周(计划1~7) / monthly 每月(计划1~31) / urgent 紧急
 const TASKMGR_KEY = 'liumo_taskmgr_tasks';
+const WEEKDAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
 const TASKMGR_META_KEY = 'liumo_taskmgr_meta';   // 记录上次重置的周期（天/周/月）
 const TASKMGR_KINDS = [
   { id: 'daily',   name: '每日任务', icon: '📅', color: '#3b82f6', desc: '每天循环 · 零点重置' },
@@ -3411,60 +2896,7 @@ let tmFormKind = null;            // 正在新增的任务类型（null 表示�
 let tmDragId = null;              // 每日任务拖动中的 id
 
 // ---------- 存储 ----------
-const STORAGE_KEY = 'liumo_workbench_todos';
-const WORK_TASKS_KEY = 'liumo_workbench_worktasks';
-const WORK_DONE_KEY = 'liumo_workbench_workdone';
 
-function loadWorkTasks() {
-  try {
-    const data = localStorage.getItem(WORK_TASKS_KEY);
-    workTasks = data ? JSON.parse(data) : [];
-  } catch (e) { workTasks = []; }
-}
-
-function saveWorkTasks() {
-  localStorage.setItem(WORK_TASKS_KEY, JSON.stringify(workTasks));
-}
-
-function loadWorkDone() {
-  try {
-    const data = localStorage.getItem(WORK_DONE_KEY);
-    workDone = data ? JSON.parse(data) : {};
-  } catch (e) { workDone = {}; }
-}
-
-function saveWorkDone() {
-  localStorage.setItem(WORK_DONE_KEY, JSON.stringify(workDone));
-}
-
-function loadTodos() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    todos = data ? JSON.parse(data) : [];
-  } catch (e) {
-    todos = [];
-  }
-  normalizeTodos();
-}
-
-function saveTodos() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-}
-
-// 旧数据迁移:补齐 order(拖拽顺序)、剥离 dueDate、补全/校正 priority 到四象限
-function normalizeTodos() {
-  const OLD_PRIORITY_MAP = { high: 'iq', medium: 'inq', low: 'nuq' };
-  let changed = false;
-  todos.forEach((t, i) => {
-    if (typeof t.order !== 'number' || isNaN(t.order)) { t.order = i; changed = true; }
-    if ('dueDate' in t) { delete t.dueDate; changed = true; }
-    if (!t.priority || !TODO_PRIORITIES.some(p => p.value === t.priority)) {
-      t.priority = OLD_PRIORITY_MAP[t.priority] || 'inq';
-      changed = true;
-    }
-  });
-  if (changed) saveTodos();
-}
 
 // ---------- 工具函数 ----------
 function uid() {
@@ -3737,11 +3169,6 @@ function renderContent() {
     return;
   }
 
-  // 工作清单模块
-  if (currentModule === 'worklist') {
-    renderWorkListModule(content, mod);
-    return;
-  }
 
   // 任务管理模块
   if (currentModule === 'taskmgr') {
@@ -3749,11 +3176,12 @@ function renderContent() {
     return;
   }
 
-  // 待办清单模块
-  if (currentModule === 'todo') {
-    renderTodoModule(content, mod);
+  // 超市海报模块
+  if (currentModule === 'poster') {
+    renderPosterModule(content, mod);
     return;
   }
+
 
   // 心灵鸡汤模块
   if (currentModule === 'quotes') {
@@ -3774,11 +3202,6 @@ function renderContent() {
   }
 
 
-  // 学做店长模块
-  if (currentModule === 'manager') {
-    renderManagerModule(content, mod);
-    return;
-  }
 
   // 笔记模块
   if (currentModule === 'notes') {
@@ -3786,11 +3209,6 @@ function renderContent() {
     return;
   }
 
-  // 店员巡检模块
-  if (currentModule === 'inspect') {
-    renderInspectModule(content, mod);
-    return;
-  }
 
   // 减肥打卡模块
   if (currentModule === 'weight') {
@@ -3902,181 +3320,6 @@ function renderContent() {
 }
 
 
-// ---------- 学做店长(超市店长实用知识 + 学习打卡) ----------
-const MG_DONE_KEY = 'liumo_manager_done';
-
-// 知识地图：6 大模块
-const MG_KNOWLEDGE = [
-  { pri: 'first', tag: '第一优先', title: '损耗与库存', why: '损耗直接吃掉利润，每降 1% 约等于净利上涨', points: ['先进先出(FIFO)', '安全库存 / ABC 分类', '库存周转率', '生鲜日清、报损率'] },
-  { pri: 'first', tag: '第一优先', title: '看懂经营报表', why: '不看数就是盲管，决策要落在指标上', points: ['销售额 / 毛利 / 毛利率', '客单价 / 来客数', '连带率 / 坪效 / 人效'] },
-  { pri: 'second', tag: '第二优先', title: '陈列与动线', why: '最便宜的“无声促销”，端架堆头拉动 20%+ 销售', points: ['黄金陈列线 1.2–1.6m', '端架 / 堆头 / 关联陈列', '磁石点设计'] },
-  { pri: 'second', tag: '第二优先', title: '定价与促销', why: '促销做错反而亏，要算清让利换流量的账', points: ['毛利定价法', '满减 / 买赠', '引流品 vs 利润品', '促销 ROI'] },
-  { pri: 'third', tag: '第三优先', title: '人效与排班', why: '人工是最大的可控成本', points: ['工时优化', '高峰排班', '师徒带教', '控制离职率'] },
-  { pri: 'third', tag: '第三优先', title: '合规与安全', why: '食安 / 消防 / 工伤出事即停业级风险', points: ['食品安全法', '效期排查', '消防预案', '防抢防损'] }
-];
-
-// 三项硬功夫
-const MG_SKILLS = [
-  { title: '损耗管理（省钱最快）', body: '建立日盘+周盘机制，生鲜做到“日清”，临期商品提前 3 天打折出清。用 ABC 分类：A 类(高频高毛利，如牛奶、水饮)重点盯库存与陈列面；C 类(长尾)压缩库存、减少占资。设定报损红线，超线就复盘是订货错了还是陈列错了。' },
-  { title: '报表诊断（赚钱最快）', body: '每天只看 4 个数起步：来客数、客单价、毛利率、损耗率。来客数掉→查引流品价格/门口堆头/竞品；客单价掉→推关联陈列和连带话术；毛利率掉→查促销力度和供应商进价。' },
-  { title: '陈列与促销（见效最快）', body: '把高毛利高动销放黄金线，关联品放一起(啤酒+花生、火锅料扎堆)。端架/堆头只放“有故事”的品，每周换主题。促销前先算：这件商品让利后，要靠多带来多少客流、带动多少连带才回本。' }
-];
-
-// 30–90 天学习打卡任务
-const MG_TASKS = [
-  { phase: '第 1–30 天', text: '摸清门店：盘库存、跟一天全流程、背熟 20 个核心品进价售价', goal: '产出《本店损品 Top10》清单' },
-  { phase: '第 31–60 天', text: '学看报表、做 1 次小促销、优化 1 个品类陈列', goal: '一次可量化的促销复盘' },
-  { phase: '第 61–90 天', text: '抓人效排班、带教 1 名骨干、建立日盘机制', goal: '损耗率下降 1 个百分点' }
-];
-
-// 顺手可用的工具
-const MG_TOOLS = [
-  '进销存 / ERP：用系统替代脑子记库存，重点看“库存预警”和“效期预警”',
-  '私域社群：把周边 3 公里顾客拉群，到货/打折发预告，提升复购',
-  '线上渠道：美团 / 拼多多到店、抖音同城，把“到店”扩成“到店+到家”'
-];
-
-let mgDone = {};
-function loadMgDone() {
-  try { mgDone = JSON.parse(localStorage.getItem(MG_DONE_KEY) || '{}'); } catch (e) { mgDone = {}; }
-}
-function saveMgDone() { localStorage.setItem(MG_DONE_KEY, JSON.stringify(mgDone)); }
-
-function renderManagerCard(k) {
-  const badge = k.pri === 'first' ? '🔴' : k.pri === 'second' ? '🟠' : '🟡';
-  return `
-    <div class="mg-kcard mg-${k.pri}">
-      <div class="mg-khead"><span class="mg-pri">${badge} ${k.tag}</span><span class="mg-ktitle">${escapeHtml(k.title)}</span></div>
-      <div class="mg-why">${escapeHtml(k.why)}</div>
-      <div class="mg-points">${k.points.map(p => `<span class="mg-chip">${escapeHtml(p)}</span>`).join('')}</div>
-    </div>`;
-}
-
-function renderManagerTask(t) {
-  const done = !!mgDone[t.text];
-  return `
-    <div class="mg-task ${done ? 'done' : ''}" data-task="${escapeHtml(t.text)}">
-      <button class="mg-check" aria-label="标记完成">${done ? '✓' : ''}</button>
-      <div class="mg-task-body">
-        <div class="mg-task-text">${escapeHtml(t.text)}</div>
-        <div class="mg-task-goal">🎯 ${escapeHtml(t.goal)}</div>
-      </div>
-      <span class="mg-phase">${escapeHtml(t.phase)}</span>
-    </div>`;
-}
-
-function mgRefreshProgress() {
-  const total = MG_TASKS.length;
-  const done = MG_TASKS.filter(t => mgDone[t.text]).length;
-  const bar = document.querySelector('#mgProgressFill');
-  const label = document.querySelector('#mgProgressLabel');
-  if (bar) bar.style.width = (total ? Math.round(done / total * 100) : 0) + '%';
-  if (label) label.textContent = `学习打卡进度 ${done}/${total}`;
-}
-
-function mgToggleTask(text, row) {
-  mgDone[text] = !mgDone[text];
-  saveMgDone();
-  if (row) row.classList.toggle('done', !!mgDone[text]);
-  mgRefreshProgress();
-}
-
-function renderManagerModule(content, mod) {
-  loadMgDone();
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">${mod.name}</div>
-      <div class="page-desc">${mod.desc}</div>
-    </div>
-
-    <div class="mg-intro">
-      🎯 店长核心目标：在控住损耗和成本的前提下，把 <b>客流 · 客单价 · 毛利</b> 三项做上去。下面按“投入产出比”排列，先学能直接赚钱、直接省钱的那几项。
-    </div>
-
-    <h3 class="mg-section">一、知识地图（先学投入产出比最高的）</h3>
-    <div class="mg-knowledge">${MG_KNOWLEDGE.map(renderManagerCard).join('')}</div>
-
-    <h3 class="mg-section">二、三项“学了马上能用”的硬功夫</h3>
-    <div class="mg-skills">${MG_SKILLS.map(s => `
-      <div class="mg-skill">
-        <div class="mg-skill-title">${escapeHtml(s.title)}</div>
-        <div class="mg-skill-body">${escapeHtml(s.body)}</div>
-      </div>`).join('')}</div>
-
-    <h3 class="mg-section">三、30–90 天学习打卡</h3>
-    <div class="mg-progress">
-      <div class="mg-progress-bar"><div class="mg-progress-fill" id="mgProgressFill"></div></div>
-      <div class="mg-progress-label" id="mgProgressLabel"></div>
-    </div>
-    <div class="mg-tasks">${MG_TASKS.map(renderManagerTask).join('')}</div>
-
-    <h3 class="mg-section">四、顺手可用的工具</h3>
-    <div class="mg-tools">${MG_TOOLS.map(t => `<div class="mg-tool">🔧 ${escapeHtml(t)}</div>`).join('')}</div>
-  `;
-  content.querySelectorAll('.mg-task').forEach(row => {
-    row.addEventListener('click', () => mgToggleTask(row.dataset.task, row));
-  });
-  mgRefreshProgress();
-}
-
-// ---------- 渲染:待办清单模块 ----------
-function renderTodoModule(content, mod) {
-  content.innerHTML = `
-
-    <div class="toolbar todo-add-bar">
-      <button class="btn-add" id="todoAddBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        添加待办
-      </button>
-    </div>
-
-    <!-- 筛选、排序与搜索 -->
-    <div class="filter-bar">
-      <div class="filter-group">
-        <button class="filter-btn ${filter==='all'?'active':''}" data-filter="all">全部</button>
-        <button class="filter-btn ${filter==='active'?'active':''}" data-filter="active">进行中</button>
-        <button class="filter-btn ${filter==='done'?'active':''}" data-filter="done">已完成</button>
-      </div>
-      <div class="filter-group sort-group">
-        <button class="filter-btn sort-btn ${memoSortMode==='priority'?'active':''}" data-sort="priority" title="高优先级排在前">按优先级</button>
-        <button class="filter-btn sort-btn ${memoSortMode==='custom'?'active':''}" data-sort="custom" title="可拖动自定义顺序">自定义顺序</button>
-      </div>
-      <button class="btn-clear" id="clearDoneBtn">清除已完成</button>
-      <div class="search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input" id="searchInput" placeholder="搜索待办..." value="${search}" />
-      </div>
-    </div>
-
-    <!-- 待办列表 -->
-    <div class="todo-list" id="todoList"></div>
-
-    <!-- 添加待办表单(点击「添加待办」后弹出) -->
-    <div class="act-modal" id="todoModal">
-      <div class="act-modal-backdrop" data-close="1"></div>
-      <div class="act-modal-dialog" tabindex="-1">
-        <div class="act-modal-head">
-          <div class="act-modal-title">添加待办</div>
-          <button type="button" class="act-modal-x" data-close="1" aria-label="关闭">✕</button>
-        </div>
-        <div id="todo-form-container">
-          <input type="text" class="input-add" id="todoInput" placeholder="添加一条待办... (回车提交)" />
-          <select class="select-priority" id="prioritySelect">
-            ${TODO_PRIORITIES.map(p => `<option value="${p.value}"${p.value === 'inq' ? ' selected' : ''}>${p.label}（${p.desc}）</option>`).join('')}
-          </select>
-          <div class="todo-modal-actions">
-            <button class="btn-cancel" id="todoCancelBtn">取消</button>
-            <button class="btn-add" id="todoSaveBtn">保存</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  bindTodoEvents();
-  renderStats();
-  renderTodoList();
-}
 
 /* ========================================================
    心灵鸡汤模块
@@ -5753,665 +4996,10 @@ function renderFreshActivities(content, mod) {
 function renderFreshModule(content, mod) {
   const sub = currentSub || (mod.children && mod.children[0] && mod.children[0].id) || 'activities';
   if (sub === 'activities') renderFreshActivities(content, mod);
-  else renderFreshDailyCheck(content, mod);
-}
-
-// 二级类目：每日检查（店长每日开店 / 营业 / 闭店自检清单，可增删、勾选、持久化）
-const DAILYCHECK_KEY = 'liumo_dailycheck';
-let dailyCheckList = [];
-const DAILYCHECK_DEFAULTS = [
-  '开门前：生鲜货架补货与陈列到位',
-  '开门前：价签与促销信息准确无错',
-  '开门前：电子秤 / 收银设备自检正常',
-  '营业中：冷链冷柜温度巡检并记录',
-  '营业中：核对临期商品并下架处理',
-  '营业中：高峰期补货与动线畅通',
-  '闭店前：清点收银与现金对账',
-  '闭店前：检查水电、门窗、安防'
-];
-function loadDailyCheck() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(DAILYCHECK_KEY));
-    if (Array.isArray(raw) && raw.length) { dailyCheckList = raw; return; }
-  } catch (e) {}
-  dailyCheckList = DAILYCHECK_DEFAULTS.map(t => ({ id: uid(), text: t, done: false }));
-  saveDailyCheck();
-}
-function saveDailyCheck() {
-  try { localStorage.setItem(DAILYCHECK_KEY, JSON.stringify(dailyCheckList)); } catch (e) {}
-}
-function renderFreshDailyCheck(content, mod) {
-  loadDailyCheck();
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">每日检查</div>
-      <div class="page-desc">果然鲜 · 店长每日开店 / 营业 / 闭店自检清单</div>
-    </div>
-    <div class="dc-toolbar">
-      <div class="dc-progress">
-        <div class="dc-progress-bar"><div class="dc-progress-fill" id="dcFill"></div></div>
-        <span class="dc-progress-text" id="dcProgressText"></span>
-      </div>
-      <div class="dc-actions">
-        <button class="btn-ghost" id="dcReset">重置今日</button>
-        <button class="btn-add" id="dcAdd">＋ 添加检查项</button>
-      </div>
-    </div>
-    <div class="dc-add-row" id="dcAddRow" hidden>
-      <input class="dc-add-input" id="dcInput" type="text" placeholder="输入检查项，如：检查灭火器压力" />
-      <button class="btn-add" id="dcAddConfirm">添加</button>
-    </div>
-    <ul class="dc-list" id="dcList"></ul>
-  `;
-  renderDailyCheckList();
-  bindDailyCheck();
-}
-function renderDailyCheckList() {
-  const list = document.getElementById('dcList');
-  if (!list) return;
-  if (!dailyCheckList.length) {
-    list.innerHTML = '<li class="dc-empty">还没有检查项，点「＋ 添加检查项」开始记录</li>';
-  } else {
-    list.innerHTML = dailyCheckList.map(it => `
-      <li class="dc-item ${it.done ? 'done' : ''}" data-id="${it.id}">
-        <button class="dc-check" data-act="toggle" title="标记完成">${it.done ? '✅' : '⬜'}</button>
-        <span class="dc-text">${escapeHtml(it.text)}</span>
-        <button class="dc-del" data-act="del" title="删除">✕</button>
-      </li>`).join('');
-  }
-  const total = dailyCheckList.length;
-  const done = dailyCheckList.filter(i => i.done).length;
-  const pct = total ? Math.round(done / total * 100) : 0;
-  const fill = document.getElementById('dcFill');
-  if (fill) fill.style.width = pct + '%';
-  const pt = document.getElementById('dcProgressText');
-  if (pt) pt.textContent = '已完成 ' + done + '/' + total;
-}
-function bindDailyCheck() {
-  const list = document.getElementById('dcList');
-  const addBtn = document.getElementById('dcAdd');
-  const addRow = document.getElementById('dcAddRow');
-  const input = document.getElementById('dcInput');
-  const addConfirm = document.getElementById('dcAddConfirm');
-  const resetBtn = document.getElementById('dcReset');
-  if (addBtn) addBtn.addEventListener('click', () => { if (addRow) addRow.hidden = !addRow.hidden; if (input) input.focus(); });
-  if (addConfirm) addConfirm.addEventListener('click', () => {
-    const v = (input && input.value || '').trim();
-    if (!v) { if (input) input.focus(); return; }
-    dailyCheckList.push({ id: uid(), text: v, done: false });
-    saveDailyCheck(); renderDailyCheckList();
-    if (input) input.value = '';
-    if (addRow) addRow.hidden = true;
-  });
-  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') addConfirm.click(); });
-  if (resetBtn) resetBtn.addEventListener('click', () => {
-    dailyCheckList.forEach(i => i.done = false); saveDailyCheck(); renderDailyCheckList(); showToast('已重置为未完成');
-  });
-  if (list) list.addEventListener('click', e => {
-    const li = e.target.closest('.dc-item'); if (!li) return;
-    const id = li.dataset.id;
-    const actEl = e.target.closest('[data-act]');
-    const act = actEl && actEl.dataset.act;
-    const it = dailyCheckList.find(x => x.id === id); if (!it) return;
-    if (act === 'toggle') { it.done = !it.done; saveDailyCheck(); renderDailyCheckList(); }
-    else if (act === 'del') { dailyCheckList = dailyCheckList.filter(x => x.id !== id); saveDailyCheck(); renderDailyCheckList(); }
-  });
+  renderFreshActivities(content, mod);
 }
 
 
-
-
-
-
-// 一键复制果然鲜文字
-
-// ---------- 渲染:统计 ----------
-function renderStats() {
-  const statsEl = document.getElementById('stats');
-  if (!statsEl) return;  // 仅在待办模块存在 stats 元素时渲染
-  const total = todos.length;
-  const done = todos.filter(t => t.done).length;
-  const active = total - done;
-  const rate = total === 0 ? 0 : Math.round(done / total * 100);
-
-  document.getElementById('stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">全部待办</div>
-      <div class="stat-value">${total}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">进行中</div>
-      <div class="stat-value warning">${active}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">已完成</div>
-      <div class="stat-value success">${done}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">完成率</div>
-      <div class="stat-value primary">${rate}%</div>
-      <div class="stat-bar"><div class="stat-bar-fill" style="width:${rate}%"></div></div>
-    </div>
-  `;
-}
-
-// ---------- 渲染:待办列表 ----------
-function getFilteredTodos() {
-  let list = todos;
-  if (filter === 'active') list = list.filter(t => !t.done);
-  else if (filter === 'done') list = list.filter(t => t.done);
-  if (search.trim()) {
-    const q = search.trim().toLowerCase();
-    list = list.filter(t => (t.title || '').toLowerCase().includes(q));
-  }
-  const prioOrder = { iq: 4, inq: 3, uq: 2, nuq: 1 };
-  const sorted = [...list];
-  if (memoSortMode === 'custom') {
-    // 自定义顺序:按手动拖拽的 order 升序
-    sorted.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  } else {
-    // 按优先级:未完成在前,再按优先级(重要且紧急最前),同优先级按添加时间倒序(新添加的在前)
-    sorted.sort((a, b) => {
-      if (a.done !== b.done) return a.done ? 1 : -1;
-      if (prioOrder[b.priority] !== prioOrder[a.priority]) return prioOrder[b.priority] - prioOrder[a.priority];
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    });
-  }
-  return sorted;
-}
-
-function renderTodoList() {
-  const list = getFilteredTodos();
-  const el = document.getElementById('todoList');
-
-  if (list.length === 0) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-        </div>
-        <div class="empty-title">${search ? '没有找到匹配的待办' : (filter === 'done' ? '还没有已完成的待办' : (filter === 'active' ? '没有进行中的待办' : '暂无待办'))}</div>
-        <div class="empty-desc">${search ? '试试其他关键词' : '点击「添加」创建你的第一条待办吧'}</div>
-      </div>
-    `;
-    return;
-  }
-
-  const dragEnabled = memoSortMode === 'custom' && filter === 'all' && !search.trim();
-  const gripSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>';
-
-  el.innerHTML = list.map(t => {
-    const isEditing = editingId === t.id;
-    const prioClass = `priority-${t.priority || 'inq'}`;
-
-    if (isEditing) {
-      return `
-        <div class="todo-item" data-id="${t.id}">
-          <div class="checkbox ${t.done ? '' : ''}"></div>
-          <input type="text" class="todo-edit-input" id="editInput-${t.id}" value="${escapeHtml(t.title)}" />
-          <select class="select-priority todo-edit-priority" id="editPriority-${t.id}">
-            ${TODO_PRIORITIES.map(p => `<option value="${p.value}"${p.value === (t.priority || 'inq') ? ' selected' : ''}>${p.label}</option>`).join('')}
-          </select>
-          <button class="action-btn" data-action="save-edit" data-id="${t.id}" title="保存">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button class="action-btn" data-action="cancel-edit" data-id="${t.id}" title="取消">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="todo-item ${t.done ? 'done' : ''}" data-id="${t.id}" ${dragEnabled ? 'draggable="true"' : ''}>
-        ${dragEnabled ? `<div class="drag-handle" title="拖动排序">${gripSvg}</div>` : ''}
-        <div class="checkbox" data-action="toggle" data-id="${t.id}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="todo-content">
-          <div class="todo-title" data-action="edit" data-id="${t.id}">${escapeHtml(t.title)}</div>
-          <div class="todo-meta">
-            <span class="meta-tag ${prioClass}">
-              <span class="meta-dot"></span>${priorityLabel(t.priority)}
-            </span>
-            <span class="meta-tag">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ${formatDate(t.createdAt)}
-            </span>
-          </div>
-        </div>
-        <div class="todo-actions">
-          <button class="action-btn" data-action="edit" data-id="${t.id}" title="编辑">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="action-btn delete" data-action="delete" data-id="${t.id}" title="删除">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function setMemoSortMode(mode) {
-  memoSortMode = mode;
-  localStorage.setItem('liumo_memo_sort', mode);
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
-  renderTodoList();
-}
-
-function reorderTodos(fromId, toId) {
-  const fromIdx = todos.findIndex(t => t.id === fromId);
-  const toIdx = todos.findIndex(t => t.id === toId);
-  if (fromIdx < 0 || toIdx < 0) return;
-  const [moved] = todos.splice(fromIdx, 1);
-  todos.splice(toIdx, 0, moved);
-  todos.forEach((t, i) => { t.order = i; });
-  saveTodos();
-  renderTodoList();
-}
-
-// ==================== 店员巡检（每日门店检查 · 店员整改闭环） ====================
-// 同设备方案：店长视角建单/确认，店员视角切换身份后查看/回复/提交整改。无后端，数据存本地。
-const INSP_EMP_KEY = 'liumo_inspect_employees';
-const INSP_TICKET_KEY = 'liumo_inspect_tickets';
-let inspEmployees = [];
-let inspTickets = [];
-let inspRole = 'manager';        // 'manager' | 'employee'
-let inspCurEmp = '';             // 店员视角当前选中的店员
-let inspFilterEmp = 'all';
-let inspFilterStatus = 'all';
-let inspDraftPhotos = [];
-let inspReplyPhotos = [];
-let inspOpenId = null;
-
-const INSP_STATUS = {
-  pending:   { label: '待整改', cls: 'pending' },
-  rectified: { label: '已整改待确认', cls: 'rectified' },
-  confirmed: { label: '已完成', cls: 'confirmed' },
-  rejected:  { label: '已驳回', cls: 'rejected' }
-};
-
-function loadInspect() {
-  try { const e = JSON.parse(localStorage.getItem(INSP_EMP_KEY)); if (Array.isArray(e)) inspEmployees = e; } catch (e) {}
-  try { const t = JSON.parse(localStorage.getItem(INSP_TICKET_KEY)); if (Array.isArray(t)) inspTickets = t; } catch (e) {}
-  if (!inspEmployees.length) { inspEmployees = ['张三', '李四', '王五']; saveInspectEmp(); }
-  if (!inspCurEmp && inspEmployees.length) inspCurEmp = inspEmployees[0];
-}
-function saveInspectEmp() { try { localStorage.setItem(INSP_EMP_KEY, JSON.stringify(inspEmployees)); } catch (e) {} }
-function saveInspectTickets() { try { localStorage.setItem(INSP_TICKET_KEY, JSON.stringify(inspTickets)); } catch (e) {} }
-
-function renderInspectModule(content, mod) {
-  loadInspect();
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">店员巡检</div>
-      <div class="page-desc">每日门店检查 · 问题图文记录 · 店员整改闭环</div>
-    </div>
-    <div class="insp-rolebar">
-      <div class="insp-role-switch">
-        <button class="insp-role-btn ${inspRole==='manager'?'active':''}" data-role="manager">店长视角</button>
-        <button class="insp-role-btn ${inspRole==='employee'?'active':''}" data-role="employee">店员视角</button>
-      </div>
-      <button class="btn-ghost" id="inspEmpManage">店员名册</button>
-    </div>
-    <div id="inspBody"></div>
-
-    <div class="insp-modal" id="inspNewModal">
-      <div class="insp-modal-backdrop" data-close="1"></div>
-      <div class="insp-modal-dialog" tabindex="-1">
-        <div class="insp-modal-head"><div class="insp-modal-title">新建整改单</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
-        <div id="inspNewForm"></div>
-      </div>
-    </div>
-    <div class="insp-modal" id="inspDetailModal">
-      <div class="insp-modal-backdrop" data-close="1"></div>
-      <div class="insp-modal-dialog" tabindex="-1">
-        <div class="insp-modal-head"><div class="insp-modal-title">整改单详情</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
-        <div id="inspDetailBody"></div>
-      </div>
-    </div>
-    <div class="insp-modal" id="inspEmpModal">
-      <div class="insp-modal-backdrop" data-close="1"></div>
-      <div class="insp-modal-dialog insp-modal-sm" tabindex="-1">
-        <div class="insp-modal-head"><div class="insp-modal-title">店员名册</div><button class="insp-modal-x" data-close="1" aria-label="关闭">✕</button></div>
-        <div id="inspEmpBody"></div>
-      </div>
-    </div>
-  `;
-  renderInspectBody();
-  bindInspect();
-}
-
-function renderInspectBody() {
-  const body = document.getElementById('inspBody');
-  if (!body) return;
-  if (inspRole === 'employee') {
-    body.innerHTML = `
-      <div class="insp-emp-pick">
-        <span>当前身份</span>
-        <select id="inspEmpPick" class="insp-select">
-          ${inspEmployees.map(e => `<option value="${escapeHtml(e)}" ${e===inspCurEmp?'selected':''}>${escapeHtml(e)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="insp-list" id="inspList"></div>`;
-  } else {
-    const pending = inspTickets.filter(t => t.status==='pending').length;
-    const rectified = inspTickets.filter(t => t.status==='rectified').length;
-    const confirmed = inspTickets.filter(t => t.status==='confirmed').length;
-    body.innerHTML = `
-      <div class="insp-toolbar">
-        <div class="insp-stats">
-          <span>待整改 <b>${pending}</b></span>
-          <span>已整改 <b>${rectified}</b></span>
-          <span>已完成 <b>${confirmed}</b></span>
-        </div>
-        <div class="insp-filters">
-          <select id="inspFilterEmp" class="insp-select">
-            <option value="all">全部店员</option>
-            ${inspEmployees.map(e => `<option value="${escapeHtml(e)}" ${e===inspFilterEmp?'selected':''}>${escapeHtml(e)}</option>`).join('')}
-          </select>
-          <select id="inspFilterStatus" class="insp-select">
-            <option value="all">全部状态</option>
-            ${Object.keys(INSP_STATUS).map(k => `<option value="${k}" ${k===inspFilterStatus?'selected':''}>${INSP_STATUS[k].label}</option>`).join('')}
-          </select>
-        </div>
-        <button class="btn-add" id="inspNewBtn">＋ 新建整改单</button>
-      </div>
-      <div class="insp-list" id="inspList"></div>`;
-  }
-  renderInspList();
-}
-
-function renderInspList() {
-  const list = document.getElementById('inspList');
-  if (!list) return;
-  let arr = inspTickets.slice();
-  if (inspRole === 'employee') {
-    arr = arr.filter(t => t.employee === inspCurEmp && t.status !== 'confirmed');
-  } else {
-    if (inspFilterEmp !== 'all') arr = arr.filter(t => t.employee === inspFilterEmp);
-    if (inspFilterStatus !== 'all') arr = arr.filter(t => t.status === inspFilterStatus);
-  }
-  arr.sort((a, b) => (b.updatedAt||0) - (a.updatedAt||0));
-  if (!arr.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-title">${inspRole==='employee'?'暂无可处理的整改单':'还没有整改单'}</div><div class="empty-desc">${inspRole==='employee'?'你负责的整改项都处理完啦':'点击右上角「新建整改单」记录第一条'}</div></div>`;
-    return;
-  }
-  list.innerHTML = arr.map(t => {
-    const st = INSP_STATUS[t.status] || INSP_STATUS.pending;
-    const last = (t.replies && t.replies.length) ? t.replies[t.replies.length-1] : null;
-    const lastText = last ? ((last.from==='manager'?'店长: ':'店员: ') + (last.text||'')) : (t.desc||'');
-    const canOpen = (inspRole==='manager') || (inspRole==='employee' && t.employee===inspCurEmp);
-    return `
-      <div class="insp-card status-${st.cls}" data-id="${t.id}">
-        <div class="insp-card-head">
-          <span class="insp-badge">${escapeHtml(t.employee)}</span>
-          ${t.area ? `<span class="insp-area">${escapeHtml(t.area)}</span>` : ''}
-          <span class="insp-status status-${st.cls}">${st.label}</span>
-        </div>
-        <div class="insp-card-title">${escapeHtml(t.title)}</div>
-        ${t.desc ? `<div class="insp-card-desc">${escapeHtml(t.desc)}</div>` : ''}
-        ${t.photos && t.photos.length ? `<div class="insp-card-imgs">${t.photos.slice(0,4).map((s,i)=>`<img class="insp-card-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
-        <div class="insp-card-foot">
-          <span class="insp-last">${escapeHtml((lastText||'').slice(0,42))}</span>
-          ${canOpen ? `<button class="insp-open-btn" data-act="open" data-id="${t.id}">查看 / 处理</button>` : ''}
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function openInspNew() {
-  inspDraftPhotos = [];
-  const modal = document.getElementById('inspNewModal');
-  renderInspNewForm();
-  modal.classList.add('open');
-  const dlg = modal.querySelector('.insp-modal-dialog'); if (dlg) dlg.focus();
-}
-function renderInspNewForm() {
-  const c = document.getElementById('inspNewForm');
-  if (!c) return;
-  c.innerHTML = `
-    <div class="insp-field">
-      <label class="insp-label">店员 <span class="req">*</span></label>
-      <select class="insp-select" id="inspNewEmp">
-        ${inspEmployees.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
-      </select>
-    </div>
-    <div class="insp-field">
-      <label class="insp-label">区域 / 岗位</label>
-      <input class="insp-input" id="inspNewArea" type="text" placeholder="如：生鲜区 / 收银台" />
-    </div>
-    <div class="insp-field">
-      <label class="insp-label">问题 <span class="req">*</span></label>
-      <input class="insp-input" id="inspNewTitle" type="text" placeholder="如：货架陈列不整齐" />
-    </div>
-    <div class="insp-field">
-      <label class="insp-label">说明</label>
-      <textarea class="insp-input" id="inspNewDesc" rows="3" placeholder="具体问题描述…"></textarea>
-    </div>
-    <div class="insp-field">
-      <label class="insp-label">问题图片</label>
-      <div class="insp-imgs">
-        <button type="button" class="insp-img-add" id="inspNewImgAdd">＋ 添加图片</button>
-        <input type="file" id="inspNewFile" accept="image/*" multiple hidden />
-        <div class="insp-thumbs" id="inspNewThumbs"></div>
-      </div>
-    </div>
-    <div class="insp-form-actions">
-      <button class="btn-add" id="inspNewSave">创建整改单</button>
-      <button class="btn-ghost" data-close="1">取消</button>
-    </div>`;
-  renderInspThumbs('inspNewThumbs', inspDraftPhotos);
-  const fe = document.getElementById('inspNewFile');
-  if (fe) fe.addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    for (const f of files) { try { const d = await compressImage(f); inspDraftPhotos.push(d); } catch (err) { showToast('图片处理失败'); } }
-    renderInspThumbs('inspNewThumbs', inspDraftPhotos); e.target.value = '';
-  });
-}
-function renderInspThumbs(elId, arr) {
-  const c = document.getElementById(elId);
-  if (!c) return;
-  if (!arr.length) { c.innerHTML = ''; return; }
-  c.innerHTML = arr.map((src, i) => `<div class="insp-thumb"><img src="${src}" alt="预览" /><button type="button" class="insp-thumb-remove" data-thumb="${elId}" data-idx="${i}" title="删除">×</button></div>`).join('');
-}
-function inspNewSave() {
-  const emp = document.getElementById('inspNewEmp');
-  const title = document.getElementById('inspNewTitle');
-  const t = (title && title.value || '').trim();
-  if (!t) { showToast('请填写问题'); if (title) title.focus(); return; }
-  const area = document.getElementById('inspNewArea');
-  const desc = document.getElementById('inspNewDesc');
-  const now = Date.now();
-  inspTickets.unshift({
-    id: uid(), employee: emp.value, area: (area&&area.value||'').trim(),
-    title: t, desc: (desc&&desc.value||'').trim(), photos: inspDraftPhotos.slice(),
-    status: 'pending', replies: [], createdAt: now, updatedAt: now
-  });
-  saveInspectTickets();
-  closeInspModal('inspNewModal');
-  renderInspectBody();
-  showToast('已创建整改单');
-}
-
-function openInspDetail(id) {
-  inspOpenId = id;
-  inspReplyPhotos = [];
-  const modal = document.getElementById('inspDetailModal');
-  renderInspDetail();
-  modal.classList.add('open');
-  const dlg = modal.querySelector('.insp-modal-dialog'); if (dlg) dlg.focus();
-}
-function renderInspDetail() {
-  const c = document.getElementById('inspDetailBody');
-  if (!c) return;
-  const t = inspTickets.find(x => x.id === inspOpenId);
-  if (!t) { closeInspModal('inspDetailModal'); return; }
-  const st = INSP_STATUS[t.status] || INSP_STATUS.pending;
-  const thread = (t.replies||[]).map(r => `
-    <div class="insp-reply from-${r.from}">
-      <div class="insp-reply-head"><span class="insp-reply-from">${r.from==='manager'?'店长':'店员'} · ${escapeHtml(t.employee)}</span><span class="insp-reply-at">${formatDate(r.at)}</span></div>
-      <div class="insp-reply-text">${escapeHtml(r.text||'')}</div>
-      ${r.photos && r.photos.length ? `<div class="insp-reply-imgs">${r.photos.map((s,i)=>`<img class="insp-reply-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
-      ${r.type==='rectify' ? `<div class="insp-reply-tag">整改提交</div>` : ''}
-    </div>`).join('');
-  let actions = '';
-  if (inspRole === 'manager') {
-    actions = `<div class="insp-actions"><button class="btn-add" data-act="confirm">确认完成</button><button class="btn-ghost" data-act="reject">驳回重改</button></div>`;
-  } else if (inspRole === 'employee' && (t.status==='pending' || t.status==='rejected')) {
-    actions = `<div class="insp-actions"><button class="btn-add" data-act="rectify">提交整改结果</button></div>`;
-  }
-  c.innerHTML = `
-    <div class="insp-detail">
-      <div class="insp-detail-head">
-        <span class="insp-badge">${escapeHtml(t.employee)}</span>
-        ${t.area ? `<span class="insp-area">${escapeHtml(t.area)}</span>` : ''}
-        <span class="insp-status status-${st.cls}">${st.label}</span>
-      </div>
-      <div class="insp-detail-title">${escapeHtml(t.title)}</div>
-      ${t.desc ? `<div class="insp-detail-desc">${escapeHtml(t.desc)}</div>` : ''}
-      ${t.photos && t.photos.length ? `<div class="insp-detail-imgs">${t.photos.map((s,i)=>`<img class="insp-detail-img" src="${s}" data-id="${t.id}" data-idx="${i}" alt="" />`).join('')}</div>` : ''}
-      <div class="insp-thread-title">往来记录</div>
-      <div class="insp-thread">${thread || '<div class="insp-thread-empty">暂无回复</div>'}</div>
-      <div class="insp-reply-box">
-        <textarea class="insp-input" id="inspReplyText" rows="2" placeholder="输入回复内容…"></textarea>
-        <div class="insp-imgs">
-          <button type="button" class="insp-img-add" id="inspReplyImgAdd">＋ 图片</button>
-          <input type="file" id="inspReplyFile" accept="image/*" multiple hidden />
-          <div class="insp-thumbs" id="inspReplyThumbs"></div>
-        </div>
-        <button class="btn-ghost" id="inspReplySend">发送回复</button>
-      </div>
-      ${actions}
-    </div>`;
-  renderInspThumbs('inspReplyThumbs', inspReplyPhotos);
-  const fe = document.getElementById('inspReplyFile');
-  if (fe) fe.addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    for (const f of files) { try { const d = await compressImage(f); inspReplyPhotos.push(d); } catch (err) { showToast('图片处理失败'); } }
-    renderInspThumbs('inspReplyThumbs', inspReplyPhotos); e.target.value = '';
-  });
-}
-function inspAddReply(from, type, text, photos) {
-  const t = inspTickets.find(x => x.id === inspOpenId);
-  if (!t) return;
-  t.replies = t.replies || [];
-  t.replies.push({ from, type: type||'reply', text: text||'', photos: (photos||[]).slice(), at: Date.now() });
-  t.updatedAt = Date.now();
-}
-function inspConfirm() {
-  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
-  const txt = (document.getElementById('inspReplyText').value||'').trim();
-  t.status = 'confirmed';
-  inspAddReply('manager', 'reply', txt || '已确认完成', []);
-  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已确认完成');
-}
-function inspReject() {
-  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
-  const txt = (document.getElementById('inspReplyText').value||'').trim();
-  t.status = 'rejected';
-  inspAddReply('manager', 'reply', txt || '已驳回，请重新整改', []);
-  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已驳回');
-}
-function inspRectify() {
-  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
-  const txt = (document.getElementById('inspReplyText').value||'').trim();
-  if (!txt && !inspReplyPhotos.length) { showToast('请填写整改说明或上传图片'); return; }
-  t.status = 'rectified';
-  inspAddReply('employee', 'rectify', txt, inspReplyPhotos);
-  inspReplyPhotos = [];
-  saveInspectTickets(); renderInspDetail(); renderInspList(); showToast('已提交整改结果');
-}
-function inspReplySend() {
-  const t = inspTickets.find(x => x.id === inspOpenId); if (!t) return;
-  const txt = (document.getElementById('inspReplyText').value||'').trim();
-  if (!txt && !inspReplyPhotos.length) { showToast('请填写回复内容或上传图片'); return; }
-  inspAddReply(inspRole, 'reply', txt, inspReplyPhotos);
-  inspReplyPhotos = [];
-  saveInspectTickets(); renderInspDetail(); renderInspList();
-  const ta = document.getElementById('inspReplyText'); if (ta) ta.value = '';
-  showToast('已回复');
-}
-
-function openInspEmp() {
-  const modal = document.getElementById('inspEmpModal');
-  renderInspEmp();
-  modal.classList.add('open');
-}
-function renderInspEmp() {
-  const c = document.getElementById('inspEmpBody');
-  if (!c) return;
-  c.innerHTML = `
-    <div class="insp-emp-list">
-      ${inspEmployees.map(e => `<div class="insp-emp-row"><span>${escapeHtml(e)}</span><button class="insp-emp-del" data-emp="${escapeHtml(e)}" title="删除">✕</button></div>`).join('')}
-    </div>
-    <div class="insp-emp-add">
-      <input class="insp-input" id="inspEmpInput" type="text" placeholder="新增店员姓名" />
-      <button class="btn-add" id="inspEmpAdd">添加</button>
-    </div>`;
-}
-function inspAddEmp() {
-  const inp = document.getElementById('inspEmpInput');
-  const v = (inp && inp.value || '').trim();
-  if (!v) return;
-  if (inspEmployees.includes(v)) { showToast('已存在该店员'); return; }
-  inspEmployees.push(v); saveInspectEmp();
-  if (!inspCurEmp) inspCurEmp = v;
-  renderInspEmp(); renderInspectBody();
-}
-function inspDelEmp(name) {
-  inspEmployees = inspEmployees.filter(x => x !== name);
-  saveInspectEmp();
-  if (inspCurEmp === name) inspCurEmp = inspEmployees[0] || '';
-  renderInspEmp(); renderInspectBody();
-}
-function closeInspModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.classList.remove('open');
-}
-
-function bindInspect() {
-  const content = document.getElementById('content');
-  if (!content) return;
-  if (content._inspBound) { content.removeEventListener('click', content._inspClick); content.removeEventListener('change', content._inspChange); }
-  content._inspClick = function(e) {
-    const t = e.target;
-    if (t.closest('[data-close]')) { const m = t.closest('.insp-modal'); if (m) m.classList.remove('open'); return; }
-    const roleBtn = t.closest('.insp-role-btn'); if (roleBtn) { inspRole = roleBtn.dataset.role; document.querySelectorAll('.insp-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === inspRole)); renderInspectBody(); return; }
-    if (t.closest('#inspEmpManage')) { openInspEmp(); return; }
-    if (t.closest('#inspNewBtn')) { openInspNew(); return; }
-    if (t.closest('#inspNewImgAdd')) { const f = document.getElementById('inspNewFile'); if (f) f.click(); return; }
-    if (t.closest('#inspNewSave')) { inspNewSave(); return; }
-    const tr = t.closest('.insp-thumb-remove');
-    if (tr) { const elId = tr.dataset.thumb, i = +tr.dataset.idx; if (elId==='inspNewThumbs') { inspDraftPhotos.splice(i,1); renderInspThumbs('inspNewThumbs', inspDraftPhotos); } else if (elId==='inspReplyThumbs') { inspReplyPhotos.splice(i,1); renderInspThumbs('inspReplyThumbs', inspReplyPhotos); } return; }
-    const openBtn = t.closest('[data-act="open"]'); if (openBtn) { openInspDetail(openBtn.dataset.id); return; }
-    const img = t.closest('.insp-card-img, .insp-detail-img, .insp-reply-img');
-    if (img) { const tk = inspTickets.find(x => x.id === img.dataset.id); if (tk) openActLightbox(tk.photos, +img.dataset.idx); return; }
-    if (t.closest('[data-act="confirm"]')) { inspConfirm(); return; }
-    if (t.closest('[data-act="reject"]')) { inspReject(); return; }
-    if (t.closest('[data-act="rectify"]')) { inspRectify(); return; }
-    if (t.closest('#inspReplySend')) { inspReplySend(); return; }
-    if (t.closest('#inspReplyImgAdd')) { const f = document.getElementById('inspReplyFile'); if (f) f.click(); return; }
-    if (t.closest('#inspEmpAdd')) { inspAddEmp(); return; }
-    const ed = t.closest('.insp-emp-del'); if (ed) { inspDelEmp(ed.dataset.emp); return; }
-  };
-  content._inspChange = function(e) {
-    const t = e.target;
-    if (t.id === 'inspFilterEmp') { inspFilterEmp = t.value; renderInspList(); }
-    else if (t.id === 'inspFilterStatus') { inspFilterStatus = t.value; renderInspList(); }
-    else if (t.id === 'inspEmpPick') { inspCurEmp = t.value; renderInspList(); }
-  };
-  content.addEventListener('click', content._inspClick);
-  content.addEventListener('change', content._inspChange);
-  if (!content._inspKey) {
-    content._inspKey = function(e) { if (e.key === 'Escape') { const m = document.querySelector('.insp-modal.open'); if (m) m.classList.remove('open'); } };
-    document.addEventListener('keydown', content._inspKey);
-  }
-  content._inspBound = true;
-}
 
 // ==================== 减肥打卡模块 ====================
 const WEIGHT_LOGS_KEY = 'liumo_weight_logs';
@@ -11945,210 +10533,6 @@ function escapeHtml(s) {
 }
 
 // ---------- 事件绑定 ----------
-function bindTodoEvents() {
-  // 添加待办(点击「添加待办」按钮弹出表单)
-  const input = document.getElementById('todoInput');
-  const addBtn = document.getElementById('todoAddBtn');
-  const saveBtn = document.getElementById('todoSaveBtn');
-  const cancelBtn = document.getElementById('todoCancelBtn');
-  const prioritySelect = document.getElementById('prioritySelect');
-  const modal = document.getElementById('todoModal');
-
-  function openTodoModal() {
-    modal.classList.add('open');
-    input.value = '';
-    prioritySelect.value = 'inq';
-    setTimeout(() => input.focus(), 50);
-  }
-  function closeTodoModal() {
-    modal.classList.remove('open');
-  }
-
-  function addTodo() {
-    const title = input.value.trim();
-    if (!title) {
-      showToast('请输入待办内容');
-      input.focus();
-      return;
-    }
-    const maxOrder = todos.reduce((m, t) => Math.max(m, typeof t.order === 'number' ? t.order : 0), -1);
-    todos.unshift({
-      id: uid(),
-      title,
-      done: false,
-      priority: prioritySelect.value,
-      order: maxOrder + 1,
-      createdAt: Date.now()
-    });
-    saveTodos();
-    closeTodoModal();
-    renderStats();
-    renderTodoList();
-  }
-
-  addBtn.addEventListener('click', openTodoModal);
-  saveBtn.addEventListener('click', addTodo);
-  cancelBtn.addEventListener('click', closeTodoModal);
-  modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeTodoModal(); });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTodo();
-    if (e.key === 'Escape') closeTodoModal();
-  });
-  if (!_todoEscapeBound) {
-    _todoEscapeBound = true;
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        const m = document.getElementById('todoModal');
-        if (m && m.classList.contains('open')) m.classList.remove('open');
-      }
-    });
-  }
-
-  // 筛选(仅带 data-filter 的按钮)
-  document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filter = btn.dataset.filter;
-      document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.toggle('active', b === btn));
-      renderTodoList();
-    });
-  });
-
-  // 排序模式切换:按优先级 / 自定义顺序(可拖拽)
-  document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => setMemoSortMode(btn.dataset.sort));
-  });
-
-  // 搜索
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', () => {
-    search = searchInput.value;
-    renderTodoList();
-  });
-
-  // 清除已完成
-  document.getElementById('clearDoneBtn').addEventListener('click', () => {
-    const doneCount = todos.filter(t => t.done).length;
-    if (doneCount === 0) {
-      showToast('没有已完成的待办');
-      return;
-    }
-    todos = todos.filter(t => !t.done);
-    saveTodos();
-    renderStats();
-    renderTodoList();
-    showToast(`已清除 ${doneCount} 条已完成待办`);
-  });
-
-  // 拖拽排序(仅自定义顺序模式)
-  const listEl = document.getElementById('todoList');
-  let dragId = null;
-  listEl.addEventListener('dragstart', e => {
-    const item = e.target.closest('.todo-item');
-    if (!item || !item.hasAttribute('draggable')) return;
-    dragId = item.dataset.id;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', dragId);
-    setTimeout(() => item.classList.add('dragging'), 0);
-  });
-  listEl.addEventListener('dragend', e => {
-    const item = e.target.closest('.todo-item');
-    if (item) item.classList.remove('dragging');
-    listEl.querySelectorAll('.todo-item').forEach(el => el.classList.remove('drag-over'));
-    dragId = null;
-  });
-  listEl.addEventListener('dragover', e => {
-    e.preventDefault();
-    const item = e.target.closest('.todo-item');
-    if (!item || !dragId || item.dataset.id === dragId) return;
-    item.classList.add('drag-over');
-  });
-  listEl.addEventListener('dragleave', e => {
-    const item = e.target.closest('.todo-item');
-    if (item) item.classList.remove('drag-over');
-  });
-  listEl.addEventListener('drop', e => {
-    e.preventDefault();
-    const item = e.target.closest('.todo-item');
-    if (!item || !dragId) return;
-    const targetId = item.dataset.id;
-    item.classList.remove('drag-over');
-    if (targetId && targetId !== dragId) reorderTodos(dragId, targetId);
-    dragId = null;
-  });
-
-  // 列表事件委托
-  document.getElementById('todoList').addEventListener('click', e => {
-    const target = e.target.closest('[data-action]');
-    if (!target) return;
-    const action = target.dataset.action;
-    const id = target.dataset.id;
-    const todo = todos.find(t => t.id === id);
-    if (!todo) return;
-
-    if (action === 'toggle') {
-      todo.done = !todo.done;
-      saveTodos();
-      renderStats();
-      renderTodoList();
-    } else if (action === 'edit') {
-      editingId = id;
-      renderTodoList();
-      const editInput = document.getElementById(`editInput-${id}`);
-      if (editInput) {
-        editInput.focus();
-        editInput.setSelectionRange(editInput.value.length, editInput.value.length);
-      }
-    } else if (action === 'delete') {
-      todos = todos.filter(t => t.id !== id);
-      saveTodos();
-      renderStats();
-      renderTodoList();
-      showToast('已删除');
-    } else if (action === 'save-edit') {
-      const editInput = document.getElementById(`editInput-${id}`);
-      const prioSel = document.getElementById(`editPriority-${id}`);
-      const newTitle = editInput.value.trim();
-      if (newTitle) {
-        todo.title = newTitle;
-        if (prioSel) todo.priority = prioSel.value;
-        saveTodos();
-      }
-      editingId = null;
-      renderTodoList();
-    } else if (action === 'cancel-edit') {
-      editingId = null;
-      renderTodoList();
-    }
-  });
-
-  // 编辑框回车保存、ESC 取消
-  document.getElementById('todoList').addEventListener('keydown', e => {
-    if (e.target.classList.contains('todo-edit-input')) {
-      const id = e.target.id.replace('editInput-', '');
-      if (e.key === 'Enter') {
-        const todo = todos.find(t => t.id === id);
-        const newTitle = e.target.value.trim();
-        const prioSel = document.getElementById(`editPriority-${id}`);
-        if (newTitle && todo) {
-          todo.title = newTitle;
-          if (prioSel) todo.priority = prioSel.value;
-          saveTodos();
-        }
-        editingId = null;
-        renderTodoList();
-      } else if (e.key === 'Escape') {
-        editingId = null;
-        renderTodoList();
-      }
-    }
-  });
-}
-
-// ---------- 移动端菜单 ----------
-document.getElementById('menuToggle').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('open');
-});
-
 // ---------- 日期显示 ----------
 function updateTodayDate() {
   const d = new Date();
@@ -12162,13 +10546,10 @@ const INIT_FLAG_KEY = 'liumo_workbench_initialized';
 
 async function init() {
   const isFirstTime = !localStorage.getItem(INIT_FLAG_KEY);
-  loadTodos();
   loadQuotes();
   loadStudyRecords();
   loadStudyConfig();
   loadStudyPoints();
-  loadWorkTasks();
-  loadWorkDone();
   loadWeight();
   loadSalary();
   loadCost();
@@ -12179,58 +10560,14 @@ async function init() {
   loadPlaceCats();
   loadSales();
   tmLoad();
+  loadPoster();
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
   const restored = await tryCloudRestoreFirst();
 
   // 仅在首次使用且云端未恢复时插入示例数据
   if (isFirstTime && !restored) {
-    // 默认工作清单示例
-    workTasks = [
-      { id: uid(), title: '晨间复盘: 规划今日重点', repeat: { type: 'daily' }, important: true, urgent: false, note: '' },
-      { id: uid(), title: '处理紧急客户邮件', repeat: { type: 'daily' }, important: true, urgent: true, note: '' },
-      { id: uid(), title: '每周项目周报', repeat: { type: 'weekly', weekdays: [5] }, important: true, urgent: false, note: '' },
-      { id: uid(), title: '每月1号还信用卡', repeat: { type: 'monthly', days: [1] }, important: true, urgent: false, note: '' },
-      { id: uid(), title: '每月15/30号数据汇总', repeat: { type: 'monthly', days: [15,30] }, important: false, urgent: false, note: '' },
-      { id: uid(), title: '季度复盘会议', repeat: { type: 'quarterly' }, important: true, urgent: false, note: '' }
-    ];
-    saveWorkTasks();
 
-    todos = [
-      {
-        id: uid(),
-        title: '欢迎使用刘莫个人工作台,试试添加你的第一条待办',
-        done: false,
-        priority: 'iq',
-        order: 0,
-        createdAt: Date.now() - 60000
-      },
-      {
-        id: uid(),
-        title: '点击左侧复选框可以标记已完成',
-        done: false,
-        priority: 'inq',
-        order: 1,
-        createdAt: Date.now() - 120000
-      },
-      {
-        id: uid(),
-        title: '双击标题或点编辑按钮可以修改内容',
-        done: false,
-        priority: 'nuq',
-        order: 2,
-        createdAt: Date.now() - 180000
-      },
-      {
-        id: uid(),
-        title: '这是一个已完成的示例待办',
-        done: true,
-        priority: 'nuq',
-        order: 3,
-        createdAt: Date.now() - 86400000
-      }
-    ];
-    saveTodos();
 
     quotes = [
       {
@@ -12269,10 +10606,6 @@ async function init() {
 
   // 多标签页同步:其他标签页修改数据后,当前页自动刷新
   window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) {
-      loadTodos();
-      if (currentModule === 'todo') { renderStats(); renderTodoList(); }
-    }
     if (e.key === QUOTES_STORAGE_KEY) {
       loadQuotes();
       if (currentModule === 'quotes') { renderQuotesStats(); renderQuoteGrid(); }
@@ -12297,9 +10630,8 @@ async function init() {
   // 打开工作台时，默认选中侧边栏排序中的第 1 个可用菜单
   selectFirstModule({ keepSub: true });
   renderNav();
-  bindWorkListEvents();
   bindTaskMgrEvents();
-  wlCheckReminderOnLoad();
+  bindPosterEvents();
   initCloudSync();
 }
 
@@ -12572,7 +10904,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadTodos(); loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWorkTasks(); loadWorkDone(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); tmLoad();
+  loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); loadPoster(); tmLoad();
 }
 
 function exportBackup(){
@@ -12650,73 +10982,6 @@ function initCloudSync(){
 init();
 
 
-// ============================================================
-// 工作清单模块
-// ============================================================
-
-// 获取今天日期字符串 YYYY-MM-DD
-function wlTodayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-// 判断任务在今天是否应该出现
-function wlIsTaskDueToday(task, dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  const day = d.getDate();
-  const wd = d.getDay(); // 0=周日
-  const month = d.getMonth() + 1;
-  const r = task.repeat || { type: 'daily' };
-  switch (r.type) {
-    case 'daily': return true;
-    case 'once': return r.date === dateStr;
-    case 'weekly': return (r.weekdays || []).includes(wd);
-    case 'monthly': return (r.days || []).includes(day);
-    case 'quarterly': return month % 3 === 1 && day <= 3; // 每季度首月前3天
-    case 'yearly': return r.date && r.date.slice(5) === dateStr.slice(5);
-    default: return true;
-  }
-}
-
-// 获取今天的任务列表(含完成状态)
-function wlGetTodayTasks() {
-  const today = wlTodayStr();
-  return workTasks
-    .filter(t => wlIsTaskDueToday(t, today))
-    .map(t => {
-      const doneKey = `${today}:${t.id}`;
-      return { ...t, done: !!workDone[doneKey], doneKey };
-    })
-    .sort((a, b) => {
-      // 未完成排前面，再按象限优先级(重要紧急最前)
-      if (a.done !== b.done) return a.done ? 1 : -1;
-      const qa = (a.important?2:0) + (a.urgent?1:0);
-      const qb = (b.important?2:0) + (b.urgent?1:0);
-      return qb - qa;
-    });
-}
-
-// 获取象限分类
-function wlGetQuadrant(task) {
-  if (task.important && task.urgent) return 'iq';      // 重要紧急
-  if (task.important && !task.urgent) return 'inq';    // 重要不紧急
-  if (!task.important && task.urgent) return 'uq';     // 紧急不重要
-  return 'nuq';                                         // 不重要不紧急
-}
-
-/* ========================================================
-   任务管理模块
-   --------------------------------------------------------
-   四类任务：
-     daily   每日任务 —— 仅「是否完成」，每天零点自动重置；支持手动拖动排序
-     weekly  每周任务 —— 计划时间 1~7（周一~周日）；按计划时间升序；每周一自动重置完成态
-     monthly 每月任务 —— 计划时间 1~31（每月1号~31号）；按计划时间升序；每月1号自动重置完成态
-     urgent  紧急任务 —— 独立类型，永久保留，完成态不自动重置
-   已完成任务统一置灰、加删除线，并排到该类型列表末尾
-   注：状态变量(tmTasks 等)声明在文件顶部「任务管理状态」区，避免暂时性死区
-   ======================================================== */
-
-// ---------- 存储 ----------
 function tmLoad() {
   try {
     const raw = localStorage.getItem(TASKMGR_KEY);
@@ -13296,353 +11561,351 @@ function bindTaskMgrEvents() {
   observer.observe(document.getElementById('content'), { childList: true, subtree: true });
 }
 
-// 渲染工作清单模块
-function renderWorkListModule(content, mod) {
-  const today = wlTodayStr();
-  const weekday = WEEKDAY_NAMES[new Date().getDay()];
-  const allToday = (workView === 'today')
-    ? wlGetTodayTasks()
-    : workTasks.map(t => {
-        const dk = today + ':' + t.id;
-        return Object.assign({}, t, { done: !!workDone[dk], doneKey: dk });
-      });
+// ===================== 超市海报模块 =====================
+const POSTER_THEMES = {
+  sale:      { name: '红黄大促', bg1: '#fff1f0', bg2: '#ffe3e3', banner: '#e11d48', accent: '#f59e0b', text: '#7f1d1d', price: '#e11d48', old: '#9ca3af', badge: '#fbbf24', tag: '限时特惠', motif: 'star' },
+  clearance: { name: '清仓甩卖', bg1: '#fff7ed', bg2: '#ffedd5', banner: '#ea580c', accent: '#111827', text: '#431407', price: '#ea580c', old: '#9ca3af', badge: '#111827', tag: '清仓甩卖', motif: 'stripe' },
+  fresh:     { name: '生鲜新品', bg1: '#ecfdf5', bg2: '#d1fae5', banner: '#059669', accent: '#10b981', text: '#064e3b', price: '#059669', old: '#9ca3af', badge: '#34d399', tag: '新鲜上架', motif: 'leaf' },
+  festival:  { name: '节庆狂欢', bg1: '#faf5ff', bg2: '#ede9fe', banner: '#7c3aed', accent: '#f59e0b', text: '#4c1d95', price: '#7c3aed', old: '#9ca3af', badge: '#f59e0b', tag: '节日狂欢', motif: 'heart' }
+};
+const POSTER_KEY = 'liumo_poster_v1';
+const POSTER_PF = '"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif';
 
-  const doneCount = allToday.filter(t => t.done).length;
-  const total = allToday.length;
-  const rate = total === 0 ? 0 : Math.round(doneCount / total * 100);
+function defaultPoster() {
+  return {
+    store: '惠民超市',
+    tagline: '周年庆 · 全场大促',
+    dateRange: '9.12 - 9.20',
+    contact: '地址：幸福路18号　电话：0512-88888888',
+    theme: 'sale',
+    accent: '',
+    items: [
+      { name: '新鲜鸡蛋', price: '9.9', old: '15', unit: '斤' },
+      { name: '精品五花肉', price: '19.9', old: '28', unit: '斤' },
+      { name: '纯牛奶整箱', price: '39.9', old: '59', unit: '箱' },
+      { name: '时令水果', price: '5.9', old: '9.9', unit: '斤' }
+    ]
+  };
+}
 
-  // 象限分组
-  const quadTasks = { iq:[], inq:[], uq:[], nuq:[] };
-  allToday.forEach(t => { quadTasks[wlGetQuadrant(t)].push(t); });
+function loadPoster() {
+  try {
+    const r = localStorage.getItem(POSTER_KEY);
+    if (r) poster = Object.assign(defaultPoster(), JSON.parse(r));
+    else poster = defaultPoster();
+  } catch (e) { poster = defaultPoster(); }
+}
+function savePoster() {
+  try { localStorage.setItem(POSTER_KEY, JSON.stringify(poster)); } catch (e) {}
+}
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function isLightHex(hex) {
+  const c = (hex || '#000').replace('#', '');
+  if (c.length < 6) return false;
+  const r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150;
+}
+function pRoundRect(ctx, x, y, w, h, r) {
+  if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+  ctx.beginPath();
+  ctx.moveTo(x + r.tl, y);
+  ctx.lineTo(x + w - r.tr, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+  ctx.lineTo(x + w, y + h - r.br); ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+  ctx.lineTo(x + r.bl, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+  ctx.lineTo(x, y + r.tl); ctx.quadraticCurveTo(x, y, x + r.tl, y);
+  ctx.closePath();
+}
+function pWrap(ctx, text, maxW, maxLines) {
+  const chars = String(text == null ? '' : text).split('');
+  let line = '', lines = [];
+  for (const ch of chars) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line); line = ch;
+      if (lines.length >= maxLines) break;
+    } else line = test;
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  return lines;
+}
+function pDrawMotif(ctx, W, H, pal) {
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = pal.accent;
+  ctx.beginPath(); ctx.arc(W - 70, 330, 130, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(40, H - 280, 95, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 0.08;
+  ctx.beginPath(); ctx.arc(60, 360, 60, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  if (pal.motif === 'stripe') {
+    ctx.save();
+    ctx.globalAlpha = 0.06; ctx.strokeStyle = pal.accent; ctx.lineWidth = 10;
+    for (let i = -H; i < W; i += 70) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke(); }
+    ctx.restore();
+  }
+}
 
+function posterDraw() {
+  const cv = document.getElementById('posterCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  const p = poster;
+  const base = POSTER_THEMES[p.theme] || POSTER_THEMES.sale;
+  const pal = Object.assign({}, base);
+  if (p.accent) { pal.accent = p.accent; pal.price = p.accent; }
+  const PAD = 48;
+
+  // 背景渐变
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, pal.bg1); bg.addColorStop(1, pal.bg2);
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  pDrawMotif(ctx, W, H, pal);
+
+  // 顶部标题带
+  const bandH = 250;
+  ctx.fillStyle = pal.banner;
+  pRoundRect(ctx, PAD, PAD, W - 2 * PAD, bandH, 28); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  pRoundRect(ctx, PAD, PAD + bandH - 70, W - 2 * PAD, 70, { tl: 0, tr: 0, br: 28, bl: 28 }); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = 'bold 66px ' + POSTER_PF;
+  const storeLines = pWrap(ctx, p.store || '超市名称', W - 2 * PAD - 80, 1);
+  ctx.fillText(storeLines[0], W / 2, PAD + bandH / 2);
+
+  // 角标（限时/清仓…）
+  const bx = W - PAD - 72, by = PAD + 72, br = 80;
+  ctx.save();
+  ctx.translate(bx, by); ctx.rotate(-0.22);
+  ctx.fillStyle = pal.badge;
+  ctx.beginPath(); ctx.arc(0, 0, br, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = isLightHex(pal.badge) ? '#1f2937' : '#ffffff';
+  ctx.font = 'bold 36px ' + POSTER_PF; ctx.textBaseline = 'middle';
+  const bt = (pal.tag || 'SALE').length > 4 ? (pal.tag).slice(0, 4) : (pal.tag || 'SALE');
+  ctx.fillText(bt, 0, 0);
+  ctx.restore();
+
+  // 活动标题
+  let ty = PAD + bandH + 96;
+  ctx.fillStyle = pal.text;
+  ctx.font = 'bold 82px ' + POSTER_PF;
+  const tl = pWrap(ctx, p.tagline || '活动标题', W - 2 * PAD - 40, 2);
+  tl.forEach((t, i) => ctx.fillText(t, W / 2, ty + i * 96));
+
+  // 时间胶囊
+  let dy = ty + tl.length * 96 + 26;
+  ctx.font = 'bold 36px ' + POSTER_PF;
+  const dr = p.dateRange || '活动时间';
+  const dw = ctx.measureText(dr).width + 84;
+  const dx = W / 2 - dw / 2, dh = 66;
+  ctx.fillStyle = pal.accent;
+  pRoundRect(ctx, dx, dy, dw, dh, dh / 2); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle';
+  ctx.fillText(dr, W / 2, dy + dh / 2);
+
+  // 商品网格
+  const cols = 2, gap = 28;
+  const cardW = (W - 2 * PAD - (cols - 1) * gap) / cols;
+  const cardH = 236;
+  const items = (p.items || []).filter(it => it && (it.name || it.price)).slice(0, 6);
+  const startY = dy + dh + 72;
+  if (items.length === 0) {
+    ctx.fillStyle = pal.text; ctx.font = '34px ' + POSTER_PF; ctx.textAlign = 'center';
+    ctx.fillText('在左侧添加促销商品', W / 2, startY + 120);
+  } else {
+    items.forEach((it, idx) => {
+      const r = Math.floor(idx / cols), c = idx % cols;
+      const x = PAD + c * (cardW + gap), y = startY + r * (cardH + gap);
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      pRoundRect(ctx, x + 4, y + 8, cardW, cardH, 20); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      pRoundRect(ctx, x, y, cardW, cardH, 20); ctx.fill();
+      ctx.fillStyle = pal.accent;
+      pRoundRect(ctx, x, y, 12, cardH, { tl: 18, tr: 0, br: 0, bl: 18 }); ctx.fill();
+
+      const px = x + 34;
+      // 名称
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#374151';
+      ctx.font = 'bold 38px ' + POSTER_PF;
+      const nm = pWrap(ctx, it.name || '未命名', cardW - 96, 1);
+      ctx.fillText(nm[0], px, y + 58);
+      // 现价
+      const priceY = y + cardH / 2 + 34;
+      ctx.textBaseline = 'middle'; ctx.fillStyle = pal.price; ctx.font = 'bold 32px ' + POSTER_PF;
+      ctx.fillText('¥', px, priceY);
+      ctx.font = 'bold 74px ' + POSTER_PF;
+      const pw = ctx.measureText(it.price || '').width;
+      ctx.fillText(it.price || '', px + 40, priceY);
+      if (it.unit) {
+        ctx.fillStyle = '#9ca3af'; ctx.font = '28px ' + POSTER_PF;
+        ctx.fillText('/' + it.unit, px + 40 + pw + 8, priceY + 16);
+      }
+      // 原价 + 划线
+      if (it.old) {
+        const oy = priceY + 46;
+        ctx.fillStyle = '#9ca3af'; ctx.font = '30px ' + POSTER_PF; ctx.textBaseline = 'middle';
+        const ot = '¥' + it.old; const ow = ctx.measureText(ot).width;
+        ctx.fillText(ot, px, oy);
+        ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, oy - 10); ctx.lineTo(px + ow, oy - 10); ctx.stroke();
+      }
+      // 折扣角标
+      const np = parseFloat(it.price), no = parseFloat(it.old);
+      if (no > 0 && np > 0 && no > np) {
+        const off = Math.round((1 - np / no) * 100);
+        const bbw = 76, bbh = 36, bbx = x + cardW - bbw - 16, bby = y + 16;
+        ctx.fillStyle = pal.banner;
+        pRoundRect(ctx, bbx, bby, bbw, bbh, bbh / 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 24px ' + POSTER_PF; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('省' + off + '%', bbx + bbw / 2, bby + bbh / 2);
+      }
+    });
+  }
+
+  // 底部信息带
+  const fy = H - PAD - 124;
+  ctx.fillStyle = pal.banner;
+  pRoundRect(ctx, PAD, fy, W - 2 * PAD, 124, 22); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.font = '30px ' + POSTER_PF; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const cl = pWrap(ctx, p.contact || '', W - 2 * PAD - 70, 2);
+  cl.forEach((t, i) => ctx.fillText(t, W / 2, fy + 62 + (i - (cl.length - 1) / 2) * 40));
+}
+
+function posterRerender() {
+  const c = document.getElementById('content');
+  const m = MODULES.find(x => x.id === 'poster');
+  renderPosterModule(c, m);
+}
+
+function renderPosterModule(content, mod) {
+  const themesHtml = Object.keys(POSTER_THEMES).map(k => {
+    const t = POSTER_THEMES[k];
+    const active = poster.theme === k ? ' active' : '';
+    return `<button class="poster-theme${active}" type="button" data-poster-theme="${k}" style="--tc:${t.banner};--ta:${t.accent}">` +
+      `<span class="sw" style="background:linear-gradient(135deg,${t.banner},${t.accent})"></span>${t.name}</button>`;
+  }).join('');
+  const itemsHtml = (poster.items || []).map((it, idx) => `
+    <div class="poster-item">
+      <input class="pi-name" type="text" data-poster-field="items" data-idx="${idx}" data-sub="name" value="${escAttr(it.name)}" placeholder="商品名">
+      <div class="pi-prices">
+        <input class="pi-price" type="text" data-poster-field="items" data-idx="${idx}" data-sub="price" value="${escAttr(it.price)}" placeholder="现价">
+        <input class="pi-old" type="text" data-poster-field="items" data-idx="${idx}" data-sub="old" value="${escAttr(it.old)}" placeholder="原价">
+        <input class="pi-unit" type="text" data-poster-field="items" data-idx="${idx}" data-sub="unit" value="${escAttr(it.unit)}" placeholder="单位">
+      </div>
+      <button class="pi-del" type="button" data-poster-del="${idx}" title="删除">✕</button>
+    </div>`).join('');
   content.innerHTML = `
     <div class="page-header">
-      <div class="page-title">${mod.name}</div>
-      <div class="page-desc">${mod.desc} · ${today} ${weekday}</div>
+      <div class="page-title">${mod ? mod.name : '超市海报'}</div>
+      <div class="page-desc">${mod ? mod.desc : '一键生成促销海报'}</div>
     </div>
-
-    <!-- 进度概览 -->
-    <div class="wl-progress-card">
-      <div class="wl-progress-main">
-        <div class="wl-progress-rate">${rate}%</div>
-        <div class="wl-progress-text">${workView==='today'?'今日':'全部'}完成 ${doneCount}/${total} 项</div>
-      </div>
-      <div class="wl-progress-bar">
-        <div class="wl-progress-fill" style="width:${rate}%;background:linear-gradient(90deg,#3b82f6,#6366f1);"></div>
-      </div>
-      <div class="wl-quad-stats">
-        ${['iq','inq','uq','nuq'].map(q => `
-          <div class="wl-quad-stat" data-wl-quad="${q}" style="border-left:3px solid ${QUADRANT_INFO[q].color};">
-            <div class="wl-quad-name">${QUADRANT_INFO[q].name}</div>
-            <div class="wl-quad-num">${quadTasks[q].filter(t=>t.done).length}/${quadTasks[q].length}</div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <!-- 工具栏 -->
-    <div class="wl-toolbar">
-      <div class="wl-view-seg">
-        <button class="wl-view-btn ${workView==='today'?'active':''}" data-wl-view="today">当日任务</button>
-        <button class="wl-view-btn ${workView==='all'?'active':''}" data-wl-view="all">全部任务</button>
-      </div>
-      <button class="wl-add-btn" data-wl-action="toggle-add">+ 添加任务</button>
-    </div>
-
-    <!-- 添加/编辑表单 -->
-    ${workShowAddForm ? wlRenderForm() : ''}
-
-    <!-- 四象限任务清单 -->
-    <div class="wl-quad-grid">
-      ${['iq','inq','uq','nuq'].map(q => `
-        <div class="wl-quad-cell" style="border-top:3px solid ${QUADRANT_INFO[q].color};">
-          <div class="wl-quad-head">
-            <div class="wl-quad-title" style="color:${QUADRANT_INFO[q].color};">${QUADRANT_INFO[q].name}</div>
-            <div class="wl-quad-sub">${QUADRANT_INFO[q].desc} · ${quadTasks[q].length} 项</div>
-          </div>
-          <div class="wl-quad-list">
-            ${quadTasks[q].length === 0 ? `<div class="wl-quad-empty">暂无任务</div>` : quadTasks[q].map(t => wlRenderTask(t)).join('')}
-          </div>
+    <div class="poster-app">
+      <div class="poster-form">
+        <div class="poster-field">
+          <label>海报风格</label>
+          <div class="poster-themes">${themesHtml}</div>
         </div>
-      `).join('')}
-    </div>
-
-    <!-- 提醒区 -->
-    ${doneCount < total ? `
-      <div class="wl-reminder">
-        ⏰ 今日还有 <strong>${total - doneCount}</strong> 项任务待完成
-        <button class="wl-remind-btn" data-wl-action="notify">发送提醒通知</button>
-      </div>
-    ` : ''}
-  `;
-}
-
-// 渲染单个任务
-function wlRenderTask(t) {
-  const q = wlGetQuadrant(t);
-  const qInfo = QUADRANT_INFO[q];
-  return `
-    <div class="wl-task ${t.done ? 'done' : ''}" data-wl-id="${t.id}">
-      <div class="wl-check ${t.done ? 'checked' : ''}" data-wl-action="toggle-done" data-wl-id="${t.id}">
-        ${t.done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-      </div>
-      <div class="wl-task-body">
-        <div class="wl-task-title ${t.done ? 'done' : ''}">${escapeHtml(t.title)}</div>
-        <div class="wl-task-meta">
-          <span class="wl-repeat-tag">${wlRepeatText(t.repeat)}</span>
-          <span class="wl-quad-tag" style="background:${qInfo.color}1a;color:${qInfo.color};">${qInfo.name}</span>
-          ${t.note ? `<span class="wl-note-tag">📝 ${escapeHtml(t.note)}</span>` : ''}
+        <div class="poster-field">
+          <label>超市名称</label>
+          <input type="text" data-poster-field="store" value="${escAttr(poster.store)}" placeholder="如：惠民超市">
+        </div>
+        <div class="poster-field">
+          <label>活动标题</label>
+          <input type="text" data-poster-field="tagline" value="${escAttr(poster.tagline)}" placeholder="如：周年庆·全场大促">
+        </div>
+        <div class="poster-field">
+          <label>活动时间</label>
+          <input type="text" data-poster-field="dateRange" value="${escAttr(poster.dateRange)}" placeholder="如：9.12 - 9.20">
+        </div>
+        <div class="poster-field">
+          <label>主题色（可选，留空用模板默认）</label>
+          <input type="color" data-poster-field="accent" value="${poster.accent || '#e11d48'}">
+        </div>
+        <div class="poster-field">
+          <label>促销商品 <button class="poster-add" type="button" data-poster-add="1">+ 添加商品</button></label>
+          <div class="poster-items">${itemsHtml}</div>
+        </div>
+        <div class="poster-field">
+          <label>底部信息（地址 / 电话）</label>
+          <textarea data-poster-field="contact" rows="2" placeholder="地址：…　电话：…">${escHtml(poster.contact)}</textarea>
+        </div>
+        <div class="poster-actions">
+          <button class="btn-primary" type="button" data-poster-save="1">保存</button>
+          <button class="btn-primary" type="button" data-poster-download="1">下载海报</button>
+          <button class="btn-ghost" type="button" data-poster-reset="1">恢复示例</button>
         </div>
       </div>
-      <div class="wl-task-actions">
-        <button class="wl-task-btn" data-wl-action="edit" data-wl-id="${t.id}" title="编辑">✏️</button>
-        <button class="wl-task-btn" data-wl-action="delete" data-wl-id="${t.id}" title="删除">🗑️</button>
+      <div class="poster-preview">
+        <div class="poster-preview-label">实时预览</div>
+        <canvas id="posterCanvas" width="1200" height="1680"></canvas>
       </div>
-    </div>
-  `;
+    </div>`;
+  posterDraw();
 }
 
-// 渲染添加/编辑表单
-function wlRenderForm() {
-  const editing = workEditingTaskId ? workTasks.find(t => t.id === workEditingTaskId) : null;
-  const r = editing ? (editing.repeat || {type:'daily'}) : {type:'daily'};
-  const isEdit = !!editing;
-  return `
-    <div class="wl-form">
-      <div class="wl-form-title">${isEdit ? '编辑任务' : '添加任务'}</div>
-      <input type="text" class="wl-input" id="wlTaskTitle" placeholder="任务内容" value="${isEdit ? escapeAttr(editing.title) : ''}" />
-      <div class="wl-form-row">
-        <label class="wl-check-label">
-          <input type="checkbox" id="wlImportant" ${editing && editing.important ? 'checked' : ''} /> 重要
-        </label>
-        <label class="wl-check-label">
-          <input type="checkbox" id="wlUrgent" ${editing && editing.urgent ? 'checked' : ''} /> 紧急
-        </label>
-      </div>
-      <div class="wl-form-row">
-        <select class="wl-select" id="wlRepeatType">
-          <option value="daily" ${r.type==='daily'?'selected':''}>每天</option>
-          <option value="weekly" ${r.type==='weekly'?'selected':''}>每周固定星期</option>
-          <option value="monthly" ${r.type==='monthly'?'selected':''}>每月固定日期</option>
-          <option value="quarterly" ${r.type==='quarterly'?'selected':''}>每季度</option>
-          <option value="yearly" ${r.type==='yearly'?'selected':''}>每年</option>
-          <option value="once" ${r.type==='once'?'selected':''}>一次性</option>
-        </select>
-      </div>
-      <div class="wl-form-row" id="wlRepeatDetail"></div>
-      <input type="text" class="wl-input" id="wlNote" placeholder="备注(可选)" value="${isEdit ? escapeAttr(editing.note||'') : ''}" />
-      <div class="wl-form-actions">
-        <button class="wl-btn-cancel" data-wl-action="cancel-form">取消</button>
-        <button class="wl-btn-save" data-wl-action="save-task">${isEdit ? '保存' : '添加'}</button>
-      </div>
-    </div>
-  `;
-}
-
-// 循环规则文字
-function wlRepeatText(r) {
-  r = r || { type: 'daily' };
-  switch (r.type) {
-    case 'daily': return '每日';
-    case 'weekly': return '每周 ' + (r.weekdays||[]).map(w => WEEKDAY_NAMES[w]).join('、');
-    case 'monthly': return '每月 ' + (r.days||[]).join('、') + ' 号';
-    case 'quarterly': return '每季度';
-    case 'yearly': return '每年 ' + (r.date||'').slice(5);
-    case 'once': return '一次性 ' + (r.date||'');
-    default: return '每日';
-  }
-}
-
-// 渲染循环规则详情输入
-function wlRenderRepeatDetail() {
-  const sel = document.getElementById('wlRepeatType');
-  if (!sel) return;
-  const type = sel.value;
-  const detailEl = document.getElementById('wlRepeatDetail');
-  if (!detailEl) return;
-
-  if (type === 'weekly') {
-    detailEl.innerHTML = '<div class="wl-weekdays">' + WEEKDAY_NAMES.map((n,i) =>
-      `<label class="wl-wd"><input type="checkbox" value="${i}" ${i>=1&&i<=5?'checked':''}/> ${n.slice(1)}</label>`
-    ).join('') + '</div>';
-  } else if (type === 'monthly') {
-    detailEl.innerHTML = '<input type="text" class="wl-input" id="wlDays" placeholder="输入日期,多个用逗号分隔 如 1,15,30" />';
-  } else if (type === 'once' || type === 'yearly') {
-    detailEl.innerHTML = '<input type="date" class="wl-input" id="wlDate" />';
-  } else {
-    detailEl.innerHTML = '';
-  }
-}
-
-// 保存任务
-function wlSaveTask() {
-  const title = document.getElementById('wlTaskTitle').value.trim();
-  if (!title) { showToast('请输入任务内容'); return; }
-
-  const important = document.getElementById('wlImportant').checked;
-  const urgent = document.getElementById('wlUrgent').checked;
-  const note = document.getElementById('wlNote').value.trim();
-  const type = document.getElementById('wlRepeatType').value;
-
-  let repeat = { type };
-  if (type === 'weekly') {
-    const wds = Array.from(document.querySelectorAll('#wlRepeatDetail input:checked')).map(c => parseInt(c.value));
-    repeat.weekdays = wds.length ? wds : [1,2,3,4,5];
-  } else if (type === 'monthly') {
-    const daysStr = document.getElementById('wlDays').value.trim();
-    const days = daysStr ? daysStr.split(/[,，\s]+/).map(Number).filter(n => n>=1 && n<=31) : [1];
-    repeat.days = days;
-  } else if (type === 'once' || type === 'yearly') {
-    const dateVal = document.getElementById('wlDate').value;
-    repeat.date = dateVal || wlTodayStr();
-  }
-
-  if (workEditingTaskId) {
-    const task = workTasks.find(t => t.id === workEditingTaskId);
-    if (task) {
-      task.title = title; task.important = important; task.urgent = urgent;
-      task.note = note; task.repeat = repeat;
-    }
-    showToast('任务已更新');
-  } else {
-    workTasks.push({ id: uid(), title, repeat, important, urgent, note });
-    showToast('任务已添加');
-  }
-
-  workShowAddForm = false;
-  workEditingTaskId = null;
-  saveWorkTasks();
-  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
-}
-
-// 删除任务
-function wlDeleteTask(id) {
-  if (!confirm('确定删除该任务?')) return;
-  workTasks = workTasks.filter(t => t.id !== id);
-  saveWorkTasks();
-  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
-  showToast('任务已删除');
-}
-
-// 切换完成状态
-function wlToggleDone(id) {
-  const today = wlTodayStr();
-  const key = `${today}:${id}`;
-  if (workDone[key]) {
-    delete workDone[key];
-  } else {
-    workDone[key] = true;
-    // 完成后检查是否全部完成，发通知
-    const all = wlGetTodayTasks();
-    if (all.every(t => t.done)) {
-      wlNotify('🎉 今日任务全部完成！', '你今天的所有清单任务都已完成。');
-    }
-  }
-  saveWorkDone();
-  renderWorkListModule(document.getElementById('content'), MODULES.find(m => m.id === 'worklist'));
-}
-
-// 浏览器通知
-function wlNotify(title, body) {
+function posterDownload() {
+  const cv = document.getElementById('posterCanvas');
+  if (!cv) return;
   try {
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body });
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(p => {
-          if (p === 'granted') new Notification(title, { body });
-        });
-      }
-    }
-  } catch (e) {}
+    const url = cv.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (poster.store || '超市') + '-海报.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('海报已下载');
+  } catch (e) { showToast('下载失败'); }
 }
 
-// 工作清单事件绑定(在 init 末尾调用)
-function bindWorkListEvents() {
-  const container = document.getElementById('content');
-
-  // 象限筛选点击
-  container.addEventListener('click', (e) => {
-    const quadEl = e.target.closest('[data-wl-quad]');
-    if (quadEl) {
-      const q = quadEl.getAttribute('data-wl-quad');
-      workFilterQuadrant = (workFilterQuadrant === q) ? 'all' : q;
-      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-      return;
-    }
-
-    const filterBtn = e.target.closest('[data-wl-filter]');
-    if (filterBtn) {
-      workFilterQuadrant = filterBtn.getAttribute('data-wl-filter');
-      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-      return;
-    }
-
-    const viewBtn = e.target.closest('[data-wl-view]');
-    if (viewBtn) {
-      workView = viewBtn.getAttribute('data-wl-view');
-      renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-      return;
-    }
-
-    const actionEl = e.target.closest('[data-wl-action]');
-    if (!actionEl) return;
-    const action = actionEl.getAttribute('data-wl-action');
-    const id = actionEl.getAttribute('data-wl-id');
-
-    switch (action) {
-      case 'toggle-add':
-        workShowAddForm = !workShowAddForm;
-        workEditingTaskId = null;
-        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-        if (workShowAddForm) setTimeout(wlRenderRepeatDetail, 50);
-        break;
-      case 'cancel-form':
-        workShowAddForm = false;
-        workEditingTaskId = null;
-        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-        break;
-      case 'save-task':
-        wlSaveTask();
-        break;
-      case 'toggle-done':
-        wlToggleDone(id);
-        break;
-      case 'edit':
-        workShowAddForm = true;
-        workEditingTaskId = id;
-        renderWorkListModule(container, MODULES.find(m => m.id === 'worklist'));
-        setTimeout(wlRenderRepeatDetail, 50);
-        break;
-      case 'delete':
-        wlDeleteTask(id);
-        break;
-      case 'notify':
-        wlNotify('工作清单提醒', `今日还有任务待完成，加油！`);
-        showToast('已发送提醒通知');
-        break;
-    }
-  });
-
-  // 循环类型变化时更新详情
-  container.addEventListener('change', (e) => {
-    if (e.target.id === 'wlRepeatType') {
-      wlRenderRepeatDetail();
-    }
-  });
-}
-
-// 工作清单提醒检查(页面加载时)
-function wlCheckReminderOnLoad() {
-  const all = wlGetTodayTasks();
-  const pending = all.filter(t => !t.done);
-  if (pending.length > 0) {
-    setTimeout(() => {
-      showToast(`今日有 ${pending.length} 项任务待完成`);
-    }, 1500);
+function posterHandleInput(e) {
+  const el = e.target.closest('[data-poster-field]');
+  if (!el) return;
+  const f = el.getAttribute('data-poster-field');
+  if (f === 'items') {
+    const idx = +el.getAttribute('data-idx'), sub = el.getAttribute('data-sub');
+    if (!poster.items[idx]) poster.items[idx] = { name: '', price: '', old: '', unit: '' };
+    poster.items[idx][sub] = el.value;
+  } else {
+    poster[f] = el.value;
   }
+  posterDraw(); savePoster();
 }
 
+function posterHandleClick(e) {
+  const themeBtn = e.target.closest('[data-poster-theme]');
+  if (themeBtn) { poster.theme = themeBtn.getAttribute('data-poster-theme'); savePoster(); posterRerender(); return; }
+  const addBtn = e.target.closest('[data-poster-add]');
+  if (addBtn) { poster.items.push({ name: '', price: '', old: '', unit: '' }); posterRerender(); return; }
+  const delBtn = e.target.closest('[data-poster-del]');
+  if (delBtn) { poster.items.splice(+delBtn.getAttribute('data-poster-del'), 1); posterRerender(); return; }
+  const saveBtn = e.target.closest('[data-poster-save]');
+  if (saveBtn) { savePoster(); showToast('已保存'); return; }
+  const dlBtn = e.target.closest('[data-poster-download]');
+  if (dlBtn) { posterDownload(); return; }
+  const rsBtn = e.target.closest('[data-poster-reset]');
+  if (rsBtn) { poster = defaultPoster(); savePoster(); posterRerender(); showToast('已恢复示例'); return; }
+}
+
+function bindPosterEvents() {
+  document.addEventListener('click', (e) => {
+    if (currentModule !== 'poster') return;
+    const c = document.getElementById('content');
+    if (!c || !c.contains(e.target)) return;
+    posterHandleClick(e);
+  });
+  document.addEventListener('input', (e) => {
+    if (currentModule !== 'poster') return;
+    const c = document.getElementById('content');
+    if (!c || !c.contains(e.target)) return;
+    posterHandleInput(e);
+  });
+}
 </script>
 
 </body>
