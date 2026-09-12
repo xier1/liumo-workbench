@@ -320,6 +320,16 @@
     justify-content: center;
   }
 
+  /* 移动端侧边栏遮罩 */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 35;
+  }
+  .sidebar-overlay.show { display: block; }
+
   /* ========== 主内容区 ========== */
   .main {
     flex: 1;
@@ -2606,6 +2616,8 @@
   </svg>
 </button>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="app">
   <!-- 侧边栏 -->
   <aside class="sidebar" id="sidebar">
@@ -3092,6 +3104,7 @@ function renderNav() {
       renderNav();
       renderContent();
       document.getElementById('sidebar').classList.remove('open');
+      const _ov = document.getElementById('sidebarOverlay'); if (_ov) _ov.classList.remove('show');
     });
   });
 
@@ -3107,6 +3120,7 @@ function renderNav() {
       renderNav();
       renderContent();
       document.getElementById('sidebar').classList.remove('open');
+      const _ov = document.getElementById('sidebarOverlay'); if (_ov) _ov.classList.remove('show');
     });
   });
 
@@ -3125,6 +3139,24 @@ function selectFirstModule(opts) {
   if (sameModule && opts.keepSub && currentSub) return;   // 模块未变，不动当前子分类
   currentSub = (first.children && first.children.length) ? first.children[0].id : null;
   renderContent();
+}
+
+// 移动端：汉堡按钮开关侧边栏 + 遮罩关闭
+function bindMenuToggle() {
+  const toggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (!toggle || !sidebar) return;
+  toggle.addEventListener('click', () => {
+    const open = sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('show', open);
+  });
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  }
 }
 
 // 侧边栏「调整菜单顺序」开关
@@ -10627,6 +10659,7 @@ async function init() {
   updateTodayDate();
   renderNav();
   bindNavReorder();
+  bindMenuToggle();
   // 打开工作台时，默认选中侧边栏排序中的第 1 个可用菜单
   selectFirstModule({ keepSub: true });
   renderNav();
