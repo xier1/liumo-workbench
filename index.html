@@ -2447,6 +2447,12 @@
   .ce-tab:hover { color: var(--text); background: var(--bg-soft); }
   .ce-tab.active { color: var(--primary-2); border-bottom-color: var(--primary-2); }
 
+  /* 成本管理：顶层页签（胶囊式） */
+  .cm-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+  .cm-tab { flex: 0 0 auto; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text-soft); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition); }
+  .cm-tab:hover { color: var(--text); border-color: var(--primary-2); }
+  .cm-tab.active { background: var(--primary-2); color: #fff; border-color: var(--primary-2); box-shadow: var(--shadow-sm); }
+
   /* ========== 去哪儿玩模块 ========== */
   .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .pl-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
@@ -2686,11 +2692,17 @@ const MODULES = [
     enabled: true
   },
   {
-    id: 'salary',
-    name: '工资管理',
-    desc: '月工资·营业额·人数·人效·平均工资 · 近一年趋势',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>',
-    enabled: true
+    id: 'costmgmt',
+    name: '成本管理',
+    desc: '成本录入 · 工资管理 · 月度成本管理，三合一集中管理',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
+    enabled: true,
+    group: true,
+    children: [
+      { id: 'costentry', name: '成本录入', desc: '按日期录入任意成本项金额，自动统计关键指标', icon: '🧾' },
+      { id: 'salary', name: '工资管理', desc: '月工资·营业额·人数·人效·平均工资', icon: '💰' },
+      { id: 'monthcost', name: '月度成本管理', desc: '固定成本合计 + 成本录入 + 工资 → 月总成本', icon: '📊' }
+    ]
   },
   {
     id: 'cost',
@@ -2701,24 +2713,10 @@ const MODULES = [
     hidden: true
   },
   {
-    id: 'costentry',
-    name: '成本录入',
-    desc: '按日期录入任意成本项金额 · 成本项可自定义增删改 · 自动统计本月/去年/近一年关键指标',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h11l2 3"/><circle cx="17" cy="13" r="1.5"/></svg>',
-    enabled: true
-  },
-  {
     id: 'grossprofit',
     name: '净利润分析',
     desc: '每月净利润 = 营业额 × 利润率 − 总成本 · 营业额取自工资管理 · 总成本取自月度成本管理',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'monthcost',
-    name: '月度成本管理',
-    desc: '固定成本设置合计 + 成本录入当月合计 + 该月工资总额 → 该月总成本 · 确认后生成月度成本记录',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 14h8M8 17h5"/></svg>',
     enabled: true
   },
   {
@@ -3037,13 +3035,15 @@ function renderNav() {
     if (m.hidden) return;
     const isActive = (m.id === currentModule);
     const hasChildren = !!(m.children && m.children.length);
+    const isGroup = hasChildren && m.group;  // 页签式父菜单：内容区页签，不在侧边栏展开子列表
 
-    if (!hasChildren) {
+    if (!hasChildren || isGroup) {
       html += `
         <button class="nav-item nav-entry ${isActive ? 'active' : ''} ${m.enabled ? '' : 'disabled'}"
-                data-module="${m.id}" ${m.enabled ? '' : 'disabled'} draggable="${dragAttr}">
+                data-module="${m.id}" ${isGroup ? 'data-parent="1"' : ''} ${m.enabled ? '' : 'disabled'} draggable="${dragAttr}">
           <span class="nav-icon">${m.icon}</span>
           <span>${m.name}</span>
+          ${isGroup ? '<span class="nav-group-badge">▾</span>' : ''}
           ${!m.enabled ? '<span class="nav-badge">即将上线</span>' : ''}
           ${navMoveHtml()}
         </button>`;
@@ -3082,7 +3082,17 @@ function renderNav() {
       if (!mod || !mod.enabled) { showToast('该模块正在开发中,敬请期待'); return; }
 
       if (btn.dataset.parent) {
-        // 父级：仅展开/收起子分类，侧边栏保持不关闭
+        // 页签式父菜单（group）：点击直接进入模块（默认展示首个页签）
+        if (mod && mod.group) {
+          currentModule = id;
+          if (currentModule !== id || !currentSub) currentSub = mod.children[0].id;
+          renderNav();
+          renderContent();
+          document.getElementById('sidebar').classList.remove('open');
+          const _ov = document.getElementById('sidebarOverlay'); if (_ov) _ov.classList.remove('show');
+          return;
+        }
+        // 普通父级：仅展开/收起子分类，侧边栏保持不关闭
         if (expandedModules[id]) {
           expandedModules[id] = false;
         } else {
@@ -3247,23 +3257,14 @@ function renderContent() {
     renderWeightModule(content, mod);
     return;
   }
-  if (currentModule === 'salary') {
-    renderSalaryModule(content, mod);
-    return;
-  }
-
   if (currentModule === 'cost') {
     renderCostModule(content, mod);
     return;
   }
 
-  if (currentModule === 'costentry') {
-    renderCostEntryModule(content, mod);
-    return;
-  }
-
-  if (currentModule === 'monthcost') {
-    renderMonthCostModule(content, mod);
+  // 成本管理：成本录入 / 工资管理 / 月度成本管理（内容区三个页签）
+  if (currentModule === 'costmgmt') {
+    renderCostMgmtModule(content, mod);
     return;
   }
 
@@ -3352,6 +3353,40 @@ function renderContent() {
 }
 
 
+
+// ---------- 成本管理（页签式父模块：成本录入 / 工资管理 / 月度成本管理）----------
+function renderCostMgmtModule(content, mod) {
+  const sub = currentSub || (mod.children && mod.children[0] && mod.children[0].id) || 'costentry';
+  const tabs = (mod.children || []).map(c =>
+    `<button class="cm-tab${c.id === sub ? ' active' : ''}" type="button" data-cm-tab="${c.id}">${c.name}</button>`
+  ).join('');
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="cm-tabs">${tabs}</div>
+    <div id="cmBody"></div>
+  `;
+  // 内容区页签切换
+  content.querySelectorAll('[data-cm-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSub = btn.getAttribute('data-cm-tab');
+      content.querySelectorAll('[data-cm-tab]').forEach(b => b.classList.toggle('active', b === btn));
+      renderCostMgmtSub(document.getElementById('cmBody'), mod);
+    });
+  });
+  renderCostMgmtSub(document.getElementById('cmBody'), mod);
+}
+
+function renderCostMgmtSub(body, mod) {
+  const sub = currentSub || 'costentry';
+  const child = (mod.children || []).find(c => c.id === sub) || (mod.children && mod.children[0]) || { id: 'costentry', name: '成本录入' };
+  const childMod = { id: child.id, name: child.name, desc: child.desc || '' };
+  if (sub === 'salary') renderSalaryModule(body, childMod);
+  else if (sub === 'monthcost') renderMonthCostModule(body, childMod);
+  else renderCostEntryModule(body, childMod);
+}
 
 /* ========================================================
    心灵鸡汤模块
@@ -5385,10 +5420,10 @@ function renderSalaryStats() {
   const sum12 = last12.reduce((s, l) => s + (l.total || 0), 0);
   const avgHead = last12.length ? (last12.reduce((s, l) => s + (l.head || 0), 0) / last12.length) : null;
   // 人效 = 营业额 ÷ 当月天数 ÷（人数 − 2）
-  const daysOf = l => { const p = (l.date || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; };
-  const effOf = l => { const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
+  const daysOf = l => { if (!l) return null; const p = (l.date || '').split('-').map(Number); return (p[0] && p[1]) ? new Date(p[0], p[1], 0).getDate() : null; };
+  const effOf = l => { if (!l) return null; const d = daysOf(l); return (d && l.head > 2) ? (l.revenue || 0) / d / (l.head - 2) : null; };
   // 平均工资 = 总工资 ÷（人数 − 2）（不含管理人员）
-  const avgSalOf = l => (l.head > 2 ? l.total / (l.head - 2) : null);
+  const avgSalOf = l => (!l ? null : (l.head > 2 ? l.total / (l.head - 2) : null));
   const perCap = effOf(last);
   const avgSal = avgSalOf(last);
   const effLast12 = last12.map(effOf).filter(v => v != null);
