@@ -2734,38 +2734,25 @@ const MODULES = [
     enabled: true
   },
   {
-    id: 'sales',
+    id: 'saleshub',
     name: '销售数据管理',
-    desc: '按月录入与管理零售总额·日均销售额·客单量·客单价，含统计卡片与明细列表',
+    desc: '销售数据管理 · 销售年度曲线 · 季度增长率 · 年度增长率 · 面包房利润分析，集中管理',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'salesyear',
-    name: '销售年度曲线',
-    desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 14 9 9 15 12 21 5"/><polyline points="3 18 9 15 15 17 21 11"/></svg>',
-    enabled: true
+    enabled: true,
+    group: true,
+    children: [
+      { id: 'sales', name: '销售数据管理', desc: '按月录入与管理零售总额·日均销售额·客单量·客单价，含统计卡片与明细列表', icon: '📊' },
+      { id: 'salesyear', name: '销售年度曲线', desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然', icon: '📈' },
+      { id: 'quartergrowth', name: '季度增长率', desc: '基于销售数据管理，按季度(Q1-Q4)汇总日均销售额·月均客单量·月均客单价的同季度同比增长', icon: '📊' },
+      { id: 'yeargrowth', name: '年度增长率', desc: '基于销售数据管理，按年汇总日均销售额·月均客单量·月均客单价的同比增长', icon: '📈' },
+      { id: 'bakery', name: '面包房利润分析', desc: '每月工资 · 每月工时 · 每月营业额 · 毛利分析(可设毛利率) · 工资/工时/营业额联动计算净毛利与时薪人效', icon: '🥐' }
+    ]
   },
   {
     id: 'salesplan',
     name: '销售计划',
     desc: '基于销售数据管理历史，按策略生成本月计划销售数据，并对比实际达成',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'yeargrowth',
-    name: '年度增长率',
-    desc: '基于销售数据管理，按年汇总日均销售额·月均客单量·月均客单价的同比增长',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-9"/><path d="M21 6h-5M21 6v5"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'quartergrowth',
-    name: '季度增长率',
-    desc: '基于销售数据管理，按季度(Q1-Q4)汇总日均销售额·月均客单量·月均客单价的同季度同比增长',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="4" height="16" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="11" width="4" height="9" rx="1"/></svg>',
     enabled: true
   },
   {
@@ -2832,13 +2819,6 @@ const MODULES = [
     name: '经销商费用',
     desc: '维护经销商每月给超市的固定费用 · 费用设置 / 经销商管理 / 费用统计',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h14l2 3"/><path d="M12 11v6M9 14h6"/></svg>',
-    enabled: true
-  },
-  {
-    id: 'bakery',
-    name: '面包房利润分析',
-    desc: '每月工资 · 每月工时 · 每月营业额 · 毛利分析(可设毛利率) · 工资/工时/营业额联动计算净毛利与时薪人效',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
     enabled: true
   },
   {
@@ -3268,6 +3248,12 @@ function renderContent() {
     return;
   }
 
+  // 销售数据管理：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析（内容区页签）
+  if (currentModule === 'saleshub') {
+    renderSalesHubModule(content, mod);
+    return;
+  }
+
   if (currentModule === 'grossprofit') {
     renderGrossProfitModule(content, mod);
     return;
@@ -3302,33 +3288,9 @@ function renderContent() {
     return;
   }
 
-  // 销售数据管理模块
-  if (currentModule === 'sales') {
-    renderSalesModule(content, mod);
-    return;
-  }
-
-  // 销售年度曲线模块
-  if (currentModule === 'salesyear') {
-    renderSalesYearModule(content, mod);
-    return;
-  }
-
   // 销售计划模块
   if (currentModule === 'salesplan') {
     renderSalesPlanModule(content, mod);
-    return;
-  }
-
-  // 年度增长率模块
-  if (currentModule === 'yeargrowth') {
-    renderYearGrowthModule(content, mod);
-    return;
-  }
-
-  // 季度增长率模块
-  if (currentModule === 'quartergrowth') {
-    renderQuarterGrowthModule(content, mod);
     return;
   }
 
@@ -3386,6 +3348,44 @@ function renderCostMgmtSub(body, mod) {
   if (sub === 'salary') renderSalaryModule(body, childMod);
   else if (sub === 'monthcost') renderMonthCostModule(body, childMod);
   else renderCostEntryModule(body, childMod);
+}
+
+// ---------- 销售数据管理（页签式父模块：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析）----------
+function renderSalesHubModule(content, mod) {
+  const kids = mod.children || [];
+  const sub = (currentSub && kids.find(k => k.id === currentSub)) ? currentSub : (kids[0] && kids[0].id) || 'sales';
+  const tabs = kids.map(c =>
+    `<button class="cm-tab${c.id === sub ? ' active' : ''}" type="button" data-cm-tab="${c.id}">${c.icon ? c.icon + ' ' : ''}${c.name}</button>`
+  ).join('');
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="cm-tabs">${tabs}</div>
+    <div id="cmBody"></div>
+  `;
+  // 内容区页签切换
+  content.querySelectorAll('[data-cm-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSub = btn.getAttribute('data-cm-tab');
+      content.querySelectorAll('[data-cm-tab]').forEach(b => b.classList.toggle('active', b === btn));
+      renderSalesHubSub(document.getElementById('cmBody'), mod);
+    });
+  });
+  renderSalesHubSub(document.getElementById('cmBody'), mod);
+}
+
+function renderSalesHubSub(body, mod) {
+  const kids = mod.children || [];
+  const sub = (currentSub && kids.find(k => k.id === currentSub)) ? currentSub : (kids[0] && kids[0].id) || 'sales';
+  const child = kids.find(c => c.id === sub) || kids[0] || { id: 'sales', name: '销售数据管理' };
+  const childMod = { id: child.id, name: child.name, desc: child.desc || '' };
+  if (sub === 'salesyear') renderSalesYearModule(body, childMod);
+  else if (sub === 'quartergrowth') renderQuarterGrowthModule(body, childMod);
+  else if (sub === 'yeargrowth') renderYearGrowthModule(body, childMod);
+  else if (sub === 'bakery') renderBakeryModule(body, childMod);
+  else renderSalesModule(body, childMod);
 }
 
 /* ========================================================
