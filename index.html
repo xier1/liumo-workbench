@@ -2727,6 +2727,13 @@ const MODULES = [
     enabled: true
   },
   {
+    id: 'activities',
+    name: '活动列表',
+    desc: '全品类活动记录（支持图片）',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+    enabled: true
+  },
+  {
     id: 'places',
     name: '去哪儿玩',
     desc: '收藏想去的地点 · 拖拽排序 · 增删改 · 标记去过',
@@ -2749,8 +2756,8 @@ const MODULES = [
   },
   {
     id: 'salesplan',
-    name: '销售计划',
-    desc: '基于销售数据管理历史，按策略生成本月计划销售数据，并对比实际达成',
+    name: '本月销售计划',
+    desc: '基于销售数据管理历史，按策略生成本月销售计划数据，并对比实际达成',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
     enabled: true
   },
@@ -2774,16 +2781,6 @@ const MODULES = [
     desc: '每日学习打卡,坚持见证成长',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1 2 3 6 3s6-2 6-3v-5"/></svg>',
     enabled: true
-  },
-  {
-    id: 'fresh',
-    name: '果然鲜',
-    desc: '活动笔记 · 今日日历天气 · 微语简报 · 历史上的今天',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
-    enabled: true,
-    children: [
-      { id: 'activities', name: '活动列表', icon: '📝' },
-    ]
   },
   {
     id: 'notes',
@@ -3216,14 +3213,6 @@ function renderContent() {
     return;
   }
 
-  // 果然鲜模块
-  if (currentModule === 'fresh') {
-    renderFreshModule(content, mod);
-    return;
-  }
-
-
-
   // 笔记模块
   if (currentModule === 'notes') {
     renderNotesModule(content, mod);
@@ -3260,6 +3249,12 @@ function renderContent() {
 
   if (currentModule === 'scrap') {
     renderScrapModule(content, mod);
+    return;
+  }
+
+  // 活动列表模块（已从果然鲜独立）
+  if (currentModule === 'activities') {
+    renderFreshActivities(content, mod);
     return;
   }
 
@@ -5011,7 +5006,7 @@ function renderFreshActivities(content, mod) {
   content.innerHTML = `
     <div class="page-header">
       <div class="page-title">活动列表</div>
-      <div class="page-desc">果然鲜 · 全品类活动记录（支持图片）</div>
+      <div class="page-desc">全品类活动记录（支持图片）</div>
     </div>
     <div class="act-topbar">
       <div class="act-tabs" id="act-tabs"></div>
