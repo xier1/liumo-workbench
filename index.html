@@ -2739,7 +2739,6 @@ const MODULES = [
     desc: '销售数据管理 · 销售年度曲线 · 季度增长率 · 年度增长率 · 面包房利润分析，集中管理',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>',
     enabled: true,
-    group: true,
     children: [
       { id: 'sales', name: '销售数据管理', desc: '按月录入与管理零售总额·日均销售额·客单量·客单价，含统计卡片与明细列表', icon: '📊' },
       { id: 'salesyear', name: '销售年度曲线', desc: '以销售数据管理数据重绘 · 横轴为月份 · 一年一条曲线 · 跨年同比一目了然', icon: '📈' },
@@ -3248,9 +3247,9 @@ function renderContent() {
     return;
   }
 
-  // 销售数据管理：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析（内容区页签）
+  // 销售数据管理：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析（侧边栏二级菜单）
   if (currentModule === 'saleshub') {
-    renderSalesHubModule(content, mod);
+    renderSalesHubSub(content, mod);
     return;
   }
 
@@ -3350,32 +3349,7 @@ function renderCostMgmtSub(body, mod) {
   else renderCostEntryModule(body, childMod);
 }
 
-// ---------- 销售数据管理（页签式父模块：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析）----------
-function renderSalesHubModule(content, mod) {
-  const kids = mod.children || [];
-  const sub = (currentSub && kids.find(k => k.id === currentSub)) ? currentSub : (kids[0] && kids[0].id) || 'sales';
-  const tabs = kids.map(c =>
-    `<button class="cm-tab${c.id === sub ? ' active' : ''}" type="button" data-cm-tab="${c.id}">${c.icon ? c.icon + ' ' : ''}${c.name}</button>`
-  ).join('');
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">${mod.name}</div>
-      <div class="page-desc">${mod.desc}</div>
-    </div>
-    <div class="cm-tabs">${tabs}</div>
-    <div id="cmBody"></div>
-  `;
-  // 内容区页签切换
-  content.querySelectorAll('[data-cm-tab]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentSub = btn.getAttribute('data-cm-tab');
-      content.querySelectorAll('[data-cm-tab]').forEach(b => b.classList.toggle('active', b === btn));
-      renderSalesHubSub(document.getElementById('cmBody'), mod);
-    });
-  });
-  renderSalesHubSub(document.getElementById('cmBody'), mod);
-}
-
+// ---------- 销售数据管理（侧边栏二级菜单：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析）----------
 function renderSalesHubSub(body, mod) {
   const kids = mod.children || [];
   const sub = (currentSub && kids.find(k => k.id === currentSub)) ? currentSub : (kids[0] && kids[0].id) || 'sales';
