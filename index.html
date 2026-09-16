@@ -2453,6 +2453,27 @@
   .cm-tab:hover { color: var(--text); border-color: var(--primary-2); }
   .cm-tab.active { background: var(--primary-2); color: #fff; border-color: var(--primary-2); box-shadow: var(--shadow-sm); }
 
+  /* ========== 每日销售数据 ========== */
+  .ds-table { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+  .ds-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 72px; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .ds-row:last-child { border-bottom: none; }
+  .ds-head { background: var(--bg-soft); font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .ds-row .ds-c { min-width: 0; }
+  .ds-name { font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ds-row input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); text-align: right; font-variant-numeric: tabular-nums; }
+  .ds-row input:focus { outline: none; border-color: var(--primary-2); background: #fff; }
+  .ds-sum { background: linear-gradient(90deg, #eef2ff, #f8fafc); font-weight: 700; }
+  .ds-sum .ds-name { color: var(--primary-2); }
+  .wt-item-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .btn-sm { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); font-size: 12.5px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .btn-sm:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .btn-edit { color: var(--primary-2); border-color: #c7d2fe; }
+  .btn-del { color: var(--danger); border-color: #fecaca; }
+  .btn-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .btn-save { color: #fff; background: var(--primary-2); border-color: var(--primary-2); }
+  .btn-save:hover { opacity: .92; color: #fff; }
+  .iv-name { font-size: 15px; font-weight: 600; color: var(--text); }
+
   /* ========== 去哪儿玩模块 ========== */
   .pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .pl-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
@@ -2610,9 +2631,20 @@
   .poster-preview-label { font-size: 13px; color: var(--text-soft); align-self: flex-start; font-weight: 600; }
   #posterCanvas { width: 100%; max-width: 420px; height: auto; border-radius: var(--radius);
     box-shadow: var(--shadow-md); background: #fff; }
+
+  /* 手机下载浮标：在线访问时点一下即可把本页存为 index.html */
+  .dl-fab { position: fixed; right: 14px; bottom: 16px; z-index: 1200;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 11px 16px; border: none; border-radius: 999px;
+    background: var(--primary); color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow: var(--shadow-md); cursor: pointer; }
+  .dl-fab:active { transform: scale(.96); }
+  @media (max-width: 768px) { .dl-fab { right: 12px; bottom: 12px; padding: 12px 18px; font-size: 15px; } }
 </style>
 </head>
 <body>
+
+<button class="dl-fab" id="dlFab" title="下载本页为 index.html">⬇ 下载文件</button>
 
 <button class="menu-toggle" id="menuToggle" aria-label="菜单">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2762,6 +2794,18 @@ const MODULES = [
     enabled: true
   },
   {
+    id: 'dailysales',
+    name: '每日销售数据',
+    desc: '类别管理 · 每日营业额录入与汇总（含上月日均对比）',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/></svg>',
+    enabled: true,
+    group: true,
+    children: [
+      { id: 'dscat', name: '类别管理', desc: '增删改查销售类别', icon: '🗂️' },
+      { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额与上月日均营业额，并自动汇总', icon: '💰' }
+    ]
+  },
+  {
     id: 'rope',
     name: '跳绳记录',
     desc: '一分钟跳绳 · 本月统计 · 最好成绩',
@@ -2860,6 +2904,12 @@ let scrapLogs = [];            // { id, date:'YYYY-MM-DD', amount:Number, note:S
 let scrapSettled = {};         // { 'YYYY-MM': { date:'YYYY-MM-DD' 结算截止日 } 有该 key 即表示已结算(截止日及之前的当月记录算已结算)
 let scrapSettleMonth = null;   // 当前正在选择结算截止日的月份(null 表示无)
 let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增模式）
+
+
+// ---------- 每日销售数据状态 ----------
+let dsCats = [];    // [{ id, name, order }]
+let dsLogs = [];    // [{ id, catId, date:'YYYY-MM-DD', amount:Number, lastAvg:Number, createdAt, updatedAt }]
+let dsEditingCatId = null;   // 正在行内编辑的类别 id
 
 
 
@@ -3127,6 +3177,34 @@ function selectFirstModule(opts) {
   renderContent();
 }
 
+// 手机下载浮标：在线访问时点一下，把当前页面原样存为 index.html
+function bindDownloadFab() {
+  const btn = document.getElementById('dlFab');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    try {
+      // 抓取当前页面源码（与线上文件逐字节一致），生成下载
+      const res = await fetch(location.href, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const old = btn.textContent;
+      btn.textContent = '✅ 已下载';
+      setTimeout(() => { btn.textContent = old; }, 2000);
+    } catch (e) {
+      alert('下载失败：' + e.message + '（请确认是通过在线网址打开的本页）');
+    }
+  });
+}
+
 // 移动端：汉堡按钮开关侧边栏 + 遮罩关闭
 function bindMenuToggle() {
   const toggle = document.getElementById('menuToggle');
@@ -3239,6 +3317,12 @@ function renderContent() {
   // 销售数据管理：销售数据管理 / 销售年度曲线 / 季度增长率 / 年度增长率 / 面包房利润分析（侧边栏二级菜单）
   if (currentModule === 'saleshub') {
     renderSalesHubSub(content, mod);
+    return;
+  }
+
+  // 每日销售数据：类别管理 / 销售数据（内容区两个页签）
+  if (currentModule === 'dailysales') {
+    renderDailySalesModule(content, mod);
     return;
   }
 
@@ -3355,6 +3439,273 @@ function renderSalesHubSub(body, mod) {
   else if (sub === 'yeargrowth') renderYearGrowthModule(body, childMod);
   else if (sub === 'bakery') renderBakeryModule(body, childMod);
   else renderSalesModule(body, childMod);
+}
+
+// ========================================================
+//   每日销售数据模块（页签式：类别管理 / 销售数据）
+// ========================================================
+const DS_CATS_KEY = 'liumo_ds_cats';
+const DS_LOGS_KEY = 'liumo_ds_logs';
+
+function loadDailySales() {
+  try {
+    const d = localStorage.getItem(DS_CATS_KEY);
+    dsCats = d ? JSON.parse(d) : [];
+    if (!Array.isArray(dsCats)) dsCats = [];
+  } catch (e) { dsCats = []; }
+  try {
+    const d = localStorage.getItem(DS_LOGS_KEY);
+    dsLogs = d ? JSON.parse(d) : [];
+    if (!Array.isArray(dsLogs)) dsLogs = [];
+  } catch (e) { dsLogs = []; }
+  dsCats.sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+function saveDsCats() { localStorage.setItem(DS_CATS_KEY, JSON.stringify(dsCats)); }
+function saveDsLogs() { localStorage.setItem(DS_LOGS_KEY, JSON.stringify(dsLogs)); }
+
+// 取某类别某日期记录
+function dsGet(catId, date) {
+  return dsLogs.find(l => l.catId === catId && l.date === date) || null;
+}
+// 某日期「每日营业额」汇总
+function dsSumAmt(date) {
+  return dsLogs.filter(l => l.date === date).reduce((s, l) => s + (Number(l.amount) || 0), 0);
+}
+// 某日期「上月日均营业额」汇总
+function dsSumAvg(date) {
+  return dsLogs.filter(l => l.date === date).reduce((s, l) => s + (Number(l.lastAvg) || 0), 0);
+}
+// 上月日均营业额：上个月该类别每日营业额之和 / 上个月有记录的天数
+function dsLastMonthAvg(catId, refDate) {
+  const p = (refDate || '').split('-').map(Number);
+  if (p.length !== 3 || p.some(isNaN)) return 0;
+  const lm = (p[1] === 1) ? { y: p[0] - 1, m: 12 } : { y: p[0], m: p[1] - 1 };
+  const prefix = lm.y + '-' + ('0' + lm.m).slice(-2);
+  const recs = dsLogs.filter(l => l.catId === catId && (l.date || '').slice(0, 7) === prefix);
+  if (recs.length === 0) return 0;
+  const sum = recs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const days = new Set(recs.map(l => l.date)).size;
+  return days ? sum / days : 0;
+}
+// 写入/更新某类别某日期数据
+function dsUpsert(catId, date, amount, lastAvg) {
+  const now = Date.now();
+  const r = dsGet(catId, date);
+  if (r) { r.amount = amount; r.lastAvg = lastAvg; r.updatedAt = now; }
+  else dsLogs.push({ id: uid(), catId, date, amount, lastAvg, createdAt: now, updatedAt: now });
+  saveDsLogs();
+}
+// 删除类别（及其全部销售数据）
+function dsDeleteCat(catId) {
+  dsLogs = dsLogs.filter(l => l.catId !== catId);
+  dsCats = dsCats.filter(c => c.id !== catId);
+  saveDsLogs(); saveDsCats();
+}
+
+function renderDailySalesModule(content, mod) {
+  const validIds = (mod.children || []).map(c => c.id);
+  const sub = (currentSub && validIds.includes(currentSub)) ? currentSub : (mod.children && mod.children[0] && mod.children[0].id) || 'dscat';
+  const tabs = (mod.children || []).map(c =>
+    `<button class="cm-tab${c.id === sub ? ' active' : ''}" type="button" data-cm-tab="${c.id}">${c.icon ? c.icon + ' ' : ''}${c.name}</button>`
+  ).join('');
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="cm-tabs">${tabs}</div>
+    <div id="cmBody"></div>
+  `;
+  content.querySelectorAll('[data-cm-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSub = btn.getAttribute('data-cm-tab');
+      content.querySelectorAll('[data-cm-tab]').forEach(b => b.classList.toggle('active', b === btn));
+      renderDailySalesSub(document.getElementById('cmBody'), mod);
+    });
+  });
+  renderDailySalesSub(document.getElementById('cmBody'), mod);
+}
+
+function renderDailySalesSub(body, mod) {
+  const validIds = (mod.children || []).map(c => c.id);
+  const sub = (currentSub && validIds.includes(currentSub)) ? currentSub : 'dscat';
+  if (sub === 'dsdata') renderDsDataTab(body);
+  else renderDsCatTab(body);
+}
+
+// ---------- 页签一：类别管理 ----------
+function renderDsCatTab(body) {
+  body.innerHTML = `
+    <div class="wt-note">管理每日销售数据的类别（如「生鲜」「百货」「收银台」）。删除类别会同时移除其全部销售记录。</div>
+    <div class="toolbar wt-add-bar">
+      <div class="wt-field" style="flex:1 1 auto; min-width:160px;">
+        <label>新增类别名称</label>
+        <input type="text" id="dsCatName" placeholder="如 生鲜" />
+      </div>
+      <button class="btn-add" id="dsCatAdd" style="align-self:flex-end;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>添加类别</span>
+      </button>
+    </div>
+    <div class="wt-list" id="dsCatList"></div>
+  `;
+  const addBtn = document.getElementById('dsCatAdd');
+  const nameInput = document.getElementById('dsCatName');
+  addBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    dsCats.push({ id: uid(), name, order: dsCats.length });
+    saveDsCats();
+    nameInput.value = '';
+    renderDsCatTab(body);
+  });
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') addBtn.click(); });
+  renderDsCatList(body);
+}
+
+function renderDsCatList(body) {
+  const list = document.getElementById('dsCatList');
+  if (!list) return;
+  if (dsCats.length === 0) {
+    list.innerHTML = '<div class="wt-empty">还没有类别，先添加一个吧</div>';
+    return;
+  }
+  list.innerHTML = dsCats.map(c => `
+    <div class="wt-item">
+      ${dsEditingCatId === c.id
+        ? `<input type="text" class="ds-cat-edit" data-id="${c.id}" value="${escapeAttr(c.name)}" style="flex:1;" />`
+        : `<div class="iv-name">${escapeHtml(c.name)}</div>`}
+      <div class="wt-item-actions">
+        ${dsEditingCatId === c.id
+          ? `<button class="btn-sm btn-save" data-act="save" data-id="${c.id}">保存</button>
+             <button class="btn-sm btn-cancel" data-act="cancel" data-id="${c.id}">取消</button>`
+          : `<button class="btn-sm btn-edit" data-act="edit" data-id="${c.id}">编辑</button>
+             <button class="btn-sm btn-del" data-act="del" data-id="${c.id}">删除</button>`}
+      </div>
+    </div>`).join('');
+
+  list.querySelectorAll('[data-act]').forEach(btn => {
+    const act = btn.getAttribute('data-act');
+    const id = btn.getAttribute('data-id');
+    btn.addEventListener('click', () => {
+      if (act === 'edit') {
+        dsEditingCatId = id;
+        renderDsCatList(body);
+        const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]');
+        if (inp) { inp.focus(); inp.select(); }
+      } else if (act === 'cancel') {
+        dsEditingCatId = null;
+        renderDsCatList(body);
+      } else if (act === 'save') {
+        const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]');
+        const name = (inp ? inp.value : '').trim();
+        if (!name) { if (inp) inp.focus(); return; }
+        const cat = dsCats.find(c => c.id === id);
+        if (cat) { cat.name = name; saveDsCats(); }
+        dsEditingCatId = null;
+        renderDsCatList(body);
+      } else if (act === 'del') {
+        if (confirm('确定删除该类别？其全部销售记录将一并删除。')) {
+          dsDeleteCat(id);
+          dsEditingCatId = null;
+          renderDsCatList(body);
+        }
+      }
+    });
+  });
+  list.querySelectorAll('.ds-cat-edit').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { const b = list.querySelector('.btn-save[data-id="' + inp.getAttribute('data-id') + '"]'); if (b) b.click(); }
+      if (e.key === 'Escape') { dsEditingCatId = null; renderDsCatList(body); }
+    });
+  });
+}
+
+// ---------- 页签二：销售数据 ----------
+function renderDsDataTab(body) {
+  const dateInput = document.getElementById('dsDate');
+  const date = (dateInput && dateInput.value) ? dateInput.value : todayStr();
+  const recMap = {};
+  dsLogs.filter(l => l.date === date).forEach(l => { recMap[l.catId] = l; });
+
+  const rows = dsCats.length === 0
+    ? '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>'
+    : dsCats.map(c => {
+        const r = recMap[c.id];
+        return `<div class="ds-row" data-id="${c.id}">
+          <div class="ds-c ds-name">${escapeHtml(c.name)}</div>
+          <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-amt" value="${r ? (r.amount != null ? r.amount : '') : ''}" placeholder="0" /></div>
+          <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-avg" value="${r ? (r.lastAvg != null ? r.lastAvg : '') : ''}" placeholder="0" /></div>
+          <div class="ds-c"><button class="btn-sm btn-save ds-save" data-id="${c.id}">保存</button></div>
+        </div>`;
+      }).join('');
+
+  body.innerHTML = `
+    <div class="wt-note">选择日期，为每个类别录入「每日营业额」与「上月日均营业额」。底部自动汇总各类别合计。「自动填充上月日均」会按上月该类别实际数据计算日均并填入（可再手动改）。</div>
+    <div class="toolbar wt-add-bar">
+      <div class="wt-field" style="min-width:160px;">
+        <label>日期</label>
+        <input type="date" id="dsDate" value="${date}" />
+      </div>
+      <button class="btn-add" id="dsAutoFill" style="align-self:flex-end;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        <span>自动填充上月日均</span>
+      </button>
+    </div>
+    <div class="ds-table">
+      <div class="ds-row ds-head">
+        <div class="ds-c">类别</div>
+        <div class="ds-c">每日营业额(元)</div>
+        <div class="ds-c">上月日均营业额(元)</div>
+        <div class="ds-c"></div>
+      </div>
+      ${rows}
+      <div class="ds-row ds-sum">
+        <div class="ds-c ds-name">汇总</div>
+        <div class="ds-c">${saMoney(dsSumAmt(date))}</div>
+        <div class="ds-c">${saMoney(dsSumAvg(date))}</div>
+        <div class="ds-c"></div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('dsDate').addEventListener('change', () => renderDsDataTab(body));
+  document.getElementById('dsAutoFill').addEventListener('click', () => {
+    dsCats.forEach(c => {
+      const inp = body.querySelector('.ds-row[data-id="' + c.id + '"] .ds-avg');
+      if (inp && !inp.value) inp.value = Math.round(dsLastMonthAvg(c.id, date) * 100) / 100;
+    });
+  });
+  body.querySelectorAll('.ds-save').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const row = body.querySelector('.ds-row[data-id="' + id + '"]');
+      const amtInp = row.querySelector('.ds-amt');
+      const avgInp = row.querySelector('.ds-avg');
+      const amt = parseFloat(amtInp.value);
+      const avgRaw = avgInp.value;
+      const avg = avgRaw === '' ? 0 : parseFloat(avgRaw);
+      dsUpsert(id, date, isNaN(amt) ? 0 : amt, isNaN(avg) ? 0 : avg);
+      // 原地更新本行输入框与汇总，避免整表重渲染导致其它未保存行被清空
+      amtInp.value = isNaN(amt) ? 0 : amt;
+      avgInp.value = isNaN(avg) ? 0 : avg;
+      dsRefreshSummary(body, date);
+      const orig = btn.textContent;
+      btn.textContent = '已保存';
+      setTimeout(() => { btn.textContent = orig; }, 800);
+    });
+  });
+}
+
+// 仅刷新底部汇总行（不重渲染整表，保留其它行未保存输入）
+function dsRefreshSummary(body, date) {
+  const sumRow = body.querySelector('.ds-sum');
+  if (!sumRow) return;
+  const cells = sumRow.querySelectorAll('.ds-c');
+  if (cells.length >= 3) {
+    cells[1].textContent = saMoney(dsSumAmt(date));
+    cells[2].textContent = saMoney(dsSumAvg(date));
+  }
 }
 
 /* ========================================================
@@ -10664,6 +11015,7 @@ async function init() {
   renderNav();
   bindNavReorder();
   bindMenuToggle();
+  bindDownloadFab();
   // 打开工作台时，默认选中侧边栏排序中的第 1 个可用菜单
   selectFirstModule({ keepSub: true });
   renderNav();
@@ -10941,7 +11293,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); loadPoster(); tmLoad();
+  loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); loadPoster(); loadDailySales(); tmLoad();
 }
 
 function exportBackup(){
