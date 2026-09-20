@@ -2465,6 +2465,16 @@
   .ds-sum { background: linear-gradient(90deg, #eef2ff, #f8fafc); font-weight: 700; }
   .ds-sum .ds-name { color: var(--primary-2); }
   .wt-item-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  /* 每日销售数据:两级类别 */
+  .ds-cat-group { margin-bottom: 10px; }
+  .ds-sub-list { margin: 8px 0 0 18px; padding-left: 10px; border-left: 2px dashed var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .ds-sub { background: var(--bg); }
+  .ds-sub-list .wt-item-actions { flex-wrap: wrap; }
+  .ds-group-head { background: #f1f5f9; font-weight: 700; border-bottom: 2px solid var(--border); }
+  .ds-group-head .ds-group-sum { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+  .ds-group-head .ds-name { color: var(--text); }
+  .btn-sub { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+  .btn-sub:hover { background: #e0e7ff; }
   .btn-sm { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); font-size: 12.5px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
   .btn-sm:hover { border-color: var(--primary-2); color: var(--primary-2); }
   .btn-edit { color: var(--primary-2); border-color: #c7d2fe; }
@@ -2857,7 +2867,7 @@ const MODULES = [
   {
     id: 'dealerfee',
     name: '经销商费用',
-    desc: '维护经销商每月给超市的固定费用 · 费用设置 / 经销商管理 / 费用统计',
+    desc: '经销商设置（添加经销商与每月固定费用）· 费用录入（按经销商登记月度费用）',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h14l2 3"/><path d="M12 11v6M9 14h6"/></svg>',
     enabled: true
   },
@@ -2910,6 +2920,7 @@ let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增�
 let dsCats = [];    // [{ id, name, order }]
 let dsLogs = [];    // [{ id, catId, date:'YYYY-MM-DD', amount:Number, lastAvg:Number, createdAt, updatedAt }]
 let dsEditingCatId = null;   // 正在行内编辑的类别 id
+let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
 
 
 
@@ -3463,6 +3474,27 @@ function loadDailySales() {
 function saveDsCats() { localStorage.setItem(DS_CATS_KEY, JSON.stringify(dsCats)); }
 function saveDsLogs() { localStorage.setItem(DS_LOGS_KEY, JSON.stringify(dsLogs)); }
 
+// ---- 两级类别辅助 ----
+// parentId 为空(undefined/null/''),视为一级大类
+function dsIsTop(c) { return !c.parentId; }
+function dsTopCats() { return dsCats.filter(dsIsTop).sort((a, b) => (a.order || 0) - (b.order || 0)); }
+function dsChildren(parentId) { return dsCats.filter(c => c.parentId === parentId).sort((a, b) => (a.order || 0) - (b.order || 0)); }
+function dsIsLeaf(c) { return dsChildren(c.id).length === 0; }
+// 某类别(含其所有后代叶子)在指定日期的「每日营业额」合计
+function dsSumAmtForCat(catId, date) {
+  const c = dsCats.find(x => x.id === catId);
+  if (!c) return 0;
+  let s = 0;
+  if (date) {
+    const r = dsLogs.find(l => l.catId === catId && l.date === date);
+    if (r) s += Number(r.amount) || 0;
+  } else {
+    s += dsLogs.filter(l => l.catId === catId).reduce((a, l) => a + (Number(l.amount) || 0), 0);
+  }
+  dsChildren(catId).forEach(ch => { s += dsSumAmtForCat(ch.id, date); });
+  return s;
+}
+
 // 取某类别某日期记录
 function dsGet(catId, date) {
   return dsLogs.find(l => l.catId === catId && l.date === date) || null;
@@ -3495,11 +3527,36 @@ function dsUpsert(catId, date, amount, lastAvg) {
   else dsLogs.push({ id: uid(), catId, date, amount, lastAvg, createdAt: now, updatedAt: now });
   saveDsLogs();
 }
-// 删除类别（及其全部销售数据）
+// 删除类别（级联删除其全部子类别及销售数据）
 function dsDeleteCat(catId) {
-  dsLogs = dsLogs.filter(l => l.catId !== catId);
-  dsCats = dsCats.filter(c => c.id !== catId);
+  const toDel = new Set([catId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    dsCats.forEach(c => {
+      if (c.parentId && toDel.has(c.parentId) && !toDel.has(c.id)) { toDel.add(c.id); changed = true; }
+    });
+  }
+  dsLogs = dsLogs.filter(l => !toDel.has(l.catId));
+  dsCats = dsCats.filter(c => !toDel.has(c.id));
   saveDsLogs(); saveDsCats();
+}
+// 给某一级添加二级类别；若该一级原本有自身销售记录,自动归入「其他」小类,避免数据丢失
+function dsAddSubCat(parentId, name) {
+  const parent = dsCats.find(c => c.id === parentId);
+  if (!parent) return;
+  if (!dsChildren(parentId).length) {
+    // 第一个子类别:若该大类自身曾作为叶子录入过,迁移到「其他」
+    if (dsLogs.some(l => l.catId === parentId)) {
+      const other = { id: uid(), name: '其他', order: 0, parentId: parentId };
+      dsCats.push(other);
+      dsLogs.forEach(l => { if (l.catId === parentId) l.catId = other.id; });
+      saveDsLogs();
+      showToast('已将原大类记录归入「其他」小类');
+    }
+  }
+  dsCats.push({ id: uid(), name, order: dsChildren(parentId).length, parentId });
+  saveDsCats();
 }
 
 function renderDailySalesModule(content, mod) {
@@ -3536,7 +3593,7 @@ function renderDailySalesSub(body, mod) {
 // ---------- 页签一：类别管理 ----------
 function renderDsCatTab(body) {
   body.innerHTML = `
-    <div class="wt-note">管理每日销售数据的类别（如「生鲜」「百货」「收银台」）。删除类别会同时移除其全部销售记录。</div>
+    <div class="wt-note">管理每日销售数据的类别。可先建一级大类，再点「+ 子类别」为其添加二级小类；有二级的大类只作分组、金额在二级录入。删除大类会级联删除其下全部子类别与销售记录。</div>
     <div class="toolbar wt-add-bar">
       <div class="wt-field" style="flex:1 1 auto; min-width:160px;">
         <label>新增类别名称</label>
@@ -3566,49 +3623,81 @@ function renderDsCatTab(body) {
 function renderDsCatList(body) {
   const list = document.getElementById('dsCatList');
   if (!list) return;
-  if (dsCats.length === 0) {
+  if (dsTopCats().length === 0) {
     list.innerHTML = '<div class="wt-empty">还没有类别，先添加一个吧</div>';
     return;
   }
-  list.innerHTML = dsCats.map(c => `
-    <div class="wt-item">
-      ${dsEditingCatId === c.id
-        ? `<input type="text" class="ds-cat-edit" data-id="${c.id}" value="${escapeAttr(c.name)}" style="flex:1;" />`
-        : `<div class="iv-name">${escapeHtml(c.name)}</div>`}
-      <div class="wt-item-actions">
-        ${dsEditingCatId === c.id
-          ? `<button class="btn-sm btn-save" data-act="save" data-id="${c.id}">保存</button>
-             <button class="btn-sm btn-cancel" data-act="cancel" data-id="${c.id}">取消</button>`
-          : `<button class="btn-sm btn-edit" data-act="edit" data-id="${c.id}">编辑</button>
-             <button class="btn-sm btn-del" data-act="del" data-id="${c.id}">删除</button>`}
+  const catItemHtml = (c, isSub) => {
+    const editInput = dsEditingCatId === c.id
+      ? `<input type="text" class="ds-cat-edit" data-id="${c.id}" value="${escapeAttr(c.name)}" style="flex:1;" />`
+      : `<div class="iv-name">${escapeHtml(c.name)}</div>`;
+    const actions = dsEditingCatId === c.id
+      ? `<button class="btn-sm btn-save" data-act="save" data-id="${c.id}">保存</button>
+         <button class="btn-sm btn-cancel" data-act="cancel" data-id="${c.id}">取消</button>`
+      : `<button class="btn-sm btn-edit" data-act="edit" data-id="${c.id}">编辑</button>
+         <button class="btn-sm btn-del" data-act="del" data-id="${c.id}">删除</button>
+         ${isSub ? '' : `<button class="btn-sm btn-sub" data-act="addsub" data-id="${c.id}">+ 子类别</button>`}`;
+    return `<div class="wt-item ${isSub ? 'ds-sub' : 'ds-top'}">
+      ${editInput}
+      <div class="wt-item-actions">${actions}</div>
+    </div>`;
+  };
+  const subAddHtml = (topId) => dsAddingSubId === topId
+    ? `<div class="wt-item ds-sub ds-sub-add">
+         <input type="text" class="ds-sub-edit" data-pid="${topId}" placeholder="子类别名称" style="flex:1;" />
+         <div class="wt-item-actions">
+           <button class="btn-sm btn-save" data-act="subsave" data-pid="${topId}">添加</button>
+           <button class="btn-sm btn-cancel" data-act="subcancel" data-pid="${topId}">取消</button>
+         </div>
+       </div>`
+    : '';
+
+  list.innerHTML = dsTopCats().map(top => `
+    <div class="ds-cat-group">
+      ${catItemHtml(top, false)}
+      <div class="ds-sub-list">
+        ${dsChildren(top.id).map(sub => catItemHtml(sub, true)).join('')}
+        ${subAddHtml(top.id)}
       </div>
     </div>`).join('');
 
   list.querySelectorAll('[data-act]').forEach(btn => {
     const act = btn.getAttribute('data-act');
     const id = btn.getAttribute('data-id');
+    const pid = btn.getAttribute('data-pid');
     btn.addEventListener('click', () => {
       if (act === 'edit') {
-        dsEditingCatId = id;
-        renderDsCatList(body);
-        const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]');
-        if (inp) { inp.focus(); inp.select(); }
+        dsEditingCatId = id; dsAddingSubId = null; renderDsCatList(body);
+        const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]'); if (inp) { inp.focus(); inp.select(); }
       } else if (act === 'cancel') {
-        dsEditingCatId = null;
-        renderDsCatList(body);
+        dsEditingCatId = null; renderDsCatList(body);
+      } else if (act === 'addsub') {
+        dsAddingSubId = id; dsEditingCatId = null; renderDsCatList(body);
+        const inp = list.querySelector('.ds-sub-edit[data-pid="' + id + '"]'); if (inp) { inp.focus(); }
+      } else if (act === 'subcancel') {
+        dsAddingSubId = null; renderDsCatList(body);
+      } else if (act === 'subsave') {
+        const inp = list.querySelector('.ds-sub-edit[data-pid="' + pid + '"]');
+        const name = (inp ? inp.value : '').trim();
+        if (!name) { if (inp) inp.focus(); return; }
+        dsAddSubCat(pid, name);
+        dsAddingSubId = null; renderDsCatList(body);
       } else if (act === 'save') {
         const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]');
         const name = (inp ? inp.value : '').trim();
         if (!name) { if (inp) inp.focus(); return; }
         const cat = dsCats.find(c => c.id === id);
         if (cat) { cat.name = name; saveDsCats(); }
-        dsEditingCatId = null;
-        renderDsCatList(body);
+        dsEditingCatId = null; renderDsCatList(body);
       } else if (act === 'del') {
-        if (confirm('确定删除该类别？其全部销售记录将一并删除。')) {
+        const cat = dsCats.find(c => c.id === id);
+        const hasKids = cat && dsChildren(id).length > 0;
+        const msg = hasKids
+          ? '确定删除该大类？其下全部子类别及销售记录将一并删除。'
+          : '确定删除该类别？其全部销售记录将一并删除。';
+        if (confirm(msg)) {
           dsDeleteCat(id);
-          dsEditingCatId = null;
-          renderDsCatList(body);
+          dsEditingCatId = null; dsAddingSubId = null; renderDsCatList(body);
         }
       }
     });
@@ -3617,6 +3706,12 @@ function renderDsCatList(body) {
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') { const b = list.querySelector('.btn-save[data-id="' + inp.getAttribute('data-id') + '"]'); if (b) b.click(); }
       if (e.key === 'Escape') { dsEditingCatId = null; renderDsCatList(body); }
+    });
+  });
+  list.querySelectorAll('.ds-sub-edit').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { const b = list.querySelector('.btn-save[data-pid="' + inp.getAttribute('data-pid') + '"]'); if (b) b.click(); }
+      if (e.key === 'Escape') { dsAddingSubId = null; renderDsCatList(body); }
     });
   });
 }
@@ -3628,20 +3723,34 @@ function renderDsDataTab(body) {
   const recMap = {};
   dsLogs.filter(l => l.date === date).forEach(l => { recMap[l.catId] = l; });
 
-  const rows = dsCats.length === 0
-    ? '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>'
-    : dsCats.map(c => {
-        const r = recMap[c.id];
-        return `<div class="ds-row" data-id="${c.id}">
-          <div class="ds-c ds-name">${escapeHtml(c.name)}</div>
-          <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-amt" value="${r ? (r.amount != null ? r.amount : '') : ''}" placeholder="0" /></div>
-          <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-avg" value="${r ? (r.lastAvg != null ? r.lastAvg : '') : ''}" placeholder="0" /></div>
-          <div class="ds-c"><button class="btn-sm btn-save ds-save" data-id="${c.id}">保存</button></div>
-        </div>`;
-      }).join('');
+  const leafRow = (c) => {
+    const r = recMap[c.id];
+    return `<div class="ds-row" data-id="${c.id}">
+      <div class="ds-c ds-name">${escapeHtml(c.name)}</div>
+      <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-amt" value="${r ? (r.amount != null ? r.amount : '') : ''}" placeholder="0" /></div>
+      <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-avg" value="${r ? (r.lastAvg != null ? r.lastAvg : '') : ''}" placeholder="0" /></div>
+      <div class="ds-c"><button class="btn-sm btn-save ds-save" data-id="${c.id}">保存</button></div>
+    </div>`;
+  };
+  let rows;
+  if (dsTopCats().length === 0) {
+    rows = '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>';
+  } else {
+    rows = dsTopCats().map(top => {
+      const kids = dsChildren(top.id);
+      if (kids.length === 0) return leafRow(top);   // 无二级:一级自身即录入行
+      const head = `<div class="ds-row ds-group-head" data-gid="${top.id}">
+        <div class="ds-c ds-name">${escapeHtml(top.name)}</div>
+        <div class="ds-c ds-group-sum">${saMoney(dsSumAmtForCat(top.id, date))}</div>
+        <div class="ds-c"></div>
+        <div class="ds-c"></div>
+      </div>`;
+      return head + kids.map(leafRow).join('');
+    }).join('');
+  }
 
   body.innerHTML = `
-    <div class="wt-note">选择日期，为每个类别录入「每日营业额」与「上月日均营业额」。底部自动汇总各类别合计。「自动填充上月日均」会按上月该类别实际数据计算日均并填入（可再手动改）。</div>
+    <div class="wt-note">选择日期，为每个类别录入「每日营业额」与「上月日均营业额」。有二级小类的大类只作分组标题（显示其下小类合计，不直接录入），金额请在二级小类录入；没有小类的大类可直接录入。底部自动汇总全部合计。「自动填充上月日均」会按上月该类别实际数据计算日均并填入（可再手动改）。</div>
     <div class="toolbar wt-add-bar">
       <div class="wt-field" style="min-width:160px;">
         <label>日期</label>
@@ -3671,7 +3780,7 @@ function renderDsDataTab(body) {
 
   document.getElementById('dsDate').addEventListener('change', () => renderDsDataTab(body));
   document.getElementById('dsAutoFill').addEventListener('click', () => {
-    dsCats.forEach(c => {
+    dsCats.filter(dsIsLeaf).forEach(c => {
       const inp = body.querySelector('.ds-row[data-id="' + c.id + '"] .ds-avg');
       if (inp && !inp.value) inp.value = Math.round(dsLastMonthAvg(c.id, date) * 100) / 100;
     });
@@ -3689,7 +3798,7 @@ function renderDsDataTab(body) {
       // 原地更新本行输入框与汇总，避免整表重渲染导致其它未保存行被清空
       amtInp.value = isNaN(amt) ? 0 : amt;
       avgInp.value = isNaN(avg) ? 0 : avg;
-      dsRefreshSummary(body, date);
+      dsRefreshAllSums(body, date);
       const orig = btn.textContent;
       btn.textContent = '已保存';
       setTimeout(() => { btn.textContent = orig; }, 800);
@@ -3706,6 +3815,15 @@ function dsRefreshSummary(body, date) {
     cells[1].textContent = saMoney(dsSumAmt(date));
     cells[2].textContent = saMoney(dsSumAvg(date));
   }
+}
+// 刷新所有一级分组头的小计 + 底部总计（仅更新文本,不动输入框）
+function dsRefreshAllSums(body, date) {
+  body.querySelectorAll('.ds-group-head').forEach(h => {
+    const gid = h.getAttribute('data-gid');
+    const cell = h.querySelector('.ds-group-sum');
+    if (cell) cell.textContent = saMoney(dsSumAmtForCat(gid, date));
+  });
+  dsRefreshSummary(body, date);
 }
 
 /* ========================================================
@@ -7477,7 +7595,7 @@ const DEALER_FEE_RECORDS_KEY = 'liumo_dealerfee_records';
 let dealerFeeDealers = [];
 let dealerFeeSettings = {};   // { [dealerId]: 每月固定金额 }
 let dealerFeeRecords = [];    // { id, dealerId, year, month, amount, note, createdAt }
-let dealerFeeTab = 'manage';  // manage | setting | dealer | stats
+let dealerFeeTab = 'setting';  // setting | entry
 let dealerFeeDealerEditing = null;
 let dealerFeeRecEditing = null;
 let dfContent = null, dfMod = null;
@@ -7503,7 +7621,7 @@ const dfCurM = () => new Date().getMonth() + 1;
 const dfEnabledDealers = () => dealerFeeDealers.filter(d => d.enabled);
 
 function dfTabsHtml() {
-  const tabs = [['manage', '费用管理'], ['setting', '费用设置'], ['dealer', '经销商管理'], ['stats', '费用统计']];
+  const tabs = [['setting', '经销商设置'], ['entry', '费用录入']];
   return `<div class="df-tabs">` + tabs.map(([id, name]) =>
     `<button class="df-tab ${dealerFeeTab === id ? 'on' : ''}" data-tab="${id}" type="button">${name}</button>`
   ).join('') + `</div>`;
@@ -7519,8 +7637,8 @@ function renderDealerFeeModule(content, mod) {
       <div class="page-desc">${mod.desc}</div>
     </div>
     <div class="wt-note">
-      维护<b>经销商每月给超市的固定费用</b>。先在「经销商管理」录入经销商并<b>启用</b>，再到「费用设置」为每个启用经销商配置<b>每月固定金额</b>；
-      之后在「费用管理」按月登记费用（自动带出设置金额，可改），「费用统计」查看汇总。
+      维护<b>经销商每月给超市的固定费用</b>。在「经销商设置」中添加经销商并<b>启用</b>、为其配置<b>每月固定金额</b>；
+      在「费用录入」中选择经销商（自动带出设置金额，可改）按月登记费用。
       <b>禁用</b>的经销商在费用设置中不可选择，其<b>已登记费用不受影响</b>。
     </div>
     ${dfTabsHtml()}
@@ -7535,10 +7653,29 @@ function renderDealerFeeModule(content, mod) {
 function renderDealerFeeBody() {
   const body = dfContent && dfContent.querySelector('#dfBody');
   if (!body) return;
-  if (dealerFeeTab === 'manage') dfRenderManage(body);
-  else if (dealerFeeTab === 'setting') dfRenderSetting(body);
-  else if (dealerFeeTab === 'dealer') dfRenderDealer(body);
-  else dfRenderStats(body);
+  if (dealerFeeTab === 'setting') dfRenderSettingTab(body);
+  else dfRenderEntryTab(body);
+}
+// 经销商设置：经销商管理 + 费用设置（两个区块）
+function dfRenderSettingTab(body) {
+  body.innerHTML = `
+    <div class="wt-note">先添加经销商并<b>启用</b>，再为启用经销商设置每月固定费用。</div>
+    <div id="dfDealerWrap"></div>
+    <div id="dfSetWrap"></div>
+  `;
+  dfRenderDealer(body.querySelector('#dfDealerWrap'));
+  dfRenderSetting(body.querySelector('#dfSetWrap'));
+}
+// 费用录入：登记/编辑费用（自动带出设置金额）+ 记录列表 + 统计概览
+function dfRenderEntryTab(body) {
+  body.innerHTML = `
+    <div class="wt-note">选择经销商后自动带出「费用设置」中的每月固定金额，可修改后保存；同一经销商同月仅保留一条记录。</div>
+    <div id="dfManageWrap"></div>
+    <h3 style="margin:18px 0 8px;font-size:15px;font-weight:700;color:var(--text);">费用统计</h3>
+    <div id="dfStatsWrap"></div>
+  `;
+  dfRenderManage(body.querySelector('#dfManageWrap'));
+  dfRenderStats(body.querySelector('#dfStatsWrap'));
 }
 
 // ---- 费用管理 ----
