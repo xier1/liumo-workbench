@@ -10948,6 +10948,7 @@ async function init() {
   loadSales();
   tmLoad();
   loadPoster();
+  loadDailySales();   // 必须显式加载每日销售数据，否则刷新后 dsCats/dsLogs 留空
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
   const restored = await tryCloudRestoreFirst();
