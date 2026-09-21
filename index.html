@@ -2255,6 +2255,7 @@
   .wt-cat thead th { position: sticky; top: 0; z-index: 2; color: #fff; font-weight: 600; background: var(--brand-grad); border-bottom: none; }
   .wt-cat thead th:first-child { border-top-left-radius: var(--radius-sm); }
   .wt-cat thead th:last-child { border-top-right-radius: var(--radius-sm); }
+  .wt-cat tfoot td { font-weight: 700; background: var(--bg-soft, #f4f6fa); border-top: 2px solid var(--border); color: var(--text); }
   .wt-cat tbody tr:nth-child(even) { background: rgba(243,244,246,0.55); }
   .wt-cat tbody tr:hover { background: rgba(99,102,241,0.06); }
   .wt-cat tbody tr:last-child td { border-bottom: none; }
@@ -7783,14 +7784,12 @@ function dfRenderRecList(body) {
 function dfRenderDealer(body) {
   const edit = dealerFeeDealerEditing ? dfDealerById(dealerFeeDealerEditing) : null;
   const name = edit ? edit.name : '';
-  const contact = edit ? (edit.contact || '') : '';
   const fee = edit ? (dealerFeeSettings[edit.id] != null ? dealerFeeSettings[edit.id] : '') : '';
   body.innerHTML = `
     <div class="df-card">
       <h3>${edit ? '编辑经销商' : '添加经销商'}</h3>
       <div class="df-form">
         <div class="wt-field"><label>名称</label><input type="text" id="dfDName" placeholder="如 旺旺食品" value="${escapeHtml(name)}"/></div>
-        <div class="wt-field"><label>联系方式（选填）</label><input type="text" id="dfDContact" placeholder="电话 / 微信" value="${escapeHtml(contact)}"/></div>
         <div class="wt-field"><label>每月固定费用（元）</label><input type="number" step="any" min="0" id="dfDFee" placeholder="如 2000" value="${fee}"/></div>
       </div>
       <div class="df-actions">
@@ -7811,17 +7810,16 @@ function dfRenderDealer(body) {
 function dfSaveDealer() {
   const body = dfContent.querySelector('#dfBody');
   const name = body.querySelector('#dfDName').value.trim();
-  const contact = body.querySelector('#dfDContact').value.trim();
   const fee = Number(body.querySelector('#dfDFee').value) || 0;
   if (!name) { showToast('请输入经销商名称'); return; }
   let id;
   if (dealerFeeDealerEditing) {
     const d = dfDealerById(dealerFeeDealerEditing);
-    if (d) { d.name = name; d.contact = contact; id = d.id; }
+    if (d) { d.name = name; id = d.id; }
     dealerFeeDealerEditing = null;
   } else {
     id = uid();
-    dealerFeeDealers.push({ id, name, contact, enabled: true, createdAt: Date.now() });
+    dealerFeeDealers.push({ id, name, enabled: true, createdAt: Date.now() });
   }
   dealerFeeSettings[id] = fee;
   saveDealerFeeDealers(); saveDealerFeeSettings();
@@ -7832,21 +7830,24 @@ function dfRenderDealerList(body) {
   const el = body.querySelector('#dfDList');
   if (!el) return;
   if (dealerFeeDealers.length === 0) { el.innerHTML = `<div class="wt-empty">还没有经销商，先在上方添加。</div>`; return; }
-  el.innerHTML = `<table class="wt-cat"><thead><tr><th>名称</th><th>联系方式</th><th>状态 / 月固定费用</th><th>操作</th></tr></thead><tbody>` +
-    dealerFeeDealers.map(d => {
+  const feeOf = d => dealerFeeSettings[d.id] != null ? (Number(dealerFeeSettings[d.id]) || 0) : 0;
+  const sorted = dealerFeeDealers.slice().sort((a, b) => feeOf(b) - feeOf(a));
+  const total = sorted.reduce((s, d) => s + feeOf(d), 0);
+  el.innerHTML = `<table class="wt-cat"><thead><tr><th>名称</th><th>状态 / 月固定费用</th><th>操作</th></tr></thead><tbody>` +
+    sorted.map(d => {
       const st = d.enabled ? '<span class="df-status on">启用</span>' : '<span class="df-status off">禁用</span>';
       const fee = dealerFeeSettings[d.id];
       const feeTxt = fee != null ? saMoney(fee) + '/月' : '未设置';
       return `<tr>
         <td>${escapeHtml(d.name)}</td>
-        <td>${escapeHtml(d.contact || '—')}</td>
         <td>${st} · ${feeTxt}</td>
         <td>
           <button class="df-btn" data-act="toggle" data-id="${d.id}">${d.enabled ? '禁用' : '启用'}</button>
           <button class="df-btn" data-act="edit" data-id="${d.id}">编辑</button>
           <button class="df-btn df-del" data-act="del" data-id="${d.id}">删除</button>
         </td></tr>`;
-    }).join('') + `</tbody></table>`;
+    }).join('') +
+    `</tbody><tfoot><tr><td colspan="2">合计（${dealerFeeDealers.length} 个经销商 · 每月固定费用）</td><td>${saMoney(total)}/月</td></tr></tfoot></table>`;
   el.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.id, act = b.dataset.act;
     if (act === 'toggle') {
