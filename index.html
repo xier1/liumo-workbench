@@ -2486,6 +2486,17 @@
   .ds-cal-summary { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
   .ds-cal-summary b { color: var(--primary-2); font-size: 15px; }
   .ds-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .ds-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .ds-chart-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .ds-chart-title { font-weight: 700; font-size: 14px; }
+  .ds-chart-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text); align-items: center; }
+  .ds-chart-legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: 3px; }
+  .ds-chart-legend .lg-cur { background: #2563eb; }
+  .ds-chart-legend .lg-prev { background: #94a3b8; }
+  .ds-chart-sel { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 13px; margin-bottom: 10px; }
+  .ds-chart-wrap { overflow-x: auto; }
+  .ds-chart-line { width: 100%; min-width: 640px; height: auto; display: block; }
+  .ds-chart-line text { font-family: var(--font-sans, system-ui, sans-serif); }
   .ds-cal-h { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; font-weight: 600; }
   .ds-cal-cell { min-height: 60px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 4px; background: var(--card); cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .15s, background .15s; }
   .ds-cal-cell.blank { background: transparent; border: none; cursor: default; }
@@ -2852,8 +2863,8 @@ const MODULES = [
     enabled: true,
     group: true,
     children: [
-      { id: 'dscat', name: '类别管理', desc: '增删改查销售类别', icon: '🗂️' },
-      { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额并自动汇总', icon: '💰' }
+      { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额并自动汇总', icon: '💰' },
+      { id: 'dscat', name: '类别管理', desc: '增删改查销售类别', icon: '🗂️' }
     ]
   },
   {
@@ -2963,6 +2974,8 @@ let dsLogs = [];    // [{ id, catId, date:'YYYY-MM-DD', amount:Number, createdAt
 let dsCalY = 0, dsCalM = 0;   // 销售数据日历当前查看的年/月（0 表示未初始化=当前月）
 let dsEditingCatId = null;   // 正在行内编辑的类别 id
 let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
+let dsCatOpen = {};          // 类别管理：各一级大类的子类列表是否展开（默认隐藏）
+let dsChartSel = 'all';      // 曲线图当前选择的类别（'all' | 类别 id）
 
 
 
@@ -3611,7 +3624,7 @@ function renderDailySalesModule(content, mod) {
 
 function renderDailySalesSub(body, mod) {
   const validIds = (mod.children || []).map(c => c.id);
-  const sub = (currentSub && validIds.includes(currentSub)) ? currentSub : 'dscat';
+  const sub = (currentSub && validIds.includes(currentSub)) ? currentSub : validIds[0] || 'dscat';
   if (sub === 'dsdata') renderDsDataTab(body);
   else renderDsCatTab(body);
 }
@@ -3657,10 +3670,16 @@ function renderDsCatList(body) {
     const editInput = dsEditingCatId === c.id
       ? `<input type="text" class="ds-cat-edit" data-id="${c.id}" value="${escapeAttr(c.name)}" style="flex:1;" />`
       : `<div class="iv-name">${escapeHtml(c.name)}</div>`;
+    const kids = isSub ? [] : dsChildren(c.id);
+    const open = !isSub && !!dsCatOpen[c.id];
+    const toggleBtn = (!isSub && kids.length > 0)
+      ? `<button class="btn-sm btn-sub ds-cat-toggle" data-act="toggle" data-id="${c.id}">${open ? '▾ 收起' : '▸ 子类'}(${kids.length})</button>`
+      : '';
     const actions = dsEditingCatId === c.id
       ? `<button class="btn-sm btn-save" data-act="save" data-id="${c.id}">保存</button>
          <button class="btn-sm btn-cancel" data-act="cancel" data-id="${c.id}">取消</button>`
-      : `<button class="btn-sm btn-edit" data-act="edit" data-id="${c.id}">编辑</button>
+      : `${toggleBtn}
+         <button class="btn-sm btn-edit" data-act="edit" data-id="${c.id}">编辑</button>
          <button class="btn-sm btn-del" data-act="del" data-id="${c.id}">删除</button>
          ${isSub ? '' : `<button class="btn-sm btn-sub" data-act="addsub" data-id="${c.id}">+ 子类别</button>`}`;
     return `<div class="wt-item ${isSub ? 'ds-sub' : 'ds-top'}">
@@ -3678,27 +3697,33 @@ function renderDsCatList(body) {
        </div>`
     : '';
 
-  list.innerHTML = dsTopCats().map(top => `
+  list.innerHTML = dsTopCats().map(top => {
+    const open = !!dsCatOpen[top.id];
+    const kids = dsChildren(top.id);
+    const subHtml = (!open && dsAddingSubId !== top.id)
+      ? ''
+      : `${kids.map(sub => catItemHtml(sub, true)).join('')}${subAddHtml(top.id)}`;
+    return `
     <div class="ds-cat-group">
       ${catItemHtml(top, false)}
-      <div class="ds-sub-list">
-        ${dsChildren(top.id).map(sub => catItemHtml(sub, true)).join('')}
-        ${subAddHtml(top.id)}
-      </div>
-    </div>`).join('');
+      <div class="ds-sub-list">${subHtml}</div>
+    </div>`;
+  }).join('');
 
   list.querySelectorAll('[data-act]').forEach(btn => {
     const act = btn.getAttribute('data-act');
     const id = btn.getAttribute('data-id');
     const pid = btn.getAttribute('data-pid');
     btn.addEventListener('click', () => {
-      if (act === 'edit') {
+      if (act === 'toggle') {
+        dsCatOpen[id] = !dsCatOpen[id]; renderDsCatList(body);
+      } else if (act === 'edit') {
         dsEditingCatId = id; dsAddingSubId = null; renderDsCatList(body);
         const inp = list.querySelector('.ds-cat-edit[data-id="' + id + '"]'); if (inp) { inp.focus(); inp.select(); }
       } else if (act === 'cancel') {
         dsEditingCatId = null; renderDsCatList(body);
       } else if (act === 'addsub') {
-        dsAddingSubId = id; dsEditingCatId = null; renderDsCatList(body);
+        dsAddingSubId = id; dsEditingCatId = null; dsCatOpen[id] = true; renderDsCatList(body);
         const inp = list.querySelector('.ds-sub-edit[data-pid="' + id + '"]'); if (inp) { inp.focus(); }
       } else if (act === 'subcancel') {
         dsAddingSubId = null; renderDsCatList(body);
@@ -3742,6 +3767,81 @@ function renderDsCatList(body) {
   });
 }
 
+// ---------- 近两月销售曲线 ----------
+// catId 是否在 scopeId 范围内（自身或其后代）
+function dsIsInScope(scopeId, catId) {
+  if (scopeId === catId) return true;
+  return dsChildren(scopeId).some(ch => dsIsInScope(ch.id, catId));
+}
+// 某类别范围（'all'=全部）在 y 年 m 月的每日序列：[{d, v}]，仅含有记录的天
+function dsDailySeries(sel, y, m) {
+  const prefix = y + '-' + ('0' + m).slice(-2);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const out = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = prefix + '-' + ('0' + d).slice(-2);
+    let has = false, v = 0;
+    dsLogs.forEach(l => {
+      if (l.date !== date) return;
+      if (sel !== 'all' && !dsIsInScope(sel, l.catId)) return;
+      has = true; v += Number(l.amount) || 0;
+    });
+    if (has) out.push({ d, v });
+  }
+  return out;
+}
+// 近两月折线图（本月=蓝实线，上月=灰虚线；相邻缺天断开；数据点悬停显示金额）
+function buildDsLineChart(curPts, prevPts, curLabel, prevLabel, maxDays) {
+  const maxV = Math.max(0, ...curPts.map(p => p.v), ...prevPts.map(p => p.v));
+  if (maxV <= 0) return '';
+  const W = 720, H = 250;
+  const padL = 54, padR = 14, padT = 16, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const baseY = padT + plotH;
+  const niceMax = niceCeil(maxV);
+  const maxD = Math.max(2, maxDays);
+  const xOf = d => padL + (d - 1) / (maxD - 1) * plotW;
+  const yOf = v => baseY - v / niceMax * plotH;
+
+  let grid = '';
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = niceMax * i / ticks, y = yOf(v);
+    grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--border)" stroke-width="1" opacity="0.55"/>`;
+    grid += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="var(--text-muted,#6b7280)">${saMoneyShort(v)}</text>`;
+  }
+  let xAxis = `<line x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
+  for (let d = 1; d <= maxDays; d++) {
+    if (d === 1 || d % 5 === 0) xAxis += `<text x="${xOf(d).toFixed(1)}" y="${baseY + 17}" text-anchor="middle" font-size="10.5" fill="var(--text-muted,#6b7280)">${d}日</text>`;
+  }
+  // 按日排序后分段：相邻两天缺数据即断线，避免误导性连线
+  const buildSegs = pts => {
+    const sorted = pts.slice().sort((a, b) => a.d - b.d);
+    const segs = []; let cur = [];
+    sorted.forEach(p => {
+      if (cur.length && p.d - cur[cur.length - 1].d > 1) { segs.push(cur); cur = []; }
+      cur.push(p);
+    });
+    if (cur.length) segs.push(cur);
+    return segs;
+  };
+  const lineOf = (pts, color, dash, label) => {
+    let s = '';
+    buildSegs(pts).forEach(seg => {
+      if (seg.length >= 2) {
+        const ptsStr = seg.map(p => xOf(p.d).toFixed(1) + ',' + yOf(p.v).toFixed(1)).join(' ');
+        s += `<polyline points="${ptsStr}" fill="none" stroke="${color}" stroke-width="2"${dash ? ' stroke-dasharray="6 4"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+      }
+      seg.forEach(p => {
+        s += `<circle cx="${xOf(p.d).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3" fill="${color}"><title>${label} ${p.d}日：${saMoney(p.v)}</title></circle>`;
+      });
+    });
+    return s;
+  };
+  const lines = lineOf(prevPts, '#94a3b8', true, prevLabel) + lineOf(curPts, '#2563eb', false, curLabel);
+  return `<svg class="ds-chart-line" viewBox="0 0 ${W} ${H}" role="img" aria-label="近两月销售曲线">${grid}${xAxis}${lines}</svg>`;
+}
+
 // ---------- 页签二：销售数据（日历视图） ----------
 function renderDsDataTab(body) {
   const now = new Date();
@@ -3769,8 +3869,34 @@ function renderDsDataTab(body) {
   for (let i = 0; i < pad; i++) cells += '<div class="ds-cal-cell blank"></div>';
   const wdHead = ['一', '二', '三', '四', '五', '六', '日'].map(w => `<div class="ds-cal-h">${w}</div>`).join('');
 
+  // ---- 近两月曲线图（跟随当前查看的月份） ----
+  const prevM = m === 1 ? 12 : m - 1;
+  const prevY = m === 1 ? y - 1 : y;
+  const curPts = dsDailySeries(dsChartSel, y, m);
+  const prevPts = dsDailySeries(dsChartSel, prevY, prevM);
+  const maxDays = Math.max(daysInMonth, new Date(prevY, prevM, 0).getDate());
+  const chartSvg = buildDsLineChart(curPts, prevPts, `${m}月`, `${prevM}月`, maxDays);
+  const chartOpts = [`<option value="all"${dsChartSel === 'all' ? ' selected' : ''}>全部类别（合计）</option>`];
+  dsTopCats().forEach(top => {
+    chartOpts.push(`<option value="${top.id}"${dsChartSel === top.id ? ' selected' : ''}>${escapeHtml(top.name)}（大类）</option>`);
+    dsChildren(top.id).forEach(sub => {
+      chartOpts.push(`<option value="${sub.id}"${dsChartSel === sub.id ? ' selected' : ''}>　└ ${escapeHtml(sub.name)}（小类）</option>`);
+    });
+  });
+
   body.innerHTML = `
     <div class="wt-note">点击下方任意日期填写 / 修改当日各分类营业额。已填写的日期高亮并显示金额，未填写的显示「待填」，两类都可点击。</div>
+    <div class="ds-chart-card">
+      <div class="ds-chart-head">
+        <div class="ds-chart-title">近两月销售曲线</div>
+        <div class="ds-chart-legend">
+          <span><i class="lg-prev"></i>上月（${prevY}-${('0' + prevM).slice(-2)}）</span>
+          <span><i class="lg-cur"></i>本月（${y}-${('0' + m).slice(-2)}）</span>
+        </div>
+      </div>
+      <select id="dsChartSel" class="ds-chart-sel">${chartOpts.join('')}</select>
+      <div class="ds-chart-wrap">${chartSvg || '<div class="wt-empty">近两月暂无数据，先在下方日历填写几天吧</div>'}</div>
+    </div>
     <div class="ds-cal-bar">
       <button class="ds-cal-nav" id="dsCalPrev" type="button">‹</button>
       <div class="ds-cal-title">${y} 年 ${m} 月</div>
@@ -3780,6 +3906,9 @@ function renderDsDataTab(body) {
     <div class="ds-cal-summary">本月合计 <b>${saMoney(monthAmt)}</b> · 已填 ${filledSet.size} / ${daysInMonth} 天</div>
     <div class="ds-cal-grid">${wdHead}${cells}</div>
   `;
+
+  const selEl = body.querySelector('#dsChartSel');
+  if (selEl) selEl.addEventListener('change', () => { dsChartSel = selEl.value; renderDsDataTab(body); });
 
   body.querySelector('#dsCalPrev').addEventListener('click', () => { dsCalM--; if (dsCalM < 1) { dsCalM = 12; dsCalY--; } renderDsDataTab(body); });
   body.querySelector('#dsCalNext').addEventListener('click', () => { dsCalM++; if (dsCalM > 12) { dsCalM = 1; dsCalY++; } renderDsDataTab(body); });
