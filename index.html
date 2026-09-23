@@ -2486,17 +2486,28 @@
   .ds-cal-summary { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
   .ds-cal-summary b { color: var(--primary-2); font-size: 15px; }
   .ds-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .ds-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
-  .ds-chart-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .ds-chart-title { font-weight: 700; font-size: 14px; }
-  .ds-chart-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text); align-items: center; }
-  .ds-chart-legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: 3px; }
-  .ds-chart-legend .lg-cur { background: #2563eb; }
-  .ds-chart-legend .lg-prev { background: #94a3b8; }
-  .ds-chart-sel { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 13px; margin-bottom: 10px; }
-  .ds-chart-wrap { overflow-x: auto; }
-  .ds-chart-line { width: 100%; min-width: 640px; height: auto; display: block; }
-  .ds-chart-line text { font-family: var(--font-sans, system-ui, sans-serif); }
+  .ds-tbl-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .ds-tbl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .ds-tbl-title { font-weight: 700; font-size: 14px; }
+  .ds-tbl-meta { font-size: 12px; color: var(--text-muted); }
+  .ds-tbl-meta b { color: var(--primary-2); font-weight: 700; }
+  .ds-tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .ds-tbl { width: 100%; min-width: 920px; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .ds-tbl thead th { background: var(--bg-soft, var(--bg)); color: var(--text-muted); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; text-align: center; }
+  .ds-tbl thead th.ds-tbl-cat { text-align: left; padding-left: 10px; min-width: 130px; }
+  .ds-tbl thead th.ds-tbl-sum-col { width: 92px; }
+  .ds-tbl thead th.ds-tbl-wk { color: var(--primary-2); }
+  .ds-tbl thead th.ds-tbl-d { width: 34px; }
+  .ds-tbl tbody td { padding: 5px 4px; border-bottom: 1px solid var(--border); text-align: right; }
+  .ds-tbl tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
+  .ds-tbl .ds-tbl-cat { text-align: left !important; padding-left: 10px; color: var(--text); font-weight: 500; white-space: nowrap; }
+  .ds-tbl tbody .ds-tbl-cat.ds-tbl-top { font-weight: 700; color: var(--primary-2); }
+  .ds-tbl .ds-tbl-wk { background: rgba(99,102,241,0.03); }
+  .ds-tbl-v { color: var(--text); }
+  .ds-tbl-empty { color: var(--text-muted); opacity: .4; }
+  .ds-tbl-sum-v { background: var(--bg-soft, var(--bg)); font-weight: 700; color: var(--primary-2); }
+  .ds-tbl-total td { background: rgba(99,102,241,0.10); font-weight: 700; color: var(--text); border-top: 2px solid var(--primary-2); }
+  .ds-tbl-total .ds-tbl-sum-v { background: rgba(99,102,241,0.12); color: var(--primary-2); }
   .ds-cal-h { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; font-weight: 600; }
   .ds-cal-cell { min-height: 60px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 4px; background: var(--card); cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .15s, background .15s; }
   .ds-cal-cell.blank { background: transparent; border: none; cursor: default; }
@@ -2975,7 +2986,7 @@ let dsCalY = 0, dsCalM = 0;   // 销售数据日历当前查看的年/月（0 �
 let dsEditingCatId = null;   // 正在行内编辑的类别 id
 let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
 let dsCatOpen = {};          // 类别管理：各一级大类的子类列表是否展开（默认隐藏）
-let dsChartSel = 'all';      // 曲线图当前选择的类别（'all' | 类别 id）
+// ---------- 销售数据页签渲染 ----------
 
 
 
@@ -3767,80 +3778,77 @@ function renderDsCatList(body) {
   });
 }
 
-// ---------- 近两月销售曲线 ----------
-// catId 是否在 scopeId 范围内（自身或其后代）
-function dsIsInScope(scopeId, catId) {
-  if (scopeId === catId) return true;
-  return dsChildren(scopeId).some(ch => dsIsInScope(ch.id, catId));
+// ---------- 大类×日期表：行=一级大类，列=当月每日 + 月合计 ----------
+// 某一级大类（含其所有后代叶子）在指定日期的合计
+function dsCatDayAmt(catId, date) {
+  let s = 0;
+  dsLogs.forEach(l => {
+    if (l.date !== date) return;
+    if (!dsIsDescendantOrSelf(catId, l.catId)) return;
+    s += Number(l.amount) || 0;
+  });
+  return s;
 }
-// 某类别范围（'all'=全部）在 y 年 m 月的每日序列：[{d, v}]，仅含有记录的天
-function dsDailySeries(sel, y, m) {
+// catId 是否等于或包含 descId（含全部后代）
+function dsIsDescendantOrSelf(catId, descId) {
+  if (catId === descId) return true;
+  return dsChildren(catId).some(ch => dsIsDescendantOrSelf(ch.id, descId));
+}
+function buildDsCatDateTable(y, m) {
+  const tops = dsTopCats();
+  if (tops.length === 0) return { html: '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>', totalSum: 0, totalFilled: 0, catCount: 0 };
   const prefix = y + '-' + ('0' + m).slice(-2);
   const daysInMonth = new Date(y, m, 0).getDate();
-  const out = [];
+  const dowArr = ['日', '一', '二', '三', '四', '五', '六'];
+
+  // 列头：首列「大类」+ 各日（周末蓝）+ 月合计
+  let head = `<tr><th class="ds-tbl-cat">大类</th>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(y, m - 1, d).getDay();
+    const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
+    head += `<th class="ds-tbl-d${wk}" title="${d}日 周${dowArr[dow]}">${d}</th>`;
+  }
+  head += `<th class="ds-tbl-sum ds-tbl-sum-col">月合计</th></tr>`;
+
+  // 行：每个一级大类一行，列=各日金额（子类自动汇总进所属大类）
+  let body = '';
+  let totalSum = 0;
+  const overallFilledSet = new Set();
+  tops.forEach(top => {
+    body += `<tr class="ds-tbl-leaf"><td class="ds-tbl-cat ds-tbl-top">${escapeHtml(top.name)}</td>`;
+    let rowSum = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = prefix + '-' + ('0' + d).slice(-2);
+      const v = dsCatDayAmt(top.id, date);
+      rowSum += v;
+      const dow = new Date(y, m - 1, d).getDay();
+      const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
+      body += `<td class="ds-tbl-v${v ? '' : ' ds-tbl-empty'}${wk}" title="${escapeAttr(top.name)} ${d}日${v ? '：' + saMoney(v) : '：未填'}">${v ? saMoney(v) : ''}</td>`;
+      if (v > 0) overallFilledSet.add(date);
+    }
+    body += `<td class="ds-tbl-v ds-tbl-sum-v">${rowSum ? saMoney(rowSum) : ''}</td></tr>`;
+    totalSum += rowSum;
+  });
+  // 底部合计行：每列=当日全部分类合计，末列=月总计
+  let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td>`;
+  let monthFilled = 0;
   for (let d = 1; d <= daysInMonth; d++) {
     const date = prefix + '-' + ('0' + d).slice(-2);
-    let has = false, v = 0;
-    dsLogs.forEach(l => {
-      if (l.date !== date) return;
-      if (sel !== 'all' && !dsIsInScope(sel, l.catId)) return;
-      has = true; v += Number(l.amount) || 0;
-    });
-    if (has) out.push({ d, v });
+    const v = dsSumAmt(date);
+    if (v > 0) { monthFilled++; overallFilledSet.add(date); }
+    const dow = new Date(y, m - 1, d).getDay();
+    const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
+    tRow += `<td class="ds-tbl-v ds-tbl-total-cell${wk}">${v ? saMoney(v) : ''}</td>`;
   }
-  return out;
-}
-// 近两月折线图（本月=蓝实线，上月=灰虚线；相邻缺天断开；数据点悬停显示金额）
-function buildDsLineChart(curPts, prevPts, curLabel, prevLabel, maxDays) {
-  const maxV = Math.max(0, ...curPts.map(p => p.v), ...prevPts.map(p => p.v));
-  if (maxV <= 0) return '';
-  const W = 720, H = 250;
-  const padL = 54, padR = 14, padT = 16, padB = 30;
-  const plotW = W - padL - padR, plotH = H - padT - padB;
-  const baseY = padT + plotH;
-  const niceMax = niceCeil(maxV);
-  const maxD = Math.max(2, maxDays);
-  const xOf = d => padL + (d - 1) / (maxD - 1) * plotW;
-  const yOf = v => baseY - v / niceMax * plotH;
+  tRow += `<td class="ds-tbl-v ds-tbl-sum-v">${totalSum ? saMoney(totalSum) : ''}</td></tr>`;
+  body += tRow;
+  const totalFilled = overallFilledSet.size;
 
-  let grid = '';
-  const ticks = 4;
-  for (let i = 0; i <= ticks; i++) {
-    const v = niceMax * i / ticks, y = yOf(v);
-    grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--border)" stroke-width="1" opacity="0.55"/>`;
-    grid += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="var(--text-muted,#6b7280)">${saMoneyShort(v)}</text>`;
-  }
-  let xAxis = `<line x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
-  for (let d = 1; d <= maxDays; d++) {
-    if (d === 1 || d % 5 === 0) xAxis += `<text x="${xOf(d).toFixed(1)}" y="${baseY + 17}" text-anchor="middle" font-size="10.5" fill="var(--text-muted,#6b7280)">${d}日</text>`;
-  }
-  // 按日排序后分段：相邻两天缺数据即断线，避免误导性连线
-  const buildSegs = pts => {
-    const sorted = pts.slice().sort((a, b) => a.d - b.d);
-    const segs = []; let cur = [];
-    sorted.forEach(p => {
-      if (cur.length && p.d - cur[cur.length - 1].d > 1) { segs.push(cur); cur = []; }
-      cur.push(p);
-    });
-    if (cur.length) segs.push(cur);
-    return segs;
-  };
-  const lineOf = (pts, color, dash, label) => {
-    let s = '';
-    buildSegs(pts).forEach(seg => {
-      if (seg.length >= 2) {
-        const ptsStr = seg.map(p => xOf(p.d).toFixed(1) + ',' + yOf(p.v).toFixed(1)).join(' ');
-        s += `<polyline points="${ptsStr}" fill="none" stroke="${color}" stroke-width="2"${dash ? ' stroke-dasharray="6 4"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
-      }
-      seg.forEach(p => {
-        s += `<circle cx="${xOf(p.d).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3" fill="${color}"><title>${label} ${p.d}日：${saMoney(p.v)}</title></circle>`;
-      });
-    });
-    return s;
-  };
-  const lines = lineOf(prevPts, '#94a3b8', true, prevLabel) + lineOf(curPts, '#2563eb', false, curLabel);
-  return `<svg class="ds-chart-line" viewBox="0 0 ${W} ${H}" role="img" aria-label="近两月销售曲线">${grid}${xAxis}${lines}</svg>`;
+  const html = `<table class="ds-tbl"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  return { html, totalSum, totalFilled, catCount: tops.length };
 }
+
+// ---------- 对比分析大表已删除 ----------
 
 // ---------- 页签二：销售数据（日历视图） ----------
 function renderDsDataTab(body) {
@@ -3869,33 +3877,17 @@ function renderDsDataTab(body) {
   for (let i = 0; i < pad; i++) cells += '<div class="ds-cal-cell blank"></div>';
   const wdHead = ['一', '二', '三', '四', '五', '六', '日'].map(w => `<div class="ds-cal-h">${w}</div>`).join('');
 
-  // ---- 近两月曲线图（跟随当前查看的月份） ----
-  const prevM = m === 1 ? 12 : m - 1;
-  const prevY = m === 1 ? y - 1 : y;
-  const curPts = dsDailySeries(dsChartSel, y, m);
-  const prevPts = dsDailySeries(dsChartSel, prevY, prevM);
-  const maxDays = Math.max(daysInMonth, new Date(prevY, prevM, 0).getDate());
-  const chartSvg = buildDsLineChart(curPts, prevPts, `${m}月`, `${prevM}月`, maxDays);
-  const chartOpts = [`<option value="all"${dsChartSel === 'all' ? ' selected' : ''}>全部类别（合计）</option>`];
-  dsTopCats().forEach(top => {
-    chartOpts.push(`<option value="${top.id}"${dsChartSel === top.id ? ' selected' : ''}>${escapeHtml(top.name)}（大类）</option>`);
-    dsChildren(top.id).forEach(sub => {
-      chartOpts.push(`<option value="${sub.id}"${dsChartSel === sub.id ? ' selected' : ''}>　└ ${escapeHtml(sub.name)}（小类）</option>`);
-    });
-  });
+  // ---- 大类×日期表 ----
+  const tbl = buildDsCatDateTable(y, m);
 
   body.innerHTML = `
     <div class="wt-note">点击下方任意日期填写 / 修改当日各分类营业额。已填写的日期高亮并显示金额，未填写的显示「待填」，两类都可点击。</div>
-    <div class="ds-chart-card">
-      <div class="ds-chart-head">
-        <div class="ds-chart-title">近两月销售曲线</div>
-        <div class="ds-chart-legend">
-          <span><i class="lg-prev"></i>上月（${prevY}-${('0' + prevM).slice(-2)}）</span>
-          <span><i class="lg-cur"></i>本月（${y}-${('0' + m).slice(-2)}）</span>
-        </div>
+    <div class="ds-tbl-card">
+      <div class="ds-tbl-head">
+        <div class="ds-tbl-title">本月各大类销售明细 · ${y} 年 ${m} 月</div>
+        <div class="ds-tbl-meta">已填 <b>${tbl.totalFilled}</b> / ${daysInMonth} 天 · 大类 <b>${tbl.catCount}</b> · 月合计 <b>${saMoney(tbl.totalSum)}</b></div>
       </div>
-      <select id="dsChartSel" class="ds-chart-sel">${chartOpts.join('')}</select>
-      <div class="ds-chart-wrap">${chartSvg || '<div class="wt-empty">近两月暂无数据，先在下方日历填写几天吧</div>'}</div>
+      <div class="ds-tbl-wrap">${tbl.html}</div>
     </div>
     <div class="ds-cal-bar">
       <button class="ds-cal-nav" id="dsCalPrev" type="button">‹</button>
@@ -3906,9 +3898,6 @@ function renderDsDataTab(body) {
     <div class="ds-cal-summary">本月合计 <b>${saMoney(monthAmt)}</b> · 已填 ${filledSet.size} / ${daysInMonth} 天</div>
     <div class="ds-cal-grid">${wdHead}${cells}</div>
   `;
-
-  const selEl = body.querySelector('#dsChartSel');
-  if (selEl) selEl.addEventListener('change', () => { dsChartSel = selEl.value; renderDsDataTab(body); });
 
   body.querySelector('#dsCalPrev').addEventListener('click', () => { dsCalM--; if (dsCalM < 1) { dsCalM = 12; dsCalY--; } renderDsDataTab(body); });
   body.querySelector('#dsCalNext').addEventListener('click', () => { dsCalM++; if (dsCalM > 12) { dsCalM = 1; dsCalY++; } renderDsDataTab(body); });
