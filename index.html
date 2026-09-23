@@ -2476,6 +2476,45 @@
   .ds-group-head .ds-name { color: var(--text); }
   .btn-sub { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
   .btn-sub:hover { background: #e0e7ff; }
+  /* 每日销售数据:日历视图 */
+  .ds-cal-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; }
+  .ds-cal-nav { border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 18px; line-height: 1; color: var(--text); }
+  .ds-cal-nav:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .ds-cal-title { font-weight: 700; font-size: 16px; margin: 0 6px; min-width: 96px; text-align: center; }
+  .ds-cal-today { margin-left: auto; border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--text); }
+  .ds-cal-today:hover { border-color: var(--primary-2); color: var(--primary-2); }
+  .ds-cal-summary { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+  .ds-cal-summary b { color: var(--primary-2); font-size: 15px; }
+  .ds-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .ds-cal-h { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; font-weight: 600; }
+  .ds-cal-cell { min-height: 60px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 4px; background: var(--card); cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .15s, background .15s; }
+  .ds-cal-cell.blank { background: transparent; border: none; cursor: default; }
+  .ds-cal-cell.empty { background: #fafbfc; }
+  .ds-cal-cell.filled { background: #eef2ff; border-color: #c7d2fe; }
+  .ds-cal-cell.today { box-shadow: 0 0 0 2px var(--primary-2) inset; }
+  .ds-cal-cell:hover:not(.blank) { border-color: var(--primary-2); }
+  .ds-cal-day { font-size: 13px; font-weight: 600; color: var(--text); }
+  .ds-cal-amt { font-size: 11px; color: var(--primary-2); font-variant-numeric: tabular-nums; line-height: 1.25; word-break: break-all; }
+  .ds-cal-hint { font-size: 11px; color: #b6bcc7; }
+  /* 每日销售数据:日期弹窗 */
+  .ds-cal-mask { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
+  .ds-cal-modal { width: 100%; max-width: 520px; max-height: 88vh; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; animation: dsCalPop .18s ease; }
+  @keyframes dsCalPop { from { transform: translateY(16px) scale(.98); opacity: .6; } to { transform: none; opacity: 1; } }
+  .ds-cal-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .ds-cal-modal-title { font-weight: 700; font-size: 16px; }
+  .ds-cal-close { border: none; background: transparent; font-size: 24px; line-height: 1; color: var(--text-muted); cursor: pointer; padding: 0 4px; }
+  .ds-cal-modal-body { padding: 8px 16px 12px; overflow-y: auto; flex: 1; }
+  .ds-cal-group { font-weight: 700; font-size: 13px; color: var(--text); margin: 14px 0 6px; padding-left: 8px; border-left: 3px solid var(--primary-2); }
+  .ds-cal-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .ds-cal-cat { font-size: 14px; color: var(--text); flex: 1; min-width: 0; }
+  .ds-cal-vals { display: flex; gap: 8px; flex: 1; min-width: 0; }
+  .ds-cal-field { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .ds-cal-field span { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .ds-cal-field input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: right; font-variant-numeric: tabular-nums; }
+  .ds-cal-field input:focus { outline: none; border-color: var(--primary-2); }
+  .ds-cal-modal-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-soft); }
+  .ds-cal-total { font-size: 14px; color: var(--text); }
+  .ds-cal-total b { color: var(--primary-2); font-size: 18px; margin-left: 4px; }
   .btn-sm { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); font-size: 12.5px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
   .btn-sm:hover { border-color: var(--primary-2); color: var(--primary-2); }
   .btn-edit { color: var(--primary-2); border-color: #c7d2fe; }
@@ -2807,13 +2846,13 @@ const MODULES = [
   {
     id: 'dailysales',
     name: '每日销售数据',
-    desc: '类别管理 · 每日营业额录入与汇总（含上月日均对比）',
+    desc: '类别管理 · 每日营业额录入与汇总',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/></svg>',
     enabled: true,
     group: true,
     children: [
       { id: 'dscat', name: '类别管理', desc: '增删改查销售类别', icon: '🗂️' },
-      { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额与上月日均营业额，并自动汇总', icon: '💰' }
+      { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额并自动汇总', icon: '💰' }
     ]
   },
   {
@@ -2919,7 +2958,8 @@ let scrapEditingId = null;     // 正在编辑的记录 id（null 表示新增�
 
 // ---------- 每日销售数据状态 ----------
 let dsCats = [];    // [{ id, name, order }]
-let dsLogs = [];    // [{ id, catId, date:'YYYY-MM-DD', amount:Number, lastAvg:Number, createdAt, updatedAt }]
+let dsLogs = [];    // [{ id, catId, date:'YYYY-MM-DD', amount:Number, createdAt, updatedAt }]
+let dsCalY = 0, dsCalM = 0;   // 销售数据日历当前查看的年/月（0 表示未初始化=当前月）
 let dsEditingCatId = null;   // 正在行内编辑的类别 id
 let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
 
@@ -3504,28 +3544,12 @@ function dsGet(catId, date) {
 function dsSumAmt(date) {
   return dsLogs.filter(l => l.date === date).reduce((s, l) => s + (Number(l.amount) || 0), 0);
 }
-// 某日期「上月日均营业额」汇总
-function dsSumAvg(date) {
-  return dsLogs.filter(l => l.date === date).reduce((s, l) => s + (Number(l.lastAvg) || 0), 0);
-}
-// 上月日均营业额：上个月该类别每日营业额之和 / 上个月有记录的天数
-function dsLastMonthAvg(catId, refDate) {
-  const p = (refDate || '').split('-').map(Number);
-  if (p.length !== 3 || p.some(isNaN)) return 0;
-  const lm = (p[1] === 1) ? { y: p[0] - 1, m: 12 } : { y: p[0], m: p[1] - 1 };
-  const prefix = lm.y + '-' + ('0' + lm.m).slice(-2);
-  const recs = dsLogs.filter(l => l.catId === catId && (l.date || '').slice(0, 7) === prefix);
-  if (recs.length === 0) return 0;
-  const sum = recs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
-  const days = new Set(recs.map(l => l.date)).size;
-  return days ? sum / days : 0;
-}
 // 写入/更新某类别某日期数据
-function dsUpsert(catId, date, amount, lastAvg) {
+function dsUpsert(catId, date, amount) {
   const now = Date.now();
   const r = dsGet(catId, date);
-  if (r) { r.amount = amount; r.lastAvg = lastAvg; r.updatedAt = now; }
-  else dsLogs.push({ id: uid(), catId, date, amount, lastAvg, createdAt: now, updatedAt: now });
+  if (r) { r.amount = amount; r.updatedAt = now; }
+  else dsLogs.push({ id: uid(), catId, date, amount, createdAt: now, updatedAt: now });
   saveDsLogs();
 }
 // 删除类别（级联删除其全部子类别及销售数据）
@@ -3717,114 +3741,122 @@ function renderDsCatList(body) {
   });
 }
 
-// ---------- 页签二：销售数据 ----------
+// ---------- 页签二：销售数据（日历视图） ----------
 function renderDsDataTab(body) {
-  const dateInput = document.getElementById('dsDate');
-  const date = (dateInput && dateInput.value) ? dateInput.value : todayStr();
+  const now = new Date();
+  if (!dsCalY) { dsCalY = now.getFullYear(); dsCalM = now.getMonth() + 1; }
+  const y = dsCalY, m = dsCalM;
+  const prefix = y + '-' + ('0' + m).slice(-2);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7;  // 周一为第一列
+  const monthAmt = dsLogs.filter(l => (l.date || '').slice(0, 7) === prefix).reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const filledSet = new Set(dsLogs.filter(l => (l.date || '').slice(0, 7) === prefix).map(l => l.date));
+
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += '<div class="ds-cal-cell blank"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = prefix + '-' + ('0' + d).slice(-2);
+    const amt = dsSumAmt(date);
+    const filled = filledSet.has(date);
+    const isToday = date === todayStr();
+    cells += `<div class="ds-cal-cell ${filled ? 'filled' : 'empty'}${isToday ? ' today' : ''}" data-date="${date}">
+        <div class="ds-cal-day">${d}</div>
+        ${filled ? `<div class="ds-cal-amt">${saMoney(amt)}</div>` : `<div class="ds-cal-hint">待填</div>`}
+      </div>`;
+  }
+  const pad = (7 - ((firstDow + daysInMonth) % 7)) % 7;
+  for (let i = 0; i < pad; i++) cells += '<div class="ds-cal-cell blank"></div>';
+  const wdHead = ['一', '二', '三', '四', '五', '六', '日'].map(w => `<div class="ds-cal-h">${w}</div>`).join('');
+
+  body.innerHTML = `
+    <div class="wt-note">点击下方任意日期填写 / 修改当日各分类营业额。已填写的日期高亮并显示金额，未填写的显示「待填」，两类都可点击。</div>
+    <div class="ds-cal-bar">
+      <button class="ds-cal-nav" id="dsCalPrev" type="button">‹</button>
+      <div class="ds-cal-title">${y} 年 ${m} 月</div>
+      <button class="ds-cal-nav" id="dsCalNext" type="button">›</button>
+      <button class="ds-cal-today" id="dsCalToday" type="button">今天</button>
+    </div>
+    <div class="ds-cal-summary">本月合计 <b>${saMoney(monthAmt)}</b> · 已填 ${filledSet.size} / ${daysInMonth} 天</div>
+    <div class="ds-cal-grid">${wdHead}${cells}</div>
+  `;
+
+  body.querySelector('#dsCalPrev').addEventListener('click', () => { dsCalM--; if (dsCalM < 1) { dsCalM = 12; dsCalY--; } renderDsDataTab(body); });
+  body.querySelector('#dsCalNext').addEventListener('click', () => { dsCalM++; if (dsCalM > 12) { dsCalM = 1; dsCalY++; } renderDsDataTab(body); });
+  body.querySelector('#dsCalToday').addEventListener('click', () => { const n = new Date(); dsCalY = n.getFullYear(); dsCalM = n.getMonth() + 1; renderDsDataTab(body); });
+  body.querySelectorAll('.ds-cal-cell[data-date]').forEach(cell => {
+    cell.addEventListener('click', () => dsOpenDayModal(body, cell.getAttribute('data-date')));
+  });
+}
+
+// 点击某一天：弹窗加载类别表单，逐类填金额，底部总额 + 保存
+function dsOpenDayModal(body, date) {
+  const ex = document.getElementById('dsCalMask'); if (ex) ex.remove();
   const recMap = {};
   dsLogs.filter(l => l.date === date).forEach(l => { recMap[l.catId] = l; });
 
   const leafRow = (c) => {
     const r = recMap[c.id];
-    return `<div class="ds-row" data-id="${c.id}">
-      <div class="ds-c ds-name">${escapeHtml(c.name)}</div>
-      <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-amt" value="${r ? (r.amount != null ? r.amount : '') : ''}" placeholder="0" /></div>
-      <div class="ds-c"><input type="number" step="0.01" min="0" class="ds-avg" value="${r ? (r.lastAvg != null ? r.lastAvg : '') : ''}" placeholder="0" /></div>
-      <div class="ds-c"><button class="btn-sm btn-save ds-save" data-id="${c.id}">保存</button></div>
-    </div>`;
-  };
-  let rows;
-  if (dsTopCats().length === 0) {
-    rows = '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>';
-  } else {
-    rows = dsTopCats().map(top => {
-      const kids = dsChildren(top.id);
-      if (kids.length === 0) return leafRow(top);   // 无二级:一级自身即录入行
-      const head = `<div class="ds-row ds-group-head" data-gid="${top.id}">
-        <div class="ds-c ds-name">${escapeHtml(top.name)}</div>
-        <div class="ds-c ds-group-sum">${saMoney(dsSumAmtForCat(top.id, date))}</div>
-        <div class="ds-c"></div>
-        <div class="ds-c"></div>
+    return `<div class="ds-cal-row">
+        <div class="ds-cal-cat">${escapeHtml(c.name)}</div>
+        <div class="ds-cal-vals">
+          <div class="ds-cal-field"><span>营业额(元)</span><input type="number" step="0.01" min="0" class="ds-cal-amt" data-id="${c.id}" value="${r ? (r.amount != null ? r.amount : '') : ''}" placeholder="0" /></div>
+        </div>
       </div>`;
+  };
+  let rowsHtml;
+  if (dsTopCats().length === 0) {
+    rowsHtml = '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>';
+  } else {
+    rowsHtml = dsTopCats().map(top => {
+      const kids = dsChildren(top.id);
+      if (kids.length === 0) return leafRow(top);
+      const head = `<div class="ds-cal-group">${escapeHtml(top.name)}</div>`;
       return head + kids.map(leafRow).join('');
     }).join('');
   }
 
-  body.innerHTML = `
-    <div class="wt-note">选择日期，为每个类别录入「每日营业额」与「上月日均营业额」。有二级小类的大类只作分组标题（显示其下小类合计，不直接录入），金额请在二级小类录入；没有小类的大类可直接录入。底部自动汇总全部合计。「自动填充上月日均」会按上月该类别实际数据计算日均并填入（可再手动改）。</div>
-    <div class="toolbar wt-add-bar">
-      <div class="wt-field" style="min-width:160px;">
-        <label>日期</label>
-        <input type="date" id="dsDate" value="${date}" />
-      </div>
-      <button class="btn-add" id="dsAutoFill" style="align-self:flex-end;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-        <span>自动填充上月日均</span>
-      </button>
-    </div>
-    <div class="ds-table">
-      <div class="ds-row ds-head">
-        <div class="ds-c">类别</div>
-        <div class="ds-c">每日营业额(元)</div>
-        <div class="ds-c">上月日均营业额(元)</div>
-        <div class="ds-c"></div>
-      </div>
-      ${rows}
-      <div class="ds-row ds-sum">
-        <div class="ds-c ds-name">汇总</div>
-        <div class="ds-c">${saMoney(dsSumAmt(date))}</div>
-        <div class="ds-c">${saMoney(dsSumAvg(date))}</div>
-        <div class="ds-c"></div>
-      </div>
-    </div>
-  `;
+  const dObj = new Date(date + 'T00:00:00');
+  const wd = ['日', '一', '二', '三', '四', '五', '六'][dObj.getDay()];
+  const title = `${Number(date.slice(5, 7))} 月 ${Number(date.slice(8, 10))} 日 · 周${wd}`;
 
-  document.getElementById('dsDate').addEventListener('change', () => renderDsDataTab(body));
-  document.getElementById('dsAutoFill').addEventListener('click', () => {
+  const mask = document.createElement('div');
+  mask.className = 'ds-cal-mask';
+  mask.id = 'dsCalMask';
+  mask.innerHTML = `
+    <div class="ds-cal-modal">
+      <div class="ds-cal-modal-head">
+        <div class="ds-cal-modal-title">${title}</div>
+        <button class="ds-cal-close" id="dsCalClose" type="button">×</button>
+      </div>
+      <div class="ds-cal-modal-body" id="dsCalBody">${rowsHtml}</div>
+      <div class="ds-cal-modal-foot">
+        <div class="ds-cal-total">总金额 <b id="dsCalTotal">${saMoney(0)}</b></div>
+        <button class="btn-add" id="dsCalSave" type="button">保存</button>
+      </div>
+    </div>`;
+  body.appendChild(mask);
+
+  const recalc = () => {
+    let s = 0;
+    mask.querySelectorAll('.ds-cal-amt').forEach(inp => { s += Number(inp.value) || 0; });
+    const t = mask.querySelector('#dsCalTotal');
+    if (t) t.textContent = saMoney(s);
+  };
+  mask.querySelectorAll('.ds-cal-amt').forEach(inp => inp.addEventListener('input', recalc));
+  recalc();
+
+  mask.querySelector('#dsCalClose').addEventListener('click', () => mask.remove());
+  mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
+  mask.querySelector('#dsCalSave').addEventListener('click', () => {
     dsCats.filter(dsIsLeaf).forEach(c => {
-      const inp = body.querySelector('.ds-row[data-id="' + c.id + '"] .ds-avg');
-      if (inp && !inp.value) inp.value = Math.round(dsLastMonthAvg(c.id, date) * 100) / 100;
+      const amtInp = mask.querySelector('.ds-cal-amt[data-id="' + c.id + '"]');
+      const amt = amtInp ? (Number(amtInp.value) || 0) : 0;
+      dsUpsert(c.id, date, amt);
     });
+    mask.remove();
+    showToast('已保存');
+    renderDsDataTab(body);
   });
-  body.querySelectorAll('.ds-save').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      const row = body.querySelector('.ds-row[data-id="' + id + '"]');
-      const amtInp = row.querySelector('.ds-amt');
-      const avgInp = row.querySelector('.ds-avg');
-      const amt = parseFloat(amtInp.value);
-      const avgRaw = avgInp.value;
-      const avg = avgRaw === '' ? 0 : parseFloat(avgRaw);
-      dsUpsert(id, date, isNaN(amt) ? 0 : amt, isNaN(avg) ? 0 : avg);
-      // 原地更新本行输入框与汇总，避免整表重渲染导致其它未保存行被清空
-      amtInp.value = isNaN(amt) ? 0 : amt;
-      avgInp.value = isNaN(avg) ? 0 : avg;
-      dsRefreshAllSums(body, date);
-      const orig = btn.textContent;
-      btn.textContent = '已保存';
-      setTimeout(() => { btn.textContent = orig; }, 800);
-    });
-  });
-}
-
-// 仅刷新底部汇总行（不重渲染整表，保留其它行未保存输入）
-function dsRefreshSummary(body, date) {
-  const sumRow = body.querySelector('.ds-sum');
-  if (!sumRow) return;
-  const cells = sumRow.querySelectorAll('.ds-c');
-  if (cells.length >= 3) {
-    cells[1].textContent = saMoney(dsSumAmt(date));
-    cells[2].textContent = saMoney(dsSumAvg(date));
-  }
-}
-// 刷新所有一级分组头的小计 + 底部总计（仅更新文本,不动输入框）
-function dsRefreshAllSums(body, date) {
-  body.querySelectorAll('.ds-group-head').forEach(h => {
-    const gid = h.getAttribute('data-gid');
-    const cell = h.querySelector('.ds-group-sum');
-    if (cell) cell.textContent = saMoney(dsSumAmtForCat(gid, date));
-  });
-  dsRefreshSummary(body, date);
 }
 
 /* ========================================================
