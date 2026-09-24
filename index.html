@@ -2523,7 +2523,10 @@
   .ds-cal-modal { width: 100%; max-width: 520px; max-height: 88vh; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; animation: dsCalPop .18s ease; }
   @keyframes dsCalPop { from { transform: translateY(16px) scale(.98); opacity: .6; } to { transform: none; opacity: 1; } }
   .ds-cal-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
-  .ds-cal-modal-title { font-weight: 700; font-size: 16px; }
+  .ds-cal-modal-title { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .ds-cal-date-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  .ds-cal-date-input { padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: var(--bg-2); font-variant-numeric: tabular-nums; }
+  .ds-cal-weekday { font-size: 13px; color: var(--primary-2); font-weight: 600; }
   .ds-cal-close { border: none; background: transparent; font-size: 24px; line-height: 1; color: var(--text-muted); cursor: pointer; padding: 0 4px; }
   .ds-cal-modal-body { padding: 8px 16px 12px; overflow-y: auto; flex: 1; }
   .ds-cal-group { font-weight: 700; font-size: 13px; color: var(--text); margin: 14px 0 6px; padding-left: 8px; border-left: 3px solid var(--primary-2); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -3936,7 +3939,6 @@ function dsOpenDayModal(body, date) {
 
   const dObj = new Date(date + 'T00:00:00');
   const wd = ['日', '一', '二', '三', '四', '五', '六'][dObj.getDay()];
-  const title = `${Number(date.slice(5, 7))} 月 ${Number(date.slice(8, 10))} 日 · 周${wd}`;
 
   const mask = document.createElement('div');
   mask.className = 'ds-cal-mask';
@@ -3944,7 +3946,11 @@ function dsOpenDayModal(body, date) {
   mask.innerHTML = `
     <div class="ds-cal-modal">
       <div class="ds-cal-modal-head">
-        <div class="ds-cal-modal-title">${title}</div>
+        <div class="ds-cal-modal-title">
+          <label class="ds-cal-date-label">日期</label>
+          <input type="date" id="dsCalDate" class="ds-cal-date-input" value="${date}" />
+          <span class="ds-cal-weekday" id="dsCalWd">周${wd}</span>
+        </div>
         <button class="ds-cal-close" id="dsCalClose" type="button">×</button>
       </div>
       <div class="ds-cal-modal-body" id="dsCalBody">${rowsHtml}</div>
@@ -3976,14 +3982,36 @@ function dsOpenDayModal(body, date) {
 
   mask.querySelector('#dsCalClose').addEventListener('click', () => mask.remove());
   mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
+  // 切换日期时实时更新星期
+  const dsCalDateInp = mask.querySelector('#dsCalDate');
+  const dsCalWd = mask.querySelector('#dsCalWd');
+  if (dsCalDateInp && dsCalWd) {
+    dsCalDateInp.addEventListener('change', () => {
+      const v = dsCalDateInp.value;
+      if (v) {
+        const w = ['日', '一', '二', '三', '四', '五', '六'][new Date(v + 'T00:00:00').getDay()];
+        dsCalWd.textContent = '周' + w;
+      }
+    });
+  }
   mask.querySelector('#dsCalSave').addEventListener('click', () => {
+    const newDate = (dsCalDateInp ? dsCalDateInp.value : '').trim();
+    if (!newDate) { showToast('请选择日期'); return; }
+    const dateChanged = newDate !== date;
+    // 若修改了日期，先清除原日期的全部记录（将数据迁移到新日期）
+    if (dateChanged) {
+      dsLogs = dsLogs.filter(l => l.date !== date);
+    }
     dsCats.filter(dsIsLeaf).forEach(c => {
       const amtInp = mask.querySelector('.ds-cal-amt[data-id="' + c.id + '"]');
       const amt = amtInp ? (Number(amtInp.value) || 0) : 0;
-      dsUpsert(c.id, date, amt);
+      dsUpsert(c.id, newDate, amt);
     });
     mask.remove();
-    showToast('已保存');
+    showToast(dateChanged ? '已保存（日期已调整）' : '已保存');
+    // 若新日期不在当前查看的月份，则跳转到该月，方便查看
+    const ny = Number(newDate.slice(0, 4)), nm = Number(newDate.slice(5, 7));
+    if (ny !== dsCalY || nm !== dsCalM) { dsCalY = ny; dsCalM = nm; }
     renderDsDataTab(body);
   });
 }
