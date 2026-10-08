@@ -2516,6 +2516,12 @@
   .ds-tbl-sum-v { background: var(--bg-soft, var(--bg)); font-weight: 700; color: var(--primary-2); }
   .ds-tbl-total td { background: rgba(99,102,241,0.10); font-weight: 700; color: var(--text); border-top: 2px solid var(--primary-2); }
   .ds-tbl-total .ds-tbl-sum-v { background: rgba(99,102,241,0.12); color: var(--primary-2); }
+  .ds-tbl-head-right { display: flex; align-items: center; gap: 10px; }
+  .ds-ana-expand { border: 1px solid var(--primary-2); background: var(--card); color: var(--primary-2); border-radius: var(--radius-sm); padding: 5px 12px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .ds-ana-expand:hover { background: var(--primary-2); color: #fff; }
+  .ds-tbl tbody .ds-tbl-cat.ds-tbl-sub { padding-left: 24px; color: var(--text-muted); font-weight: 400; }
+  .ds-tbl tbody .ds-tbl-cat.ds-tbl-sub::before { content: '↳ '; color: var(--text-muted); }
+  .ds-tbl-sub-row { background: rgba(99,102,241,0.03); }
   .ds-cal-h { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; font-weight: 600; }
   .ds-cal-cell { min-height: 60px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 4px; background: var(--card); cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .15s, background .15s; }
   .ds-cal-cell.blank { background: transparent; border: none; cursor: default; }
@@ -2901,6 +2907,7 @@ const MODULES = [
     group: true,
     children: [
       { id: 'dsdata', name: '销售数据', desc: '按日期录入每个类别的每日营业额并自动汇总', icon: '💰' },
+      { id: 'dsana', name: '数据分析', desc: '本月各大类销售数据明细与汇总分析', icon: '📊' },
       { id: 'dscat', name: '类别管理', desc: '增删改查销售类别', icon: '🗂️' }
     ]
   },
@@ -3014,6 +3021,7 @@ let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
 let dsCatOpen = {};          // 类别管理：各一级大类的子类列表是否展开（默认隐藏）
 let dsEntryMode = 'day';     // 销售数据录入模式：'day'=按日填写(日历) | 'month'=按月填写(整月汇总)
 const DS_MODE_KEY = 'liumo_ds_mode';
+let dsAnaExpanded = false;   // 数据分析：明细表是否展开大类显示小类
 // ---------- 销售数据页签渲染 ----------
 
 
@@ -3701,6 +3709,7 @@ function renderDailySalesSub(body, mod) {
   const validIds = (mod.children || []).map(c => c.id);
   const sub = (currentSub && validIds.includes(currentSub)) ? currentSub : validIds[0] || 'dscat';
   if (sub === 'dsdata') renderDsDataTab(body);
+  else if (sub === 'dsana') renderDsAnaTab(body);
   else renderDsCatTab(body);
 }
 
@@ -3858,7 +3867,7 @@ function dsIsDescendantOrSelf(catId, descId) {
   if (catId === descId) return true;
   return dsChildren(catId).some(ch => dsIsDescendantOrSelf(ch.id, descId));
 }
-function buildDsCatDateTable(y, m) {
+function buildDsCatDateTable(y, m, expanded) {
   const tops = dsTopCats();
   if (tops.length === 0) return { html: '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>', totalSum: 0, totalFilled: 0, catCount: 0 };
   const prefix = y + '-' + ('0' + m).slice(-2);
@@ -3874,25 +3883,39 @@ function buildDsCatDateTable(y, m) {
   }
   head += `<th class="ds-tbl-sum ds-tbl-sum-col">月合计</th></tr>`;
 
-  // 行：每个一级大类一行，列=各日金额（子类自动汇总进所属大类）
-  let body = '';
-  let totalSum = 0;
+  // 某类别一行（大类 / 小类共用）：上月均值 + 各日 + 月合计
   const overallFilledSet = new Set();
-  tops.forEach(top => {
-    const avg = dsCatLastMonthAvg(top.id, y, m);
-    body += `<tr class="ds-tbl-leaf"><td class="ds-tbl-cat ds-tbl-top">${escapeHtml(top.name)}</td><td class="ds-tbl-v ds-tbl-avg-v" title="${escapeAttr(top.name)} 上月日均">${avg ? saMoney(avg) : '—'}</td>`;
+  const makeRow = (catId, name, rowCls, catCls, avgTitle) => {
+    const avg = dsCatLastMonthAvg(catId, y, m);
+    let r = `<tr class="${rowCls}"><td class="ds-tbl-cat ${catCls}">${escapeHtml(name)}</td><td class="ds-tbl-v ds-tbl-avg-v" title="${escapeAttr(avgTitle)}">${avg ? saMoney(avg) : '—'}</td>`;
     let rowSum = 0;
     for (let d = 1; d <= daysInMonth; d++) {
       const date = prefix + '-' + ('0' + d).slice(-2);
-      const v = dsCatDayAmt(top.id, date);
+      const v = dsCatDayAmt(catId, date);
       rowSum += v;
       const dow = new Date(y, m - 1, d).getDay();
       const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
-      body += `<td class="ds-tbl-v${v ? '' : ' ds-tbl-empty'}${wk}" title="${escapeAttr(top.name)} ${d}日${v ? '：' + saMoney(v) : '：未填'}">${v ? saMoney(v) : ''}</td>`;
+      r += `<td class="ds-tbl-v${v ? '' : ' ds-tbl-empty'}${wk}" title="${escapeAttr(name)} ${d}日${v ? '：' + saMoney(v) : '：未填'}">${v ? saMoney(v) : ''}</td>`;
       if (v > 0) overallFilledSet.add(date);
     }
-    body += `<td class="ds-tbl-v ds-tbl-sum-v">${rowSum ? saMoney(rowSum) : ''}</td></tr>`;
-    totalSum += rowSum;
+    r += `<td class="ds-tbl-v ds-tbl-sum-v">${rowSum ? saMoney(rowSum) : ''}</td></tr>`;
+    return { html: r, rowSum };
+  };
+
+  // 行：每个一级大类一行（含其全部子类汇总）；展开时追加其下小类明细行
+  let body = '';
+  let totalSum = 0;
+  tops.forEach(top => {
+    const rr = makeRow(top.id, top.name, 'ds-tbl-leaf', 'ds-tbl-top', top.name + ' 上月日均');
+    body += rr.html;
+    // 大类行已包含其全部子类，合计仅累加大类，避免展开小类时重复统计
+    totalSum += rr.rowSum;
+    if (expanded) {
+      const kids = dsChildren(top.id);
+      if (kids.length) {
+        kids.forEach(k => { body += makeRow(k.id, k.name, 'ds-tbl-leaf ds-tbl-sub-row', 'ds-tbl-sub', k.name + ' 上月日均').html; });
+      }
+    }
   });
   // 底部合计行：每列=当日全部分类合计，末列=月总计
   let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td><td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v" title="上月全品类日均">${saMoney(dsLastMonthAvg(y, m))}</td>`;
@@ -3951,18 +3974,8 @@ function renderDsDataTab(body) {
     gridInner = `<div class="ds-mth-fill-wrap"><button class="btn-add ds-mth-fill-btn" id="dsMthFillBtn" type="button">填写本月销售数据</button></div>`;
   }
 
-  // ---- 大类×日期表 ----
-  const tbl = buildDsCatDateTable(y, m);
-
   body.innerHTML = `
     <div class="wt-note">${dsEntryMode === 'day' ? '点击下方任意日期填写 / 修改当日各分类营业额。低于上月均值的日期会以绿色标注。' : '按月填写：点击下方「填写本月销售数据」一次性录入本月各类别金额。'}</div>
-    <div class="ds-tbl-card">
-      <div class="ds-tbl-head">
-        <div class="ds-tbl-title">本月各大类销售明细 · ${y} 年 ${m} 月</div>
-        <div class="ds-tbl-meta">已填 <b>${tbl.totalFilled}</b> / ${daysInMonth} 天 · 大类 <b>${tbl.catCount}</b> · 月合计 <b>${saMoney(tbl.totalSum)}</b></div>
-      </div>
-      <div class="ds-tbl-wrap">${tbl.html}</div>
-    </div>
     <div class="ds-cal-bar">
       <div class="ds-cal-bar-top">
         <div class="ds-cal-title">${y} 年 ${m} 月</div>
@@ -3997,6 +4010,44 @@ function renderDsDataTab(body) {
     const fb = body.querySelector('#dsMthFillBtn');
     if (fb) fb.addEventListener('click', () => dsOpenMonthModal(body, y, m));
   }
+}
+
+// ---------- 页签：数据分析（本月销售数据明细，可展开小类） ----------
+function renderDsAnaTab(body) {
+  const now = new Date();
+  if (!dsCalY) { dsCalY = now.getFullYear(); dsCalM = now.getMonth() + 1; }
+  const y = dsCalY, m = dsCalM;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const tbl = buildDsCatDateTable(y, m, dsAnaExpanded);
+  const expandLabel = dsAnaExpanded ? '收起' : '展开明细';
+  body.innerHTML = `
+    <div class="wt-note">本月各大类销售数据明细。点击表格右上角「${expandLabel}」可展开 / 收起各大类下的小类明细。日期列中低于上月均值的数值在日历中会以绿色标注。</div>
+    <div class="ds-cal-bar">
+      <div class="ds-cal-bar-top">
+        <div class="ds-cal-title">${y} 年 ${m} 月</div>
+        <div class="ds-mode-seg">
+          <button class="ds-cal-nav" id="dsAnaPrev" type="button">‹</button>
+          <button class="ds-cal-today" id="dsAnaToday" type="button">今天</button>
+          <button class="ds-cal-nav" id="dsAnaNext" type="button">›</button>
+        </div>
+      </div>
+      <div class="ds-cal-summary">已填 <b>${tbl.totalFilled}</b> / ${daysInMonth} 天 · 大类 <b>${tbl.catCount}</b> · 月合计 <b>${saMoney(tbl.totalSum)}</b></div>
+    </div>
+    <div class="ds-tbl-card">
+      <div class="ds-tbl-head">
+        <div class="ds-tbl-title">本月销售数据明细 · ${y} 年 ${m} 月</div>
+        <div class="ds-tbl-head-right">
+          <span class="ds-tbl-meta">${dsAnaExpanded ? '已展开小类' : '仅显示大类'}</span>
+          <button class="btn-add ds-ana-expand" id="dsAnaExpand" type="button">${expandLabel}</button>
+        </div>
+      </div>
+      <div class="ds-tbl-wrap">${tbl.html}</div>
+    </div>
+  `;
+  body.querySelector('#dsAnaExpand').addEventListener('click', () => { dsAnaExpanded = !dsAnaExpanded; renderDsAnaTab(body); });
+  body.querySelector('#dsAnaPrev').addEventListener('click', () => { dsCalM--; if (dsCalM < 1) { dsCalM = 12; dsCalY--; } renderDsAnaTab(body); });
+  body.querySelector('#dsAnaNext').addEventListener('click', () => { dsCalM++; if (dsCalM > 12) { dsCalM = 1; dsCalY++; } renderDsAnaTab(body); });
+  body.querySelector('#dsAnaToday').addEventListener('click', () => { const n = new Date(); dsCalY = n.getFullYear(); dsCalM = n.getMonth() + 1; renderDsAnaTab(body); });
 }
 
 // 点击某一天：弹窗加载类别表单，逐类填金额，底部总额 + 保存
