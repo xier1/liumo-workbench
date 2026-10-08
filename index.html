@@ -2501,6 +2501,9 @@
   .ds-tbl thead th { background: var(--bg-soft, var(--bg)); color: var(--text-muted); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; text-align: center; }
   .ds-tbl thead th.ds-tbl-cat { text-align: left; padding-left: 10px; min-width: 130px; }
   .ds-tbl thead th.ds-tbl-sum-col { width: 92px; }
+  .ds-tbl thead th.ds-tbl-avg-col { width: 92px; border-left: 1px solid var(--border); }
+  .ds-tbl-avg-v { color: var(--text-muted); font-weight: 500; }
+  .ds-tbl tbody td.ds-tbl-avg-v { border-left: 1px solid var(--border); }
   .ds-tbl thead th.ds-tbl-wk { color: var(--primary-2); }
   .ds-tbl thead th.ds-tbl-d { width: 34px; }
   .ds-tbl tbody td { padding: 5px 4px; border-bottom: 1px solid var(--border); text-align: right; }
@@ -3617,6 +3620,19 @@ function dsLastMonthAvg(y, m) {
   const days = isMonthly ? new Date(ly, lm, 0).getDate() : daySet.size;
   return days > 0 ? total / days : 0;
 }
+// 某大类（含全部子类）的上月日均：按月则除上月总天数，否则除该大类上月有数据的天数
+function dsCatLastMonthAvg(catId, y, m) {
+  let ly = y, lm = m - 1;
+  if (lm < 1) { lm = 12; ly--; }
+  const lp = ly + '-' + ('0' + lm).slice(-2);
+  const logs = dsLogs.filter(l => (l.date || '').slice(0, 7) === lp && dsIsDescendantOrSelf(catId, l.catId));
+  if (logs.length === 0) return 0;
+  const total = logs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const daySet = new Set(logs.map(l => l.date));
+  const isMonthly = daySet.size === 1 && [...daySet][0] === lp + '-01';
+  const days = isMonthly ? new Date(ly, lm, 0).getDate() : daySet.size;
+  return days > 0 ? total / days : 0;
+}
 // 写入/更新某类别某日期数据
 function dsUpsert(catId, date, amount) {
   const now = Date.now();
@@ -3849,8 +3865,8 @@ function buildDsCatDateTable(y, m) {
   const daysInMonth = new Date(y, m, 0).getDate();
   const dowArr = ['日', '一', '二', '三', '四', '五', '六'];
 
-  // 列头：首列「大类」+ 各日（周末蓝）+ 月合计
-  let head = `<tr><th class="ds-tbl-cat">大类</th>`;
+  // 列头：首列「大类」+ 上月均值 + 各日（周末蓝）+ 月合计
+  let head = `<tr><th class="ds-tbl-cat">大类</th><th class="ds-tbl-avg ds-tbl-avg-col">上月均值</th>`;
   for (let d = 1; d <= daysInMonth; d++) {
     const dow = new Date(y, m - 1, d).getDay();
     const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
@@ -3863,7 +3879,8 @@ function buildDsCatDateTable(y, m) {
   let totalSum = 0;
   const overallFilledSet = new Set();
   tops.forEach(top => {
-    body += `<tr class="ds-tbl-leaf"><td class="ds-tbl-cat ds-tbl-top">${escapeHtml(top.name)}</td>`;
+    const avg = dsCatLastMonthAvg(top.id, y, m);
+    body += `<tr class="ds-tbl-leaf"><td class="ds-tbl-cat ds-tbl-top">${escapeHtml(top.name)}</td><td class="ds-tbl-v ds-tbl-avg-v" title="${escapeAttr(top.name)} 上月日均">${avg ? saMoney(avg) : '—'}</td>`;
     let rowSum = 0;
     for (let d = 1; d <= daysInMonth; d++) {
       const date = prefix + '-' + ('0' + d).slice(-2);
@@ -3878,7 +3895,7 @@ function buildDsCatDateTable(y, m) {
     totalSum += rowSum;
   });
   // 底部合计行：每列=当日全部分类合计，末列=月总计
-  let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td>`;
+  let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td><td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v" title="上月全品类日均">${saMoney(dsLastMonthAvg(y, m))}</td>`;
   let monthFilled = 0;
   for (let d = 1; d <= daysInMonth; d++) {
     const date = prefix + '-' + ('0' + d).slice(-2);
