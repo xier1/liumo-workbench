@@ -2518,6 +2518,21 @@
   .ds-cal-day { font-size: 13px; font-weight: 600; color: var(--text); }
   .ds-cal-amt { font-size: 11px; color: var(--primary-2); font-variant-numeric: tabular-nums; line-height: 1.25; word-break: break-all; }
   .ds-cal-hint { font-size: 11px; color: #b6bcc7; }
+  /* 每日销售数据:录入模式切换 + 按月填写 */
+  .ds-mode-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  .ds-mode-seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+  .ds-mode-btn { border: none; background: transparent; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all .15s; }
+  .ds-mode-btn.active { background: var(--primary-2); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .ds-mode-tip { font-size: 12px; color: var(--text-muted); }
+  .ds-mth-body { padding: 6px 16px 4px; }
+  .ds-mth-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .ds-mth-cat { font-size: 14px; color: var(--text); flex: 1; min-width: 0; }
+  .ds-mth-sub { padding-left: 14px; }
+  .ds-mth-sub .ds-mth-cat { color: var(--text-muted); font-size: 13px; }
+  .ds-mth-field { flex: 0 0 160px; max-width: 160px; }
+  .ds-mth-field input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: right; font-variant-numeric: tabular-nums; }
+  .ds-mth-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border); }
+
   /* 每日销售数据:日期弹窗 */
   .ds-cal-mask { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
   .ds-cal-modal { width: 100%; max-width: 520px; max-height: 88vh; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; animation: dsCalPop .18s ease; }
@@ -2989,6 +3004,8 @@ let dsCalY = 0, dsCalM = 0;   // 销售数据日历当前查看的年/月（0 �
 let dsEditingCatId = null;   // 正在行内编辑的类别 id
 let dsAddingSubId = null;    // 正在为某一级添加二级类别的父 id
 let dsCatOpen = {};          // 类别管理：各一级大类的子类列表是否展开（默认隐藏）
+let dsEntryMode = 'day';     // 销售数据录入模式：'day'=按日填写(日历) | 'month'=按月填写(整月汇总)
+const DS_MODE_KEY = 'liumo_ds_mode';
 // ---------- 销售数据页签渲染 ----------
 
 
@@ -3538,6 +3555,10 @@ function loadDailySales() {
     dsLogs = d ? JSON.parse(d) : [];
     if (!Array.isArray(dsLogs)) dsLogs = [];
   } catch (e) { dsLogs = []; }
+  try {
+    const md = localStorage.getItem(DS_MODE_KEY);
+    dsEntryMode = (md === 'day' || md === 'month') ? md : 'day';
+  } catch (e) { dsEntryMode = 'day'; }
   dsCats.sort((a, b) => (a.order || 0) - (b.order || 0));
 }
 function saveDsCats() { localStorage.setItem(DS_CATS_KEY, JSON.stringify(dsCats)); }
@@ -3571,6 +3592,11 @@ function dsGet(catId, date) {
 // 某日期「每日营业额」汇总
 function dsSumAmt(date) {
   return dsLogs.filter(l => l.date === date).reduce((s, l) => s + (Number(l.amount) || 0), 0);
+}
+// 某类别某月「营业额」汇总（用于按月填写预填 / 小计）
+function dsMonthCatAmt(catId, y, m) {
+  const p = y + '-' + ('0' + m).slice(-2);
+  return dsLogs.filter(l => l.catId === catId && (l.date || '').slice(0, 7) === p).reduce((s, l) => s + (Number(l.amount) || 0), 0);
 }
 // 写入/更新某类别某日期数据
 function dsUpsert(catId, date, amount) {
@@ -3864,6 +3890,90 @@ function renderDsDataTab(body) {
   const monthAmt = dsLogs.filter(l => (l.date || '').slice(0, 7) === prefix).reduce((s, l) => s + (Number(l.amount) || 0), 0);
   const filledSet = new Set(dsLogs.filter(l => (l.date || '').slice(0, 7) === prefix).map(l => l.date));
 
+  // ---- 录入模式切换条 ----
+  const modeHtml = `
+    <div class="ds-mode-bar">
+      <div class="ds-mode-seg">
+        <button class="ds-mode-btn ${dsEntryMode === 'day' ? 'active' : ''}" data-mode="day" type="button">按日填写</button>
+        <button class="ds-mode-btn ${dsEntryMode === 'month' ? 'active' : ''}" data-mode="month" type="button">按月填写</button>
+      </div>
+      <span class="ds-mode-tip">${dsEntryMode === 'month' ? '整月一次性录入各类别金额，不显示日历' : '点选日期逐日录入'}</span>
+    </div>`;
+
+  // ---- 按月填写模式：隐藏日历，改为整月各类别汇总录入 ----
+  if (dsEntryMode === 'month') {
+    let mRows;
+    if (dsTopCats().length === 0) {
+      mRows = '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>';
+    } else {
+      mRows = dsTopCats().map(top => {
+        const kids = dsChildren(top.id);
+        if (kids.length === 0) {
+          const val = dsMonthCatAmt(top.id, y, m);
+          return `<div class="ds-mth-row">
+              <div class="ds-mth-cat">${escapeHtml(top.name)}</div>
+              <div class="ds-mth-field"><input type="number" step="0.01" min="0" class="ds-mth-amt" data-id="${top.id}" value="${val}" placeholder="0" /></div>
+            </div>`;
+        }
+        const head = `<div class="ds-cal-group"><span>${escapeHtml(top.name)}</span><span class="ds-cal-group-sum" data-gid="${top.id}"></span></div>`;
+        const childRows = kids.map(k => {
+          const val = dsMonthCatAmt(k.id, y, m);
+          return `<div class="ds-mth-row ds-mth-sub">
+              <div class="ds-mth-cat">${escapeHtml(k.name)}</div>
+              <div class="ds-mth-field"><input type="number" step="0.01" min="0" class="ds-mth-amt" data-id="${k.id}" value="${val}" placeholder="0" /></div>
+            </div>`;
+        }).join('');
+        return head + childRows;
+      }).join('');
+    }
+    const mTotal = dsLogs.filter(l => (l.date || '').slice(0, 7) === prefix).reduce((s, l) => s + (Number(l.amount) || 0), 0);
+    body.innerHTML = `
+      ${modeHtml}
+      <div class="wt-note">按月填写：直接录入本月各分类营业额合计，保存后将覆盖本月按日明细并汇总到当月。</div>
+      <div class="ds-tbl-card">
+        <div class="ds-tbl-head">
+          <div class="ds-tbl-title">本月各类别录入 · ${y} 年 ${m} 月</div>
+          <div class="ds-tbl-meta">模式：按月填写</div>
+        </div>
+        <div class="ds-mth-body">${mRows}</div>
+        <div class="ds-mth-foot">
+          <div class="ds-cal-total">总金额 <b id="dsMthTotal">${saMoney(mTotal)}</b></div>
+          <button class="btn-add" id="dsMthSave" type="button">保存</button>
+        </div>
+      </div>`;
+    body.querySelectorAll('.ds-mode-btn').forEach(b => b.addEventListener('click', () => {
+      dsEntryMode = b.dataset.mode;
+      try { localStorage.setItem(DS_MODE_KEY, dsEntryMode); } catch (e) {}
+      renderDsDataTab(body);
+    }));
+    const recalcMth = () => {
+      let s = 0;
+      body.querySelectorAll('.ds-mth-amt').forEach(inp => { s += Number(inp.value) || 0; });
+      const t = body.querySelector('#dsMthTotal'); if (t) t.textContent = saMoney(s);
+      body.querySelectorAll('.ds-cal-group-sum[data-gid]').forEach(sp => {
+        const gid = sp.getAttribute('data-gid'); let g = 0;
+        dsChildren(gid).forEach(k => { const inp = body.querySelector('.ds-mth-amt[data-id="' + k.id + '"]'); if (inp) g += Number(inp.value) || 0; });
+        sp.textContent = saMoney(g);
+      });
+    };
+    body.querySelectorAll('.ds-mth-amt').forEach(inp => inp.addEventListener('input', recalcMth));
+    recalcMth();
+    body.querySelector('#dsMthSave').addEventListener('click', () => {
+      // 覆盖本月：先清除本月全部按日明细，再以每月 1 号为汇总日写入
+      dsLogs = dsLogs.filter(l => (l.date || '').slice(0, 7) !== prefix);
+      const d1 = prefix + '-01';
+      dsCats.filter(dsIsLeaf).forEach(c => {
+        const inp = body.querySelector('.ds-mth-amt[data-id="' + c.id + '"]');
+        const amt = inp ? (Number(inp.value) || 0) : 0;
+        dsUpsert(c.id, d1, amt);
+      });
+      try { localStorage.setItem(DS_MODE_KEY, dsEntryMode); } catch (e) {}
+      showToast('已保存（本月已按月汇总）');
+      renderDsDataTab(body);
+    });
+    return;
+  }
+
   let cells = '';
   for (let i = 0; i < firstDow; i++) cells += '<div class="ds-cal-cell blank"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
@@ -3884,6 +3994,7 @@ function renderDsDataTab(body) {
   const tbl = buildDsCatDateTable(y, m);
 
   body.innerHTML = `
+    ${modeHtml}
     <div class="wt-note">点击下方任意日期填写 / 修改当日各分类营业额。已填写的日期高亮并显示金额，未填写的显示「待填」，两类都可点击。</div>
     <div class="ds-tbl-card">
       <div class="ds-tbl-head">
@@ -3905,6 +4016,11 @@ function renderDsDataTab(body) {
   body.querySelector('#dsCalPrev').addEventListener('click', () => { dsCalM--; if (dsCalM < 1) { dsCalM = 12; dsCalY--; } renderDsDataTab(body); });
   body.querySelector('#dsCalNext').addEventListener('click', () => { dsCalM++; if (dsCalM > 12) { dsCalM = 1; dsCalY++; } renderDsDataTab(body); });
   body.querySelector('#dsCalToday').addEventListener('click', () => { const n = new Date(); dsCalY = n.getFullYear(); dsCalM = n.getMonth() + 1; renderDsDataTab(body); });
+  body.querySelectorAll('.ds-mode-btn').forEach(b => b.addEventListener('click', () => {
+    dsEntryMode = b.dataset.mode;
+    try { localStorage.setItem(DS_MODE_KEY, dsEntryMode); } catch (e) {}
+    renderDsDataTab(body);
+  }));
   body.querySelectorAll('.ds-cal-cell[data-date]').forEach(cell => {
     cell.addEventListener('click', () => dsOpenDayModal(body, cell.getAttribute('data-date')));
   });
