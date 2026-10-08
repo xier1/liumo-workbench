@@ -3603,14 +3603,18 @@ function dsMonthCatAmt(catId, y, m) {
   const p = y + '-' + ('0' + m).slice(-2);
   return dsLogs.filter(l => l.catId === catId && (l.date || '').slice(0, 7) === p).reduce((s, l) => s + (Number(l.amount) || 0), 0);
 }
-// 上月平均值（上月总营业额 / 上月有数据的天数）
+// 上月平均值：若上月为「按月填写」（数据全部集中在当月 1 号），则除以上月总天数；否则除以上月有数据的天数
 function dsLastMonthAvg(y, m) {
   let ly = y, lm = m - 1;
   if (lm < 1) { lm = 12; ly--; }
   const lp = ly + '-' + ('0' + lm).slice(-2);
   const logs = dsLogs.filter(l => (l.date || '').slice(0, 7) === lp);
+  if (logs.length === 0) return 0;
   const total = logs.reduce((s, l) => s + (Number(l.amount) || 0), 0);
-  const days = new Set(logs.map(l => l.date)).size;
+  const daySet = new Set(logs.map(l => l.date));
+  // 按月填写时所有类别都写入当月 1 号，故上月仅 1 号有数据即视为按月，除数取上月总天数
+  const isMonthly = daySet.size === 1 && [...daySet][0] === lp + '-01';
+  const days = isMonthly ? new Date(ly, lm, 0).getDate() : daySet.size;
   return days > 0 ? total / days : 0;
 }
 // 写入/更新某类别某日期数据
