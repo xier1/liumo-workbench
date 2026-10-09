@@ -2499,9 +2499,10 @@
   .ds-tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
   .ds-tbl { width: 100%; min-width: 0; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
   .ds-tbl thead th { background: var(--bg-soft, var(--bg)); color: var(--text-muted); font-weight: 600; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; text-align: left; white-space: nowrap; }
-  .ds-tbl thead th.ds-tbl-cat { padding-left: 10px; }
+  .ds-tbl thead th.ds-tbl-cat { padding-left: 10px; position: sticky; left: 0; z-index: 4; }
   .ds-tbl thead th.ds-tbl-d { min-width: 44px; }
   .ds-tbl thead th.ds-tbl-avg-col { border-left: 1px solid var(--border); }
+  .ds-tbl thead th.ds-tbl-share, .ds-tbl tbody td.ds-tbl-share { min-width: 64px; } }
   .ds-tbl-avg-v { color: var(--text-muted); font-weight: 500; }
   .ds-tbl tbody td.ds-tbl-avg-v { border-left: 1px solid var(--border); }
   .ds-tbl thead th.ds-tbl-wk { color: var(--primary-2); }
@@ -2509,6 +2510,8 @@
   .ds-tbl tbody td { padding: 5px 14px 5px 0; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
   .ds-tbl tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
   .ds-tbl .ds-tbl-cat { text-align: left !important; padding-left: 10px; color: var(--text); font-weight: 500; white-space: nowrap; }
+  /* 冻结左侧「大类」列：横向滚动时固定在屏幕内 */
+  .ds-tbl tbody td.ds-tbl-cat { position: sticky; left: 0; z-index: 2; background: var(--card); }
   .ds-tbl tbody .ds-tbl-cat.ds-tbl-top { font-weight: 700; color: var(--primary-2); }
   .ds-tbl .ds-tbl-wk { background: rgba(99,102,241,0.03); }
   .ds-tbl-v { color: var(--text); }
@@ -4027,28 +4030,34 @@ function buildDsCatDateTable(y, m, expanded) {
   const lastDay = prefix === curPrefix ? Math.max(0, now.getDate() - 1) : daysInMonth;
   // 按月填写的月份：用「本月均值」列替代逐日列
   const monthly = dsDetectMonthMode(y, m) === 'month';
+  // 全品类合计均值（用于计算各品类金额占比）
+  const grandMAvg = tops.reduce((s, c) => s + dsCatMonthAvg(c.id, y, m), 0);
+  const grandLAvg = tops.reduce((s, c) => s + dsCatLastMonthAvg(c.id, y, m), 0);
+  const pctTxt = x => (x).toFixed(1) + '%';
 
-  // 列头：首列「大类」+（按月：本月均值 | 按日：各日）+ 本月均值 + 上月均值（最后两列）
+  // 列头：首列「大类」+（按月：本月均值 | 按日：各日）+ 本月均值 + 本月占比 + 上月均值 + 上月占比
   let head = `<tr><th class="ds-tbl-cat">大类</th>`;
   if (monthly) {
-    head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th>`;
+    head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th><th class="ds-tbl-avg ds-tbl-avg-col">本月占比</th>`;
   } else {
     for (let d = 1; d <= lastDay; d++) {
       const dow = new Date(y, m - 1, d).getDay();
       const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
       head += `<th class="ds-tbl-d${wk}" title="${d}日 周${dowArr[dow]}">${d}</th>`;
     }
-    head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th>`;
+    head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th><th class="ds-tbl-avg ds-tbl-avg-col">本月占比</th>`;
   }
-  head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-last">上月均值</th></tr>`;
+  head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-last">上月均值</th><th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-last">上月占比</th></tr>`;
 
-  // 某类别一行（大类 / 小类共用）：各日（按日）或本月均值（按月）+ 本月均值 + 上月均值
+  // 某类别一行（大类 / 小类共用）：各日（按日）或本月均值（按月）+ 本月均值 + 本月占比 + 上月均值 + 上月占比
   const overallFilledSet = new Set();
   const makeRow = (catId, name, rowCls, catCls, avgTitle) => {
     const avg = dsCatLastMonthAvg(catId, y, m);
     const mAvg = dsCatMonthAvg(catId, y, m);
     // 本月均值低于上月均值 → 绿色
     const mAvgLow = (mAvg > 0 && avg > 0 && mAvg < avg) ? ' ds-below' : '';
+    const mShare = (mAvg > 0 && grandMAvg > 0) ? (mAvg / grandMAvg * 100) : 0;
+    const lShare = (avg > 0 && grandLAvg > 0) ? (avg / grandLAvg * 100) : 0;
     let r = `<tr class="${rowCls}"><td class="ds-tbl-cat ${catCls}">${escapeHtml(name)}</td>`;
     let rowSum = 0;
     if (monthly) {
@@ -4068,7 +4077,9 @@ function buildDsCatDateTable(y, m, expanded) {
       }
       r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${mAvgLow}" title="${escapeAttr(name)} 本月均值（当前月为今天以前已填日均）">${mAvg ? saMoney(mAvg) : '—'}</td>`;
     }
-    r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-last" title="${escapeAttr(avgTitle)}">${avg ? saMoney(avg) : '—'}</td></tr>`;
+    r += `<td class="ds-tbl-v ds-tbl-share" title="${escapeAttr(name)} 本月均值占比（占全品类合计）">${pctTxt(mShare)}</td>`;
+    r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-last" title="${escapeAttr(avgTitle)}">${avg ? saMoney(avg) : '—'}</td>`;
+    r += `<td class="ds-tbl-v ds-tbl-share ds-tbl-last" title="${escapeAttr(avgTitle)} 上月均值占比（占全品类合计）">${pctTxt(lShare)}</td></tr>`;
     return { html: r, rowSum };
   };
 
@@ -4087,21 +4098,9 @@ function buildDsCatDateTable(y, m, expanded) {
       }
     }
   });
-  // 底部合计行：各类别列 + 本月均值（全品类） + 上月均值（最后一列）
-  // 全品类本月均值：当前月 = 今天以前已填合计 ÷ 已填天数（不含当日）；其它月份 = 合计 ÷ 整月天数
-  let allAvg = 0;
-  if (prefix === curPrefix) {
-    let t = 0, f = 0;
-    for (let d = 1; d < now.getDate(); d++) {
-      const date = prefix + '-' + ('0' + d).slice(-2);
-      const v = dsSumAmt(date);
-      if (v > 0) { t += v; f++; }
-    }
-    allAvg = f > 0 ? t / f : 0;
-  } else {
-    allAvg = daysInMonth > 0 ? totalSum / daysInMonth : 0;
-  }
-  const lastAvgAll = dsLastMonthAvg(y, m);
+  // 底部合计行：各类别列 + 本月均值（全品类） + 本月占比(100%) + 上月均值（全品类） + 上月占比(100%)
+  const allAvg = grandMAvg;
+  const lastAvgAll = grandLAvg;
   const allAvgLow = (allAvg > 0 && lastAvgAll > 0 && allAvg < lastAvgAll) ? ' ds-below' : '';
   let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td>`;
   if (monthly) {
@@ -4119,7 +4118,9 @@ function buildDsCatDateTable(y, m, expanded) {
     }
     tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${allAvgLow}" title="本月全品类日均（当前月为今天以前已填日均）">${allAvg ? saMoney(allAvg) : '—'}</td>`;
   }
-  tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v ds-tbl-last" title="上月全品类日均">${saMoney(lastAvgAll)}</td></tr>`;
+  tRow += `<td class="ds-tbl-v ds-tbl-share ds-tbl-sum-v" title="本月全品类占比">100.0%</td>`;
+  tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v ds-tbl-last" title="上月全品类日均">${saMoney(lastAvgAll)}</td>`;
+  tRow += `<td class="ds-tbl-v ds-tbl-share ds-tbl-sum-v ds-tbl-last" title="上月全品类占比">100.0%</td></tr>`;
   body += tRow;
   const totalFilled = overallFilledSet.size;
 
