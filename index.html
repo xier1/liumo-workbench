@@ -2497,25 +2497,23 @@
   .ds-tbl-meta { font-size: 12px; color: var(--text-muted); }
   .ds-tbl-meta b { color: var(--primary-2); font-weight: 700; }
   .ds-tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-  .ds-tbl { width: 100%; min-width: 920px; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
-  .ds-tbl thead th { background: var(--bg-soft, var(--bg)); color: var(--text-muted); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; text-align: center; }
-  .ds-tbl thead th.ds-tbl-cat { text-align: left; padding-left: 10px; width: 130px; min-width: 130px; position: sticky; left: 0; z-index: 3; }
-  .ds-tbl thead th.ds-tbl-sum-col { width: 92px; }
-  .ds-tbl thead th.ds-tbl-avg-col { width: 92px; border-left: 1px solid var(--border); }
-  .ds-tbl thead th.ds-tbl-mavg { width: 92px; position: sticky; left: 222px; z-index: 3; }
+  .ds-tbl { width: 100%; min-width: 0; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .ds-tbl thead th { background: var(--bg-soft, var(--bg)); color: var(--text-muted); font-weight: 600; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; text-align: left; white-space: nowrap; }
+  .ds-tbl thead th.ds-tbl-cat { padding-left: 10px; }
+  .ds-tbl thead th.ds-tbl-d { min-width: 44px; }
+  .ds-tbl thead th.ds-tbl-avg-col { border-left: 1px solid var(--border); }
   .ds-tbl-avg-v { color: var(--text-muted); font-weight: 500; }
-  .ds-tbl tbody td.ds-tbl-avg-v { border-left: 1px solid var(--border); background: var(--card); }
-  .ds-tbl tbody td.ds-tbl-mavg { position: sticky; left: 222px; background: var(--card); z-index: 2; }
+  .ds-tbl tbody td.ds-tbl-avg-v { border-left: 1px solid var(--border); }
   .ds-tbl thead th.ds-tbl-wk { color: var(--primary-2); }
   .ds-tbl thead th.ds-tbl-d { width: 34px; }
-  .ds-tbl tbody td { padding: 5px 4px; border-bottom: 1px solid var(--border); text-align: right; }
+  .ds-tbl tbody td { padding: 5px 14px 5px 0; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
   .ds-tbl tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
   .ds-tbl .ds-tbl-cat { text-align: left !important; padding-left: 10px; color: var(--text); font-weight: 500; white-space: nowrap; }
-  .ds-tbl tbody td.ds-tbl-cat { position: sticky; left: 0; background: var(--card); z-index: 2; }
   .ds-tbl tbody .ds-tbl-cat.ds-tbl-top { font-weight: 700; color: var(--primary-2); }
   .ds-tbl .ds-tbl-wk { background: rgba(99,102,241,0.03); }
   .ds-tbl-v { color: var(--text); }
   .ds-tbl-empty { color: var(--text-muted); opacity: .4; }
+  .ds-tbl .ds-below { color: #16a34a; font-weight: 700; }
   .ds-tbl-sum-v { background: var(--bg-soft, var(--bg)); font-weight: 700; color: var(--primary-2); }
   .ds-tbl-total td { background: rgba(99,102,241,0.10); font-weight: 700; color: var(--text); border-top: 2px solid var(--primary-2); }
   .ds-tbl-total .ds-tbl-sum-v { background: rgba(99,102,241,0.12); color: var(--primary-2); }
@@ -2528,12 +2526,7 @@
   .ds-tbl tbody tr.ds-tbl-total td.ds-tbl-cat, .ds-tbl tbody tr.ds-tbl-total td.ds-tbl-avg-v, .ds-tbl tbody tr.ds-tbl-total td.ds-tbl-mavg { background: rgba(99,102,241,0.10); }
   .ds-tbl tbody tr.ds-tbl-sub-row td.ds-tbl-cat.ds-tbl-sub, .ds-tbl tbody tr.ds-tbl-sub-row td.ds-tbl-avg-v, .ds-tbl tbody tr.ds-tbl-sub-row td.ds-tbl-mavg { background: rgba(99,102,241,0.03); }
   .ds-tbl tbody tr:hover td.ds-tbl-cat, .ds-tbl tbody tr:hover td.ds-tbl-avg-v, .ds-tbl tbody tr:hover td.ds-tbl-mavg { background: rgba(99,102,241,0.06); }
-  /* 按月月份：明细表列自适应宽度、全部靠左、紧凑（列少无需冻结与横向滚动） */
-  .ds-tbl.ds-tbl-monthly { width: auto; min-width: 0; }
-  .ds-tbl.ds-tbl-monthly thead th, .ds-tbl.ds-tbl-monthly tbody td { text-align: left; padding: 6px 16px 6px 10px; white-space: nowrap; }
-  .ds-tbl.ds-tbl-monthly thead th.ds-tbl-cat, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-cat,
-  .ds-tbl.ds-tbl-monthly thead th.ds-tbl-avg-col, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-avg-v,
-  .ds-tbl.ds-tbl-monthly thead th.ds-tbl-mavg, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-mavg { position: static; width: auto; min-width: 0; }
+  /* 明细表：所有列统一靠左、紧凑、自适应宽度，不再冻结列（避免横向滚动时列重叠错位） */
   /* 数据分析：对比分析区块 */
   .ds-cmp-card { margin-top: 16px; }
   .ds-cmp-ctrl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
@@ -4035,7 +4028,7 @@ function buildDsCatDateTable(y, m, expanded) {
   // 按月填写的月份：用「本月均值」列替代逐日列
   const monthly = dsDetectMonthMode(y, m) === 'month';
 
-  // 列头：首列「大类」+（按月：本月均值 | 按日：各日）+ 月合计 + 上月均值（最后一列）
+  // 列头：首列「大类」+（按月：本月均值 | 按日：各日）+ 本月均值 + 上月均值（最后两列）
   let head = `<tr><th class="ds-tbl-cat">大类</th>`;
   if (monthly) {
     head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th>`;
@@ -4045,19 +4038,22 @@ function buildDsCatDateTable(y, m, expanded) {
       const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
       head += `<th class="ds-tbl-d${wk}" title="${d}日 周${dowArr[dow]}">${d}</th>`;
     }
+    head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-mavg">本月均值</th>`;
   }
-  head += `<th class="ds-tbl-sum ds-tbl-sum-col">月合计</th><th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-last">上月均值</th></tr>`;
+  head += `<th class="ds-tbl-avg ds-tbl-avg-col ds-tbl-last">上月均值</th></tr>`;
 
-  // 某类别一行（大类 / 小类共用）：上月均值 +（按月：本月均值 | 按日：各日）+ 月合计
+  // 某类别一行（大类 / 小类共用）：各日（按日）或本月均值（按月）+ 本月均值 + 上月均值
   const overallFilledSet = new Set();
   const makeRow = (catId, name, rowCls, catCls, avgTitle) => {
     const avg = dsCatLastMonthAvg(catId, y, m);
+    const mAvg = dsCatMonthAvg(catId, y, m);
+    // 本月均值低于上月均值 → 绿色
+    const mAvgLow = (mAvg > 0 && avg > 0 && mAvg < avg) ? ' ds-below' : '';
     let r = `<tr class="${rowCls}"><td class="ds-tbl-cat ${catCls}">${escapeHtml(name)}</td>`;
     let rowSum = 0;
     if (monthly) {
       for (let d = 1; d <= daysInMonth; d++) { const date = prefix + '-' + ('0' + d).slice(-2); rowSum += dsCatDayAmt(catId, date); }
-      const mAvg = daysInMonth > 0 ? rowSum / daysInMonth : 0;
-      r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg" title="${escapeAttr(name)} 本月日均">${mAvg ? saMoney(mAvg) : '—'}</td>`;
+      r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${mAvgLow}" title="${escapeAttr(name)} 本月均值">${mAvg ? saMoney(mAvg) : '—'}</td>`;
     } else {
       for (let d = 1; d <= lastDay; d++) {
         const date = prefix + '-' + ('0' + d).slice(-2);
@@ -4065,11 +4061,13 @@ function buildDsCatDateTable(y, m, expanded) {
         rowSum += v;
         const dow = new Date(y, m - 1, d).getDay();
         const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
-        r += `<td class="ds-tbl-v${v ? '' : ' ds-tbl-empty'}${wk}" title="${escapeAttr(name)} ${d}日${v ? '：' + saMoney(v) : '：未填'}">${v ? saMoney(v) : ''}</td>`;
+        // 最后一天的数据与本月均值对比，低于则绿色
+        const lowCls = (d === lastDay && mAvg > 0 && v > 0 && v < mAvg) ? ' ds-below' : '';
+        r += `<td class="ds-tbl-v${v ? '' : ' ds-tbl-empty'}${wk}${lowCls}" title="${escapeAttr(name)} ${d}日${v ? '：' + saMoney(v) : '：未填'}">${v ? saMoney(v) : ''}</td>`;
         if (v > 0) overallFilledSet.add(date);
       }
+      r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${mAvgLow}" title="${escapeAttr(name)} 本月均值（当前月为今天以前已填日均）">${mAvg ? saMoney(mAvg) : '—'}</td>`;
     }
-    r += `<td class="ds-tbl-v ds-tbl-sum-v">${rowSum ? saMoney(rowSum) : ''}</td>`;
     r += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-last" title="${escapeAttr(avgTitle)}">${avg ? saMoney(avg) : '—'}</td></tr>`;
     return { html: r, rowSum };
   };
@@ -4089,24 +4087,39 @@ function buildDsCatDateTable(y, m, expanded) {
       }
     }
   });
-  // 底部合计行：各类别列 + 月合计 + 上月均值（最后一列）
+  // 底部合计行：各类别列 + 本月均值（全品类） + 上月均值（最后一列）
+  // 全品类本月均值：当前月 = 今天以前已填合计 ÷ 已填天数（不含当日）；其它月份 = 合计 ÷ 整月天数
+  let allAvg = 0;
+  if (prefix === curPrefix) {
+    let t = 0, f = 0;
+    for (let d = 1; d < now.getDate(); d++) {
+      const date = prefix + '-' + ('0' + d).slice(-2);
+      const v = dsSumAmt(date);
+      if (v > 0) { t += v; f++; }
+    }
+    allAvg = f > 0 ? t / f : 0;
+  } else {
+    allAvg = daysInMonth > 0 ? totalSum / daysInMonth : 0;
+  }
+  const lastAvgAll = dsLastMonthAvg(y, m);
+  const allAvgLow = (allAvg > 0 && lastAvgAll > 0 && allAvg < lastAvgAll) ? ' ds-below' : '';
   let tRow = `<tr class="ds-tbl-total"><td class="ds-tbl-cat">合计</td>`;
-  let monthFilled = 0;
   if (monthly) {
-    const mAvg = daysInMonth > 0 ? totalSum / daysInMonth : 0;
-    tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg ds-tbl-sum-v" title="本月全品类日均">${mAvg ? saMoney(mAvg) : '—'}</td>`;
+    tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${allAvgLow}" title="本月全品类日均">${allAvg ? saMoney(allAvg) : '—'}</td>`;
   } else {
     for (let d = 1; d <= lastDay; d++) {
       const date = prefix + '-' + ('0' + d).slice(-2);
       const v = dsSumAmt(date);
-      if (v > 0) { monthFilled++; overallFilledSet.add(date); }
+      if (v > 0) overallFilledSet.add(date);
       const dow = new Date(y, m - 1, d).getDay();
       const wk = (dow === 0 || dow === 6) ? ' ds-tbl-wk' : '';
-      tRow += `<td class="ds-tbl-v ds-tbl-total-cell${wk}">${v ? saMoney(v) : ''}</td>`;
+      // 最后一天的合计与本月均值对比，低于则绿色
+      const lowCls = (d === lastDay && allAvg > 0 && v > 0 && v < allAvg) ? ' ds-below' : '';
+      tRow += `<td class="ds-tbl-v ds-tbl-total-cell${wk}${lowCls}">${v ? saMoney(v) : ''}</td>`;
     }
+    tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-mavg${allAvgLow}" title="本月全品类日均（当前月为今天以前已填日均）">${allAvg ? saMoney(allAvg) : '—'}</td>`;
   }
-  tRow += `<td class="ds-tbl-v ds-tbl-sum-v">${totalSum ? saMoney(totalSum) : ''}</td>`;
-  tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v ds-tbl-last" title="上月全品类日均">${saMoney(dsLastMonthAvg(y, m))}</td></tr>`;
+  tRow += `<td class="ds-tbl-v ds-tbl-avg-v ds-tbl-sum-v ds-tbl-last" title="上月全品类日均">${saMoney(lastAvgAll)}</td></tr>`;
   body += tRow;
   const totalFilled = overallFilledSet.size;
 
@@ -4200,7 +4213,7 @@ function renderDsAnaTab(body) {
   const expandLabel = dsAnaExpanded ? '收起' : '展开明细';
   const note = tbl.monthly
     ? `本月为「按月填写」，明细以各大类本月日均（本月均值）展示。点击表格右上角「${expandLabel}」可展开 / 收起各大类下的小类明细。`
-    : `本月各大类销售数据明细。点击表格右上角「${expandLabel}」可展开 / 收起各大类下的小类明细。日期列中低于上月均值的数值在日历中会以绿色标注。`;
+    : `本月各大类销售数据明细。点击表格右上角「${expandLabel}」可展开 / 收起各大类下的小类明细。本月均值低于上月均值、或最后一天数据低于本月均值时，数值以绿色标注。`;
   const summary = tbl.monthly
     ? `按月填写 · 大类 <b>${tbl.catCount}</b> · 月合计 <b>${saMoney(tbl.totalSum)}</b>`
     : `已填 <b>${tbl.totalFilled}</b> / ${daysInMonth} 天 · 大类 <b>${tbl.catCount}</b> · 月合计 <b>${saMoney(tbl.totalSum)}</b>`;
