@@ -3695,8 +3695,21 @@ function dsCatMonthTotal(catId, y, m) {
   for (let d = 1; d <= new Date(y, m, 0).getDate(); d++) s += dsCatDayAmt(catId, p + '-' + ('0' + d).slice(-2));
   return s;
 }
-// 某大类（含全部子类）某月日均（合计 ÷ 当月天数）
+// 某大类（含全部子类）某月日均
+// 当前月：仅统计今天以前已填的日期（不含当日），日均 = 已填合计 ÷ 已填天数
+// 其它月份：合计 ÷ 当月天数
 function dsCatMonthAvg(catId, y, m) {
+  const prefix = y + '-' + ('0' + m).slice(-2);
+  const now = new Date();
+  const curPrefix = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+  if (prefix === curPrefix) {
+    let total = 0, filled = 0;
+    for (let d = 1; d < now.getDate(); d++) {
+      const v = dsCatDayAmt(catId, prefix + '-' + ('0' + d).slice(-2));
+      if (v > 0) { total += v; filled++; }
+    }
+    return filled > 0 ? total / filled : 0;
+  }
   const days = new Date(y, m, 0).getDate();
   return days > 0 ? dsCatMonthTotal(catId, y, m) / days : 0;
 }
@@ -4247,7 +4260,7 @@ function renderDsCmpCard(baseY, baseM) {
         <span class="ds-cmp-ctrl-label">对比月份</span>
         <select class="ds-cmp-sel" id="dsCmpMonthSel">${opts.map(o => `<option value="${o.key}"${o.key === dsCmpMonthSel ? ' selected' : ''}>${o.label}</option>`).join('')}</select>
       </div>
-      <div class="ds-cmp-note">对比各分类「月日均」（当月合计 ÷ 当月天数）。基准：<b>${baseLabel}</b> · 对比：<b>${cmpLabel}</b></div>`;
+      <div class="ds-cmp-note">对比各分类「月日均」。基准为当前月时，日均 = 今天以前已填合计 ÷ 已填天数（不含当日）；其它月份按整月天数。基准：<b>${baseLabel}</b> · 对比：<b>${cmpLabel}</b></div>`;
     tableHtml = buildDsCmpTable(
       c => dsCatMonthAvg(c, baseY, baseM),
       c => dsCatMonthAvg(c, cmpY, cmpM),
