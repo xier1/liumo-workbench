@@ -2534,6 +2534,19 @@
   .ds-tbl.ds-tbl-monthly thead th.ds-tbl-cat, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-cat,
   .ds-tbl.ds-tbl-monthly thead th.ds-tbl-avg-col, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-avg-v,
   .ds-tbl.ds-tbl-monthly thead th.ds-tbl-mavg, .ds-tbl.ds-tbl-monthly tbody td.ds-tbl-mavg { position: static; width: auto; min-width: 0; }
+  /* 数据分析：对比分析区块 */
+  .ds-cmp-card { margin-top: 16px; }
+  .ds-cmp-ctrl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
+  .ds-cmp-ctrl-label { font-size: 13px; color: var(--text-soft); white-space: nowrap; }
+  .ds-cmp-sel, .ds-cmp-date { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-size: 13px; }
+  .ds-cmp-date { color-scheme: light; }
+  .ds-cmp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .ds-cmp-note b { color: var(--primary-2); }
+  .ds-cmp-subhead { background: transparent; border: none; padding: 0; margin: 0 0 8px; justify-content: flex-end; }
+  .ds-tbl.ds-tbl-cmp { width: auto; min-width: 0; }
+  .ds-tbl-cmp td.ds-cmp-diff, .ds-tbl-cmp td.ds-cmp-pct { text-align: right; font-weight: 600; }
+  .ds-cmp-diff.up, .ds-cmp-pct.up { color: #e11d48; }
+  .ds-cmp-diff.down, .ds-cmp-pct.down { color: #16a34a; }
   .ds-cal-h { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; font-weight: 600; }
   .ds-cal-cell { min-height: 60px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 4px; background: var(--card); cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: border-color .15s, background .15s; }
   .ds-cal-cell.blank { background: transparent; border: none; cursor: default; }
@@ -3037,6 +3050,12 @@ let dsCatOpen = {};          // 类别管理：各一级大类的子类列表是
 let dsEntryMode = 'day';     // 销售数据录入模式：'day'=按日填写(日历) | 'month'=按月填写(整月汇总)
 const DS_MODE_KEY = 'liumo_ds_mode';
 let dsAnaExpanded = false;   // 数据分析：明细表是否展开大类显示小类
+// 数据分析：对比分析区块状态
+let dsCmpMode = 'month';     // 对比模式：'month'=按月对比(比均值) | 'day'=按天对比
+let dsCmpMonthSel = 'last';  // 按月对比：对比月份选择 'last'=上月 | 'lastyear'=去年同月份 | 'Y-M'=指定月份
+let dsCmpBaseDate = '';      // 按天对比：基准日（默认今天）
+let dsCmpCmpDate = '';       // 按天对比：对比日（默认昨天）
+let dsCmpExpanded = false;   // 对比分析：是否展开小类
 // ---------- 销售数据页签渲染 ----------
 
 
@@ -3669,6 +3688,71 @@ function dsMonthHasData(y, m) {
   const p = y + '-' + ('0' + m).slice(-2);
   return dsLogs.some(l => (l.date || '').slice(0, 7) === p);
 }
+// 某大类（含全部子类）某月营业额合计
+function dsCatMonthTotal(catId, y, m) {
+  const p = y + '-' + ('0' + m).slice(-2);
+  let s = 0;
+  for (let d = 1; d <= new Date(y, m, 0).getDate(); d++) s += dsCatDayAmt(catId, p + '-' + ('0' + d).slice(-2));
+  return s;
+}
+// 某大类（含全部子类）某月日均（合计 ÷ 当月天数）
+function dsCatMonthAvg(catId, y, m) {
+  const days = new Date(y, m, 0).getDate();
+  return days > 0 ? dsCatMonthTotal(catId, y, m) / days : 0;
+}
+// 日期偏移（deltaDays 可正可负），返回 YYYY-MM-DD
+function dsShiftDate(dateStr, deltaDays) {
+  const dt = new Date(dateStr + 'T00:00:00');
+  dt.setDate(dt.getDate() + deltaDays);
+  return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
+}
+// 对比分析：单行（类别 + 两期值 + 差异 + 变化%）
+function dsCmpRowHtml(name, catCls, rowCls, a, b) {
+  const diff = a - b;
+  const sign = diff > 0 ? '+' : (diff < 0 ? '-' : '');
+  const diffTxt = diff === 0 ? '0' : sign + saMoney(Math.abs(diff));
+  const diffCls = diff > 0 ? 'up' : (diff < 0 ? 'down' : '');
+  let pctTxt = '—', pctCls = '';
+  if (b !== 0) { const pct = (diff / b) * 100; pctTxt = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%'; pctCls = diff > 0 ? 'up' : (diff < 0 ? 'down' : ''); }
+  else if (a !== 0) { pctTxt = '—'; }
+  return `<tr class="${rowCls}">
+    <td class="ds-tbl-cat ${catCls}">${escapeHtml(name)}</td>
+    <td class="ds-tbl-v">${saMoney(a)}</td>
+    <td class="ds-tbl-v">${saMoney(b)}</td>
+    <td class="ds-tbl-v ds-cmp-diff ${diffCls}">${diffTxt}</td>
+    <td class="ds-tbl-v ds-cmp-pct ${pctCls}">${pctTxt}</td>
+  </tr>`;
+}
+function dsCmpTotalRow(a, b) {
+  const diff = a - b;
+  const sign = diff > 0 ? '+' : (diff < 0 ? '-' : '');
+  const diffTxt = diff === 0 ? '0' : sign + saMoney(Math.abs(diff));
+  const diffCls = diff > 0 ? 'up' : (diff < 0 ? 'down' : '');
+  let pctTxt = '—', pctCls = '';
+  if (b !== 0) { const pct = (diff / b) * 100; pctTxt = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%'; pctCls = diff > 0 ? 'up' : (diff < 0 ? 'down' : ''); }
+  return `<tr class="ds-tbl-total">
+    <td class="ds-tbl-cat">合计</td>
+    <td class="ds-tbl-v ds-tbl-sum-v">${saMoney(a)}</td>
+    <td class="ds-tbl-v ds-tbl-sum-v">${saMoney(b)}</td>
+    <td class="ds-tbl-v ds-tbl-sum-v ds-cmp-diff ${diffCls}">${diffTxt}</td>
+    <td class="ds-tbl-v ds-tbl-sum-v ds-cmp-pct ${pctCls}">${pctTxt}</td>
+  </tr>`;
+}
+// 对比分析：通用表格（getA/getB 取值函数；合计仅累加大类，避免展开小类重复统计）
+function buildDsCmpTable(getA, getB, expanded, colAName, colBName) {
+  const tops = dsTopCats();
+  if (tops.length === 0) return '<div class="wt-empty">尚未添加类别，请先到「类别管理」添加</div>';
+  const head = `<tr><th class="ds-tbl-cat">类别</th><th>${colAName}</th><th>${colBName}</th><th>差异</th><th>变化</th></tr>`;
+  let body = '', totA = 0, totB = 0;
+  tops.forEach(top => {
+    const a = getA(top.id), b = getB(top.id);
+    totA += a; totB += b;
+    body += dsCmpRowHtml(top.name, 'ds-tbl-top', 'ds-tbl-leaf', a, b);
+    if (expanded) dsChildren(top.id).forEach(k => { body += dsCmpRowHtml(k.name, 'ds-tbl-sub', 'ds-tbl-leaf ds-tbl-sub-row', getA(k.id), getB(k.id)); });
+  });
+  body += dsCmpTotalRow(totA, totB);
+  return `<table class="ds-tbl ds-tbl-cmp"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
 // 设置查看月份，并据数据自动匹配填写方式（不弹提醒）
 function dsSetMonth(y, m) {
   dsCalY = y; dsCalM = m;
@@ -4124,11 +4208,109 @@ function renderDsAnaTab(body) {
       </div>
       <div class="ds-tbl-wrap">${tbl.html}</div>
     </div>
+    ${renderDsCmpCard(y, m)}
   `;
   body.querySelector('#dsAnaExpand').addEventListener('click', () => { dsAnaExpanded = !dsAnaExpanded; renderDsAnaTab(body); });
   body.querySelector('#dsAnaPrev').addEventListener('click', () => { let py = dsCalY, pm = dsCalM - 1; if (pm < 1) { pm = 12; py--; } dsSetMonth(py, pm); renderDsAnaTab(body); });
   body.querySelector('#dsAnaNext').addEventListener('click', () => { let py = dsCalY, pm = dsCalM + 1; if (pm > 12) { pm = 1; py++; } dsSetMonth(py, pm); renderDsAnaTab(body); });
   body.querySelector('#dsAnaToday').addEventListener('click', () => { const n = new Date(); dsSetMonth(n.getFullYear(), n.getMonth() + 1); renderDsAnaTab(body); });
+  wireDsCmpCard(body, y, m);
+}
+
+// 数据分析：对比分析区块（返回 HTML）
+function renderDsCmpCard(baseY, baseM) {
+  if (!dsCmpBaseDate) dsCmpBaseDate = todayStr();
+  if (!dsCmpCmpDate) dsCmpCmpDate = dsShiftDate(todayStr(), -1);
+  const baseLabel = baseY + ' 年 ' + baseM + ' 月';
+  let ctrlHtml, tableHtml;
+  if (dsCmpMode === 'month') {
+    // 对比月份选项：上月 / 去年同月份 / 有数据的其它月份
+    let ly = baseY, lm = baseM - 1; if (lm < 1) { lm = 12; ly--; }
+    const lastKey = ly + '-' + ('0' + lm).slice(-2);
+    let yy = baseY - 1, ym = baseM;
+    const lyKey = yy + '-' + ('0' + ym).slice(-2);
+    const opts = [
+      { key: 'last', label: '上月（' + ly + ' 年 ' + lm + ' 月）' },
+      { key: 'lastyear', label: '去年同月份（' + yy + ' 年 ' + ym + ' 月）' }
+    ];
+    const dataMonths = [...new Set(dsLogs.map(l => (l.date || '').slice(0, 7)))]
+      .filter(p => p && p !== (baseY + '-' + ('0' + baseM).slice(-2)))
+      .sort().reverse();
+    dataMonths.forEach(p => { if (p === lastKey || p === lyKey) return; opts.push({ key: p, label: p.slice(0, 4) + ' 年 ' + Number(p.slice(5, 7)) + ' 月' }); });
+    if (!opts.some(o => o.key === dsCmpMonthSel)) dsCmpMonthSel = 'last';
+    let cmpY = ly, cmpM = lm;
+    if (dsCmpMonthSel === 'lastyear') { cmpY = yy; cmpM = ym; }
+    else if (dsCmpMonthSel !== 'last') { const pr = dsCmpMonthSel.split('-'); cmpY = Number(pr[0]); cmpM = Number(pr[1]); }
+    const cmpLabel = cmpY + ' 年 ' + cmpM + ' 月';
+    ctrlHtml = `
+      <div class="ds-cmp-ctrl">
+        <span class="ds-cmp-ctrl-label">对比月份</span>
+        <select class="ds-cmp-sel" id="dsCmpMonthSel">${opts.map(o => `<option value="${o.key}"${o.key === dsCmpMonthSel ? ' selected' : ''}>${o.label}</option>`).join('')}</select>
+      </div>
+      <div class="ds-cmp-note">对比各分类「月日均」（当月合计 ÷ 当月天数）。基准：<b>${baseLabel}</b> · 对比：<b>${cmpLabel}</b></div>`;
+    tableHtml = buildDsCmpTable(
+      c => dsCatMonthAvg(c, baseY, baseM),
+      c => dsCatMonthAvg(c, cmpY, cmpM),
+      dsCmpExpanded, baseLabel + ' 日均', cmpLabel + ' 日均'
+    );
+  } else {
+    ctrlHtml = `
+      <div class="ds-cmp-ctrl">
+        <span class="ds-cmp-ctrl-label">基准日</span>
+        <input type="date" class="ds-cmp-date" id="dsCmpBaseDate" value="${dsCmpBaseDate}" />
+      </div>
+      <div class="ds-cmp-ctrl">
+        <span class="ds-cmp-ctrl-label">对比日</span>
+        <select class="ds-cmp-sel" id="dsCmpDayQuick">
+          <option value="yesterday"${dsCmpCmpDate === dsShiftDate(dsCmpBaseDate, -1) ? ' selected' : ''}>昨天</option>
+          <option value="daybefore"${dsCmpCmpDate === dsShiftDate(dsCmpBaseDate, -2) ? ' selected' : ''}>前天</option>
+        </select>
+        <input type="date" class="ds-cmp-date" id="dsCmpCmpDate" value="${dsCmpCmpDate}" />
+      </div>`;
+    tableHtml = buildDsCmpTable(
+      c => dsCatDayAmt(c, dsCmpBaseDate),
+      c => dsCatDayAmt(c, dsCmpCmpDate),
+      dsCmpExpanded, dsCmpBaseDate, dsCmpCmpDate
+    );
+  }
+  const expandLabel = dsCmpExpanded ? '收起' : '展开明细';
+  return `
+    <div class="ds-tbl-card ds-cmp-card">
+      <div class="ds-tbl-head">
+        <div class="ds-tbl-title">对比分析</div>
+        <div class="ds-mode-seg">
+          <button class="ds-mode-btn ${dsCmpMode === 'month' ? 'active' : ''}" data-cmp="month" type="button">按月对比</button>
+          <button class="ds-mode-btn ${dsCmpMode === 'day' ? 'active' : ''}" data-cmp="day" type="button">按天对比</button>
+        </div>
+      </div>
+      ${ctrlHtml}
+      <div class="ds-tbl-head ds-cmp-subhead">
+        <span class="ds-tbl-meta">${dsCmpExpanded ? '已展开小类' : '仅显示大类'}</span>
+        <button class="btn-add ds-ana-expand" id="dsCmpExpand" type="button">${expandLabel}</button>
+      </div>
+      <div class="ds-tbl-wrap">${tableHtml}</div>
+    </div>`;
+}
+
+// 数据分析：对比分析区块（绑定事件）
+function wireDsCmpCard(body, baseY, baseM) {
+  body.querySelectorAll('.ds-mode-btn[data-cmp]').forEach(b => b.addEventListener('click', () => {
+    dsCmpMode = b.dataset.cmp; renderDsAnaTab(body);
+  }));
+  const exBtn = body.querySelector('#dsCmpExpand');
+  if (exBtn) exBtn.addEventListener('click', () => { dsCmpExpanded = !dsCmpExpanded; renderDsAnaTab(body); });
+  const mSel = body.querySelector('#dsCmpMonthSel');
+  if (mSel) mSel.addEventListener('change', () => { dsCmpMonthSel = mSel.value; renderDsAnaTab(body); });
+  const baseInp = body.querySelector('#dsCmpBaseDate');
+  if (baseInp) baseInp.addEventListener('change', () => { if (baseInp.value) { dsCmpBaseDate = baseInp.value; renderDsAnaTab(body); } });
+  const quick = body.querySelector('#dsCmpDayQuick');
+  if (quick) quick.addEventListener('change', () => {
+    if (quick.value === 'yesterday') dsCmpCmpDate = dsShiftDate(dsCmpBaseDate, -1);
+    else if (quick.value === 'daybefore') dsCmpCmpDate = dsShiftDate(dsCmpBaseDate, -2);
+    renderDsAnaTab(body);
+  });
+  const cmpInp = body.querySelector('#dsCmpCmpDate');
+  if (cmpInp) cmpInp.addEventListener('change', () => { if (cmpInp.value) dsCmpCmpDate = cmpInp.value; renderDsAnaTab(body); });
 }
 
 // 点击某一天：弹窗加载类别表单，逐类填金额，底部总额 + 保存
