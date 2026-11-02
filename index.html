@@ -294,6 +294,17 @@
   .iv-modal { background: var(--card); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 360px; box-shadow: var(--shadow-lg); }
   .iv-modal-title { font-weight: 600; margin-bottom: 14px; font-size: 15px; }
   .iv-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+  .iv-clear-btn { flex: 0 0 auto; height: 38px; padding: 0 14px; border: 1px solid #fca5a5; border-radius: var(--radius-sm); background: #fff; color: #dc2626; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .iv-clear-btn:hover { background: #fef2f2; }
+  .btn-danger { padding: 10px 18px; border: 1px solid var(--danger); background: var(--danger); color: #fff; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; transition: all var(--transition); white-space: nowrap; }
+  .btn-danger:hover { opacity: 0.9; }
+  .iv-clear-modal { max-width: 380px; }
+  .iv-clear-tip { font-size: 13px; color: var(--text-soft); line-height: 1.55; margin: -6px 0 14px; }
+  .iv-clear-cats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .iv-clear-cat { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; user-select: none; }
+  .iv-clear-cat:hover { background: #f8fafc; }
+  .iv-clear-cat input { width: auto; height: auto; margin: 0; cursor: pointer; }
+  .iv-clear-cat .iv-clear-cnt { margin-left: auto; font-size: 12px; color: var(--text-soft); }
 
   .sidebar-footer {
     margin-top: auto;
@@ -2436,6 +2447,8 @@
     .iv-item-name { min-width: 60px; }
     .iv-item-actions { flex-basis: 100%; justify-content: flex-end; margin-top: 4px; gap: 4px; }
     .iv-btn { padding: 4px 6px; font-size: 11px; }
+    .toolbar.iv-search-bar { flex-wrap: wrap; }
+    .toolbar.iv-search-bar .iv-clear-btn { flex: 1 1 auto; }
   }
 
   /* 成本录入模块 */
@@ -2769,6 +2782,42 @@
     box-shadow: var(--shadow-md); cursor: pointer; }
   .dl-fab:active { transform: scale(.96); }
   @media (max-width: 768px) { .dl-fab { right: 12px; bottom: 12px; padding: 12px 18px; font-size: 15px; } }
+
+  /* ---------- 生日提醒模块 ---------- */
+  .bd-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .bd-add { border: 1px solid var(--primary); background: var(--primary); color: #fff; border-radius: var(--radius-sm); padding: 9px 16px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .bd-add:hover { filter: brightness(1.05); }
+  .bd-hint { font-size: 12px; color: var(--text-muted); margin: -4px 0 12px; }
+  .bd-list { display: flex; flex-direction: column; gap: 10px; }
+  .bd-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+  .bd-card.bd-passed { opacity: .62; }
+  .bd-card.bd-today { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99,102,241,.18); }
+  .bd-avatar { width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; background: var(--primary); }
+  .bd-main { flex: 1; min-width: 0; }
+  .bd-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bd-tag { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgba(99,102,241,.12); color: var(--primary); }
+  .bd-tag.lunar { background: rgba(234,88,12,.12); color: #ea580c; }
+  .bd-tag.passed { background: rgba(100,116,139,.16); color: #64748b; }
+  .bd-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+  .bd-date { font-size: 13px; color: var(--text-soft); margin-top: 2px; }
+  .bd-right { text-align: right; flex: 0 0 auto; }
+  .bd-countdown { font-weight: 700; font-size: 15px; color: var(--primary); }
+  .bd-countdown.passed { color: #64748b; font-weight: 600; }
+  .bd-age { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .bd-actions { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
+  .bd-actions button { border: 1px solid var(--border); background: var(--card); color: var(--text-soft); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; font-size: 12px; }
+  .bd-actions button:hover { border-color: var(--primary); color: var(--primary); }
+  .bd-sep { font-size: 12px; color: var(--text-muted); margin: 14px 2px 4px; font-weight: 600; }
+  /* 生日弹窗 */
+  .bd-field { margin-bottom: 12px; }
+  .bd-field > label { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 6px; font-weight: 600; }
+  .bd-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .bd-row .bd-field { flex: 1; min-width: 84px; margin-bottom: 0; }
+  .bd-input, .bd-select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; box-sizing: border-box; }
+  .bd-radio { display: inline-flex; gap: 8px; }
+  .bd-radio label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; }
+  .bd-radio input { accent-color: var(--primary); }
+  .bd-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-soft); margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -3003,6 +3052,13 @@ const MODULES = [
     name: '超市海报',
     desc: '一键生成促销海报 · 多套模板 · 实时预览 · 导出图片',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
+    enabled: true
+  },
+  {
+    id: 'birthday',
+    name: '生日提醒',
+    desc: '记录亲友生日 · 支持农历/公历 · 可设过农历还是公历 · 按日期排序 · 已过的沉底',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M2 17h20"/><path d="M12 5v4M9 7h6"/><path d="M12 13a2 2 0 0 0 2-2c0-1.1-1-1.5-2-2.5-1 1-2 1.4-2 2.5a2 2 0 0 0 2 2z"/></svg>',
     enabled: true
   }
 ];
@@ -3518,6 +3574,12 @@ function renderContent() {
   // 跳绳记录模块
   if (currentModule === 'rope') {
     renderRopeModule(content, mod);
+    return;
+  }
+
+  // 生日提醒模块
+  if (currentModule === 'birthday') {
+    renderBirthdayModule(content, mod);
     return;
   }
 
@@ -9363,6 +9425,7 @@ function renderInventoryModule(content, mod) {
         <option value="liquor"${inventoryFilter === 'liquor' ? ' selected' : ''}>酒水</option>
       </select>
       <button class="iv-back-all" id="ivBackAll" type="button" style="${inventoryFilter === 'warn' ? '' : 'display:none;'}">全部商品</button>
+      <button class="iv-clear-btn" id="ivClearBtn" type="button">清空库存</button>
     </div>
 
     <!-- 商品列表：默认折叠 -->
@@ -9400,6 +9463,21 @@ function renderInventoryModule(content, mod) {
         <div class="iv-modal-actions">
           <button class="btn-ghost" id="ivModalCancel">取消</button>
           <button class="btn-add" id="ivModalOk">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="iv-modal-mask" id="ivClearMask" style="display:none;">
+      <div class="iv-modal iv-clear-modal">
+        <div class="iv-modal-title">清空库存</div>
+        <p class="iv-clear-tip">将选中分类的库存数量清零，<b>保留商品信息</b>（名称 / 进价 / 预警等）。该操作会记为「出库」流水，且不可撤销，请谨慎操作。</p>
+        <div class="iv-clear-cats">
+          <label class="iv-clear-cat"><input type="checkbox" id="ivClearCat-cigarette" value="cigarette" /> 香烟 <span class="iv-clear-cnt" id="ivClearCnt-cigarette"></span></label>
+          <label class="iv-clear-cat"><input type="checkbox" id="ivClearCat-liquor" value="liquor" /> 酒水 <span class="iv-clear-cnt" id="ivClearCnt-liquor"></span></label>
+        </div>
+        <div class="iv-modal-actions">
+          <button class="btn-ghost" id="ivClearCancel">取消</button>
+          <button class="btn-danger" id="ivClearOk">清空选中</button>
         </div>
       </div>
     </div>
@@ -9662,6 +9740,9 @@ function bindInventoryEvents() {
     listToggle.setAttribute('aria-expanded', String(!collapsed));
   });
 
+  const clearBtn = document.getElementById('ivClearBtn');
+  if (clearBtn) clearBtn.addEventListener('click', openInventoryClearModal);
+  bindInventoryClearModal();
   bindInventoryModal();
 }
 
@@ -9747,6 +9828,57 @@ function bindInventoryModal() {
     renderInventoryList();
     renderInventoryLogs();
     showToast((ivModalType === 'in' ? '已入库 ' : '已出库 ') + v + ' · 余 ' + newStock);
+  });
+}
+
+function openInventoryClearModal() {
+  const mask = document.getElementById('ivClearMask');
+  if (!mask) return;
+  // 默认只勾选存在库存的分类
+  ['cigarette', 'liquor'].forEach(cat => {
+    const items = inventoryItems.filter(i => i.category === cat);
+    const withStock = items.filter(i => (Number(i.stock) || 0) > 0).length;
+    const span = document.getElementById('ivClearCnt-' + cat);
+    if (span) span.textContent = items.length + ' 种（' + withStock + ' 个有库存）';
+    const cb = document.getElementById('ivClearCat-' + cat);
+    if (cb) cb.checked = withStock > 0;
+  });
+  mask.style.display = 'flex';
+}
+
+function bindInventoryClearModal() {
+  const mask = document.getElementById('ivClearMask');
+  if (!mask) return;
+  const ok = document.getElementById('ivClearOk');
+  const cancel = document.getElementById('ivClearCancel');
+  if (cancel) cancel.addEventListener('click', () => { mask.style.display = 'none'; });
+  mask.addEventListener('click', e => { if (e.target === mask) mask.style.display = 'none'; });
+  if (ok) ok.addEventListener('click', () => {
+    const cats = ['cigarette', 'liquor'].filter(cat => {
+      const cb = document.getElementById('ivClearCat-' + cat);
+      return cb && cb.checked;
+    });
+    if (cats.length === 0) { showToast('请至少选择一个分类'); return; }
+    const targets = inventoryItems.filter(i => cats.includes(i.category) && (Number(i.stock) || 0) > 0);
+    if (targets.length === 0) { showToast('选中分类暂无库存可清空'); mask.style.display = 'none'; return; }
+    if (!window.confirm('确定清空选中分类的库存（' + targets.length + ' 项将归零）？此操作不可撤销。')) return;
+    targets.forEach(it => {
+      const old = Number(it.stock) || 0;
+      it.stock = 0;
+      it.updatedAt = Date.now();
+      inventoryLogs.push({
+        id: uid(), itemId: it.id, itemName: it.name, category: it.category,
+        type: 'out', qty: old, note: '清空库存', unit: it.unit || '',
+        createdAt: Date.now()
+      });
+    });
+    saveInventory();
+    saveInventoryLogs();
+    mask.style.display = 'none';
+    renderInventoryStats();
+    renderInventoryList();
+    renderInventoryLogs();
+    showToast('已清空库存：' + targets.length + ' 项');
   });
 }
 
@@ -13255,6 +13387,276 @@ function bindPosterEvents() {
     const c = document.getElementById('content');
     if (!c || !c.contains(e.target)) return;
     posterHandleInput(e);
+  });
+}
+
+// ========================================================
+//  生日提醒模块
+//  数据：localStorage key = liumo_birthdays
+//  条目模型：{ id, name, calType: 'solar'|'lunar', year: Number|null,
+//             month: 1-12, day: 1-31, leap: Boolean }
+//   - calType='solar'：公历生日，month/day 为公历月日
+//   - calType='lunar'：农历生日，month/day 为农历月日，leap 表示是否闰月
+//   - year 为出生年份（选填），用于计算年龄
+// ========================================================
+const BIRTHDAY_KEY = 'liumo_birthdays';
+
+// ---------- 农历公历转换（lunarInfo 表，覆盖 1900-2049）----------
+const BD_LUNAR_INFO = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a0,0x096d0,0x04af5,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x15d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520];
+function bdLYearDays(y) { let s = 348; for (let i = 0x8000; i > 0x8; i >>= 1) s += (BD_LUNAR_INFO[y - 1900] & i) ? 1 : 0; return s + bdLeapDays(y); }
+function bdLeapDays(y) { return bdLeapMonth(y) ? ((BD_LUNAR_INFO[y - 1900] & 0x10000) ? 30 : 29) : 0; }
+function bdLeapMonth(y) { return BD_LUNAR_INFO[y - 1900] & 0xf; }
+function bdMonthDays(y, m) { return (BD_LUNAR_INFO[y - 1900] & (0x10000 >> m)) ? 30 : 29; }
+// 公历 → 农历，返回 { lYear, lMonth, lDay, isLeap }
+function bdSolarToLunar(y, m, d) {
+  const base = new Date(1900, 0, 31);
+  const obj = new Date(y, m - 1, d);
+  let offset = Math.round((obj - base) / 86400000);
+  let lunarYear = 1900, temp = 0;
+  for (lunarYear = 1900; lunarYear < 2100 && offset > 0; lunarYear++) { temp = bdLYearDays(lunarYear); offset -= temp; }
+  if (offset < 0) { offset += temp; lunarYear--; }
+  let isLeap = false;
+  const leapM = bdLeapMonth(lunarYear);
+  let lunarMonth;
+  for (lunarMonth = 1; lunarMonth <= 12 && offset > 0; lunarMonth++) {
+    if (leapM > 0 && lunarMonth === (leapM + 1) && !isLeap) { lunarMonth--; isLeap = true; temp = bdLeapDays(lunarYear); }
+    else { temp = bdMonthDays(lunarYear, lunarMonth); }
+    if (isLeap && lunarMonth === (leapM + 1)) isLeap = false;
+    offset -= temp;
+  }
+  if (offset === 0 && leapM > 0 && lunarMonth === leapM + 1) { if (isLeap) isLeap = false; else { isLeap = true; lunarMonth--; } }
+  if (offset < 0) { offset += temp; lunarMonth--; }
+  return { lYear: lunarYear, lMonth: lunarMonth, lDay: offset + 1, isLeap: isLeap };
+}
+function bdIsLeapYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+// 取得某人某公历年份的庆生公历日期（不存在则返回 null，如 2/29 平年、或农历某日当年无对应）
+function bdSolarOnYear(p, year) {
+  if (p.calType === 'solar') {
+    if (p.month === 2 && p.day === 29 && !bdIsLeapYear(year)) return null;
+    return new Date(year, p.month - 1, p.day);
+  }
+  // lunar：在该公历年份范围内逐日匹配农历月日（含闰月），取第一个匹配
+  let startY = (year === new Date().getFullYear()) ? year - 1 : year; // 当年农历可能在去年 1 月
+  for (let y = startY; y <= year; y++) {
+    const days = bdIsLeapYear(y) ? 366 : 365;
+    for (let i = 0; i < days; i++) {
+      const dt = new Date(y, 0, 1); dt.setDate(dt.getDate() + i);
+      const lu = bdSolarToLunar(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+      if (lu.lMonth === p.month && lu.lDay === p.day && (lu.isLeap === !!p.leap)) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+  }
+  return null;
+}
+// 从 fromDate（含）起，下一次庆生公历日期
+function bdNextCelebration(p, fromDate) {
+  if (p.calType === 'solar') {
+    for (let y = fromDate.getFullYear(); y <= fromDate.getFullYear() + 2; y++) {
+      const c = bdSolarOnYear(p, y);
+      if (c && c >= fromDate) return c;
+    }
+  } else {
+    for (let y = fromDate.getFullYear() - 1; y <= fromDate.getFullYear() + 2; y++) {
+      const c = bdSolarOnYear(p, y);
+      if (c && c >= fromDate) return c;
+    }
+  }
+  return null;
+}
+function bdCnMonth(m) { return ['正','二','三','四','五','六','七','八','九','十','冬','腊'][m - 1] + '月'; }
+function bdCnDay(d) {
+  const u = ['','一','二','三','四','五','六','七','八','九','十'];
+  if (d <= 10) return d === 10 ? '初十' : '初' + u[d];
+  if (d < 20) return '十' + u[d - 10];
+  if (d === 20) return '二十';
+  if (d < 30) return '廿' + u[d - 20];
+  if (d === 30) return '三十';
+  return '卅一';
+}
+function bdBirthText(p) {
+  if (p.calType === 'lunar') {
+    return '农历 ' + (p.leap ? '闰' : '') + bdCnMonth(p.month) + bdCnDay(p.day) + (p.year ? '（' + p.year + '）' : '');
+  }
+  return (p.year ? p.year + '-' : '') + ('0' + p.month).slice(-2) + '-' + ('0' + p.day).slice(-2);
+}
+function bdThisYearSolar(p, cy) { return bdSolarOnYear(p, cy); }
+
+// ---------- 数据读写 ----------
+function loadBirthdays() {
+  try { const raw = localStorage.getItem(BIRTHDAY_KEY); const a = raw ? JSON.parse(raw) : []; return Array.isArray(a) ? a : []; }
+  catch (e) { return []; }
+}
+function saveBirthdays(arr) { localStorage.setItem(BIRTHDAY_KEY, JSON.stringify(arr)); }
+function bdInitial(name) { return (name || '?').trim().charAt(0) || '?'; }
+
+// ---------- 列表渲染 ----------
+function renderBirthdayModule(content, mod) {
+  const list = loadBirthdays();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cy = today.getFullYear();
+
+  const rows = list.map(p => {
+    const next = bdNextCelebration(p, today);
+    let days = null, passed = false;
+    if (next) {
+      days = Math.round((next - today) / 86400000);
+      passed = next.getFullYear() > cy;
+    }
+    let age = null;
+    if (p.year) {
+      const ty = bdThisYearSolar(p, cy);
+      const turned = cy - p.year;
+      age = (ty && ty < today) ? turned : Math.max(0, turned - 1);
+    }
+    return { p, next, days, passed, age };
+  }).sort((a, b) => {
+    if (a.passed !== b.passed) return a.passed ? 1 : -1;
+    if (a.next && b.next) return a.next - b.next;
+    return 0;
+  });
+
+  const upcoming = rows.filter(r => !r.passed);
+  const passedRows = rows.filter(r => r.passed);
+
+  const cardHtml = (r) => {
+    const { p, next, days, passed, age } = r;
+    const todayHit = (days === 0);
+    const isLunar = p.calType === 'lunar';
+    const tagCls = isLunar ? 'bd-tag lunar' : 'bd-tag';
+    let countdown;
+    if (todayHit) countdown = '今天生日🎂';
+    else if (passed) countdown = '今年已过';
+    else countdown = '还有 ' + days + ' 天';
+    const cdCls = passed ? 'bd-countdown passed' : 'bd-countdown';
+    const nextTxt = next ? (next.getFullYear() + '年' + (next.getMonth()+1) + '月' + next.getDate() + '日') : '—';
+    const dateLine = isLunar ? ('今年过：' + nextTxt) : ('公历：' + nextTxt);
+    return `<div class="bd-card${passed ? ' bd-passed' : ''}${todayHit ? ' bd-today' : ''}">
+      <div class="bd-avatar">${escapeHtml(bdInitial(p.name))}</div>
+      <div class="bd-main">
+        <div class="bd-name">${escapeHtml(p.name)}<span class="${tagCls}">${isLunar ? '农历' : '公历'}</span>${passed ? '<span class="bd-tag passed">已过</span>' : ''}${todayHit ? '<span class="bd-tag">今天</span>' : ''}</div>
+        <div class="bd-sub">生日：${escapeHtml(bdBirthText(p))}</div>
+        <div class="bd-date">${dateLine}${age != null ? ' · ' + age + ' 岁' : ''}</div>
+      </div>
+      <div class="bd-right">
+        <div class="${cdCls}">${countdown}</div>
+        <div class="bd-actions">
+          <button class="bd-edit" data-id="${p.id}" type="button">编辑</button>
+          <button class="bd-del" data-id="${p.id}" type="button">删除</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${mod.name}</div>
+      <div class="page-desc">${mod.desc}</div>
+    </div>
+    <div class="bd-head">
+      <div class="bd-hint">共 ${list.length} 人 · 按庆生日期排序，今年已过的沉到下方</div>
+      <button class="bd-add" id="bdAdd" type="button">+ 添加生日</button>
+    </div>
+    <div class="bd-list" id="bdList">
+      ${list.length === 0 ? '<div class="wt-empty">还没有记录，点「添加生日」开始吧</div>' :
+        (upcoming.length ? upcoming.map(cardHtml).join('') : '') +
+        (passedRows.length ? `<div class="bd-sep">今年已过的生日（${passedRows.length}）</div>` + passedRows.map(cardHtml).join('') : '')
+      }
+    </div>
+  `;
+
+  content.querySelector('#bdAdd').addEventListener('click', () => bdOpenModal(content, mod, null));
+  content.querySelectorAll('.bd-edit').forEach(b => b.addEventListener('click', () => {
+    const p = list.find(x => x.id === b.getAttribute('data-id'));
+    if (p) bdOpenModal(content, mod, p);
+  }));
+  content.querySelectorAll('.bd-del').forEach(b => b.addEventListener('click', () => {
+    const id = b.getAttribute('data-id');
+    if (confirm('确定删除该生日记录？')) {
+      saveBirthdays(list.filter(x => x.id !== id));
+      renderBirthdayModule(content, mod);
+      showToast('已删除');
+    }
+  }));
+}
+
+// ---------- 新增/编辑弹窗 ----------
+function bdOpenModal(content, mod, p) {
+  const ex = document.getElementById('bdMask'); if (ex) ex.remove();
+  const isEdit = !!p;
+  const calType = (p && p.calType) || 'solar';
+  const year = (p && p.year) || '';
+  const month = (p && p.month) || 1;
+  const day = (p && p.day) || 1;
+  const leap = !!(p && p.leap);
+  const name = (p && p.name) || '';
+
+  const solarMonthOpts = Array.from({length:12}, (_,i) => `<option value="${i+1}"${i+1===month?' selected':''}>${i+1} 月</option>`).join('');
+  const solarDayOpts = Array.from({length:31}, (_,i) => `<option value="${i+1}"${i+1===day?' selected':''}>${i+1} 日</option>`).join('');
+  const lunarMonthOpts = Array.from({length:12}, (_,i) => `<option value="${i+1}"${i+1===month?' selected':''}>${bdCnMonth(i+1)}</option>`).join('');
+  const lunarDayOpts = Array.from({length:30}, (_,i) => `<option value="${i+1}"${i+1===day?' selected':''}>${bdCnDay(i+1)}</option>`).join('');
+
+  const mask = document.createElement('div');
+  mask.className = 'ds-cal-mask';
+  mask.id = 'bdMask';
+  mask.innerHTML = `
+    <div class="ds-cal-modal">
+      <div class="ds-cal-modal-head">
+        <div class="ds-cal-modal-title">${isEdit ? '编辑生日' : '添加生日'}</div>
+        <button class="ds-cal-close" id="bdClose" type="button">×</button>
+      </div>
+      <div class="ds-cal-modal-body">
+        <div class="bd-field"><label>姓名</label><input class="bd-input" id="bdName" placeholder="称呼 / 昵称" value="${escapeHtml(name)}" /></div>
+        <div class="bd-field"><label>过生日用</label>
+          <div class="bd-radio">
+            <label><input type="radio" name="bdCal" value="solar"${calType==='solar'?' checked':''}/> 公历</label>
+            <label><input type="radio" name="bdCal" value="lunar"${calType==='lunar'?' checked':''}/> 农历</label>
+          </div>
+        </div>
+        <div class="bd-field" id="bdDateField"></div>
+        <div class="bd-field"><label>出生年份（选填，用于算年龄）</label><input class="bd-input" id="bdYear" type="number" min="1900" max="2100" placeholder="如 1990" value="${escapeHtml(String(year))}" /></div>
+      </div>
+      <div class="ds-cal-modal-foot">
+        <button class="btn-add" id="bdSave" type="button">${isEdit ? '保存' : '添加'}</button>
+      </div>
+    </div>`;
+  content.appendChild(mask);
+
+  const renderDateField = () => {
+    const t = mask.querySelector('input[name="bdCal"]:checked').value;
+    const f = mask.querySelector('#bdDateField');
+    if (t === 'solar') {
+      f.innerHTML = `<label>公历生日</label><div class="bd-row">
+        <div class="bd-field"><select class="bd-select" id="bdMonth">${solarMonthOpts}</select></div>
+        <div class="bd-field"><select class="bd-select" id="bdDay">${solarDayOpts}</select></div>
+      </div>`;
+    } else {
+      f.innerHTML = `<label>农历生日</label><div class="bd-row">
+        <div class="bd-field"><select class="bd-select" id="bdMonth">${lunarMonthOpts}</select></div>
+        <div class="bd-field"><select class="bd-select" id="bdDay">${lunarDayOpts}</select></div>
+      </div>
+      <label class="bd-check"><input type="checkbox" id="bdLeap"${leap?' checked':''}/> 闰月（如生日是闰月才勾选）</label>`;
+    }
+  };
+  renderDateField();
+  mask.querySelectorAll('input[name="bdCal"]').forEach(r => r.addEventListener('change', renderDateField));
+
+  mask.querySelector('#bdClose').addEventListener('click', () => mask.remove());
+  mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
+  mask.querySelector('#bdSave').addEventListener('click', () => {
+    const nm = (mask.querySelector('#bdName').value || '').trim();
+    if (!nm) { showToast('请填写姓名'); return; }
+    const t = mask.querySelector('input[name="bdCal"]:checked').value;
+    const m = +mask.querySelector('#bdMonth').value;
+    const d = +mask.querySelector('#bdDay').value;
+    const yr = (mask.querySelector('#bdYear').value || '').trim();
+    const yv = yr ? Math.max(1900, Math.min(2100, +yr)) : null;
+    const lp = t === 'lunar' ? !!(mask.querySelector('#bdLeap') && mask.querySelector('#bdLeap').checked) : false;
+    const item = { id: isEdit ? p.id : uid(), name: nm, calType: t, year: yv, month: m, day: d, leap: lp };
+    let arr = loadBirthdays();
+    if (isEdit) arr = arr.map(x => x.id === p.id ? item : x); else arr.push(item);
+    saveBirthdays(arr);
+    mask.remove();
+    renderBirthdayModule(content, mod);
+    showToast(isEdit ? '已保存' : '已添加');
   });
 }
 </script>
