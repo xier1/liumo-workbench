@@ -2746,6 +2746,16 @@
   }
   .poster-field input:focus, .poster-field textarea:focus { border-color: var(--primary); box-shadow: var(--ring); }
   .poster-hint { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin: -4px 0 12px; }
+  .poster-sheet { position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.78); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .poster-sheet-inner { width: min(430px, 100%); max-height: 92vh; background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-md); }
+  .poster-sheet-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .poster-sheet-tip { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .poster-sheet-img-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; background: #f3f4f6; border-radius: 10px; }
+  .poster-sheet-img { display: block; width: 100%; height: auto; -webkit-touch-callout: default; user-select: auto; }
+  .poster-sheet-actions { display: flex; gap: 8px; }
+  .poster-sheet-actions button { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .poster-sheet-actions .ps-download { background: var(--brand-grad); color: #fff; border: none; }
+  .poster-sheet-actions .ps-close { background: #fff; color: var(--text-soft); border: 1px solid var(--border); }
   .poster-saved { font-size: 12px; color: var(--primary); background: var(--primary-soft); border-radius: var(--radius-sm); padding: 7px 10px; margin: -6px 0 12px; line-height: 1.5; }
   .poster-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 22px 8px; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
   .poster-items { display: flex; flex-direction: column; gap: 10px; max-height: 590px; overflow-y: auto; padding-right: 4px; }
@@ -12907,6 +12917,7 @@ function defaultPoster() {
   return {
     actText: posterTodayText(),
     slogan: '今日特价',
+    footnote: '具体特价以店内实时价格为准。',
     items: []
   };
 }
@@ -13057,7 +13068,7 @@ function posterDraw() {
   const items = poster.items || [];
   const rows = Math.max(1, Math.ceil(items.length / 2));
   const shift = (rows - 3) * P_ROW_H;
-  const H = 1024 + shift;
+  const H = 1060 + shift;   // 底部多留 36px，容纳标语下方的小字
   const arcSide = 731 + shift, arcCenter = 857 + shift, actY = 805 + shift;
 
   if (cv.width !== P_W * P_S || cv.height !== Math.round(H * P_S)) {
@@ -13163,6 +13174,19 @@ function posterDraw() {
     ctx.textAlign = 'right'; ctx.fillStyle = '#ffffff';
     ctx.fillText(slogan, P_R - 6, arcCenter + 128);
   }
+
+  // 标语下方一行小字（默认说明文案，可在左侧表单修改）
+  const footnote = String(poster.footnote == null ? '' : poster.footnote).trim();
+  if (footnote) {
+    let nfs = 24;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = nfs + 'px ' + POSTER_PF;
+    while (nfs > 16 && ctx.measureText(footnote).width > 430) {
+      nfs -= 1; ctx.font = nfs + 'px ' + POSTER_PF;
+    }
+    ctx.fillText(footnote, P_R - 6, arcCenter + 170);
+  }
 }
 
 function posterRerender() {
@@ -13212,11 +13236,15 @@ function renderPosterModule(content, mod) {
           <input type="text" data-poster-field="slogan" value="${escAttr(poster.slogan)}" placeholder="如：今日特价">
         </div>
         <div class="poster-field">
+          <label>标语下方小字</label>
+          <input type="text" data-poster-field="footnote" value="${escAttr(poster.footnote)}" placeholder="如：具体特价以店内实时价格为准。">
+        </div>
+        <div class="poster-field">
           <label>促销商品（${(poster.items || []).length} 个）<button class="poster-add" type="button" data-poster-add="1">+ 添加商品</button></label>
           <div class="poster-items">${itemsHtml || '<div class="poster-empty">还没有商品，点上方「+ 添加商品」开始制作海报。</div>'}</div>
         </div>
         <div class="poster-actions">
-          <button class="btn-primary" type="button" data-poster-download="1">下载海报</button>
+          <button class="btn-primary" type="button" data-poster-saveimg="1">保存图片</button>
           <button class="btn-primary" type="button" data-poster-save="1">保存</button>
           <button class="btn-ghost" type="button" data-poster-reset="1">清空重来</button>
         </div>
@@ -13229,16 +13257,75 @@ function renderPosterModule(content, mod) {
   posterDraw();
 }
 
-function posterDownload() {
+// 生成 PNG：dataURL 用于长按保存，Blob/File 用于系统分享
+function posterMakeImage() {
   const cv = document.getElementById('posterCanvas');
-  if (!cv) return;
-  try {
-    const a = document.createElement('a');
-    a.href = cv.toDataURL('image/png');
-    a.download = '果然鲜-促销海报.png';
-    document.body.appendChild(a); a.click(); a.remove();
-    showToast('海报已下载');
-  } catch (e) { showToast('下载失败：' + e.message); }
+  if (!cv) return null;
+  const dataUrl = cv.toDataURL('image/png');
+  const parts = dataUrl.split(',');
+  const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/png';
+  const bin = atob(parts[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return { dataUrl: dataUrl, blob: new Blob([arr], { type: mime }), name: '果然鲜-促销海报.png' };
+}
+function posterIsMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile|MicroMessenger|HarmonyOS/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+}
+function posterDownloadFile(img) {
+  const a = document.createElement('a');
+  a.href = img.dataUrl; a.download = img.name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+// 手机长按保存：把高清图片单独放大显示，系统菜单里可直接「保存到相册」
+function posterShowSaveSheet(img) {
+  const old = document.getElementById('posterSaveSheet');
+  if (old) old.remove();
+  const mask = document.createElement('div');
+  mask.id = 'posterSaveSheet'; mask.className = 'poster-sheet';
+  const inner = document.createElement('div'); inner.className = 'poster-sheet-inner';
+  const title = document.createElement('div'); title.className = 'poster-sheet-title'; title.textContent = '保存图片到相册';
+  const tip = document.createElement('div'); tip.className = 'poster-sheet-tip';
+  tip.textContent = '长按下方图片，在弹出菜单里选择「保存到相册」或「存储图像」即可；图片为 2048px 高清 PNG。';
+  const wrap = document.createElement('div'); wrap.className = 'poster-sheet-img-wrap';
+  const im = document.createElement('img'); im.className = 'poster-sheet-img'; im.src = img.dataUrl; im.alt = '促销海报';
+  wrap.appendChild(im);
+  const acts = document.createElement('div'); acts.className = 'poster-sheet-actions';
+  const dl = document.createElement('button'); dl.type = 'button'; dl.className = 'ps-download'; dl.textContent = '下载图片';
+  const cl = document.createElement('button'); cl.type = 'button'; cl.className = 'ps-close'; cl.textContent = '关闭';
+  acts.appendChild(dl); acts.appendChild(cl);
+  inner.appendChild(title); inner.appendChild(tip); inner.appendChild(wrap); inner.appendChild(acts);
+  mask.appendChild(inner); document.body.appendChild(mask);
+
+  const close = () => { document.removeEventListener('keydown', onKey); mask.remove(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  mask.addEventListener('click', (e) => { if (e.target === mask) close(); });
+  cl.addEventListener('click', close);
+  dl.addEventListener('click', () => { posterDownloadFile(img); showToast('图片已保存'); });
+}
+async function posterSaveImage() {
+  let img;
+  try { img = posterMakeImage(); } catch (e) { showToast('生成图片失败：' + e.message); return; }
+  if (!img) return;
+  // 1) 优先调起系统分享面板（手机上有「保存到相册 / 存储图像」）
+  if (navigator.share) {
+    try {
+      const file = new File([img.blob], img.name, { type: 'image/png' });
+      if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '果然鲜促销海报' });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;  // 用户主动取消，不再降级
+    }
+  }
+  // 2) 手机端：弹出大图，长按保存到相册
+  if (posterIsMobile()) { posterShowSaveSheet(img); return; }
+  // 3) 桌面浏览器：直接下载 PNG
+  try { posterDownloadFile(img); showToast('图片已保存'); }
+  catch (e) { showToast('保存失败：' + e.message); }
 }
 
 // 上传图片：压到最长边 420px 的 JPEG，避免 localStorage 爆掉
@@ -13293,8 +13380,8 @@ function posterHandleClick(e) {
   }
   const saveBtn = e.target.closest('[data-poster-save]');
   if (saveBtn) { savePoster(); showToast('已保存'); return; }
-  const dlBtn = e.target.closest('[data-poster-download]');
-  if (dlBtn) { posterDownload(); return; }
+  const svBtn = e.target.closest('[data-poster-saveimg]');
+  if (svBtn) { posterSaveImage(); return; }
   const rsBtn = e.target.closest('[data-poster-reset]');
   if (rsBtn) { poster = defaultPoster(); savePoster(); posterRerender(); showToast('已清空，可重新添加商品'); return; }
 }
