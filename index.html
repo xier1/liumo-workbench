@@ -2746,6 +2746,21 @@
   }
   .poster-field input:focus, .poster-field textarea:focus { border-color: var(--primary); box-shadow: var(--ring); }
   .poster-hint { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin: -4px 0 12px; }
+  .poster-list-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+  .poster-list-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .poster-addnew { padding: 9px 16px; border: none; border-radius: var(--radius-sm); background: var(--brand-grad); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .poster-list-wrap { max-height: 460px; overflow-y: auto; }
+  .poster-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .poster-table th, .poster-table td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .poster-table th { background: var(--bg-soft); color: var(--text-soft); font-weight: 600; }
+  .poster-table tr:last-child td { border-bottom: none; }
+  .poster-table th:last-child, .poster-table td:last-child { width: 190px; }
+  .pl-name { font-weight: 600; color: var(--text); word-break: break-all; }
+  .pl-ops { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pl-btn { padding: 5px 10px; border: 1px solid var(--border); background: #fff; border-radius: 6px; font-size: 12px; color: var(--primary); cursor: pointer; }
+  .pl-btn:hover { background: var(--primary-soft); }
+  .pl-btn.pl-del { color: var(--danger); border-color: transparent; background: var(--danger-soft); }
+  .poster-list-empty { padding: 26px 12px; text-align: center; color: var(--text-muted); font-size: 13px; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
   .poster-sheet { position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.78); display: flex; align-items: center; justify-content: center; padding: 16px; }
   .poster-sheet-inner { width: min(430px, 100%); max-height: 92vh; background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-md); }
   .poster-sheet-title { font-size: 15px; font-weight: 700; color: var(--text); }
@@ -2775,9 +2790,9 @@
   .poster-add { background: var(--primary-soft); color: var(--primary); border: none; border-radius: 6px;
     padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .poster-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-  .poster-actions .btn-primary { flex: 1; min-width: 100px; background: var(--brand-grad); color: #fff; border: none;
+  .poster-actions .btn-primary { flex: 1 1 45%; min-width: 100px; background: var(--brand-grad); color: #fff; border: none;
     border-radius: var(--radius-sm); padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .poster-actions .btn-ghost { background: #fff; color: var(--text-soft); border: 1px solid var(--border);
+  .poster-actions .btn-ghost { flex: 1 1 45%; min-width: 100px; background: #fff; color: var(--text-soft); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; cursor: pointer; }
   .poster-preview { flex: 1 1 380px; min-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .poster-preview-label { font-size: 13px; color: var(--text-soft); align-self: flex-start; font-weight: 600; }
@@ -3063,7 +3078,7 @@ const MODULES = [
   {
     id: 'poster',
     name: '超市海报',
-    desc: '果然鲜绿底白卡样式 · 商品图片/名称/价格可替换 · 自由增减商品 · 标语与活动时间可改 · 导出高清 PNG',
+    desc: '果然鲜绿底白卡样式 · 多海报列表管理 · 可添加/编辑/复制/删除 · 导出高清 PNG',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
     enabled: true
   },
@@ -3080,7 +3095,10 @@ const MODULES = [
 let currentModule = 'weight';
 
 // ---------- 超市海报状态（在 loadPoster 中初始化，避免素材常量 TDZ） ----------
-let poster = null;
+let poster = null;              // 当前表单正在编辑的海报数据
+let posterList = [];            // 已保存的海报列表 [{id,name,data,savedAt}]
+let posterView = 'list';        // 'list' | 'form'，默认只展示列表
+let posterEditingId = null;     // 正在编辑的记录 id，null 表示新建
 let currentSub = null;        // 当前二级类目 id（仅对带 children 的模块有效）
 const expandedModules = {};   // moduleId -> 侧边栏是否展开其子分类
 let navReorder = false;        // 是否处于菜单排序模式
@@ -11895,6 +11913,7 @@ async function init() {
   loadSales();
   tmLoad();
   loadPoster();
+  loadPosterList();
   loadDailySales();   // 必须显式加载每日销售数据，否则刷新后 dsCats/dsLogs 留空
 
   // 先尝试从云端恢复(清缓存/换设备后可自动拉回)
@@ -12241,7 +12260,7 @@ async function tryCloudRestoreFirst(){
 }
 
 function reloadAllData(){
-  loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); loadPoster(); loadDailySales(); tmLoad();
+  loadQuotes(); loadStudyRecords(); loadStudyConfig(); loadStudyPoints(); loadWeight(); loadSalary(); loadCost(); loadCostItems(); loadScrap(); loadRope(); loadSales(); loadPoster(); loadPosterList(); loadDailySales(); tmLoad();
 }
 
 function exportBackup(){
@@ -12915,6 +12934,7 @@ function posterTodayText() {
 // 空白海报模板：不再预置任何示例商品（图片/名称/价格/单位均为空）
 function defaultPoster() {
   return {
+    name: '',
     actText: posterTodayText(),
     slogan: '今日特价',
     footnote: '具体特价以店内实时价格为准。',
@@ -12922,30 +12942,87 @@ function defaultPoster() {
   };
 }
 
+// 表单数据只在内存中，点「保存」才写入列表
 function loadPoster() {
-  try {
-    const r = localStorage.getItem(POSTER_KEY_V2);
-    const d = r ? JSON.parse(r) : null;
-    // 有保存记录时完整恢复（商品、图片、文字、标语），没有则给出空白模板
-    poster = (d && Array.isArray(d.items)) ? Object.assign(defaultPoster(), d) : defaultPoster();
-    poster.items = poster.items.map(it => Object.assign({ img: '', name: '', price: '', unit: '' }, it || {}));
-    // 旧的示例默认文案自动迁移到新默认值；用户自行修改过的内容保持不变
-    if (poster.actText === '活动时间：2026年11月08日') poster.actText = posterTodayText();
-    if (poster.slogan === '周末吃好点') poster.slogan = '今日特价';
-  } catch (e) { poster = defaultPoster(); }
+  if (!poster) poster = defaultPoster();
 }
+const POSTER_LIST_KEY = 'liumo_poster_list_v1';
+function loadPosterList() {
+  posterList = [];
+  try {
+    const raw = localStorage.getItem(POSTER_LIST_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        posterList = arr.filter(x => x && x.id && x.data && Array.isArray(x.data.items));
+        return;
+      }
+    }
+    // 兼容旧版单张海报：自动迁移成列表第一条，避免历史数据丢失
+    const old = localStorage.getItem(POSTER_KEY_V2);
+    if (old) {
+      const d = JSON.parse(old);
+      if (d && Array.isArray(d.items)) {
+        const data = Object.assign(defaultPoster(), d);
+        data.items = data.items.map(it => Object.assign({ img: '', name: '', price: '', unit: '' }, it || {}));
+        delete data.savedAt;
+        posterList.push({ id: uid(), name: data.name || '我的海报', data: data, savedAt: d.savedAt || Date.now() });
+        savePosterList();
+      }
+    }
+  } catch (e) { posterList = []; }
+}
+function savePosterList() {
+  try { localStorage.setItem(POSTER_LIST_KEY, JSON.stringify(posterList)); }
+  catch (e) { showToast('图片过大，本地保存失败，请换张小图'); }
+}
+// 点「保存」：把当前表单内容新增/更新为一条列表记录，然后回到列表
 function savePoster() {
-  try {
-    poster.savedAt = Date.now();
-    localStorage.setItem(POSTER_KEY_V2, JSON.stringify(poster));
-  } catch (e) { showToast('图片过大，本地保存失败，请换张小图'); }
+  const name = String(poster.name || '').trim() || ('海报 ' + (posterList.length + 1));
+  poster.name = name;
+  const data = { name: name, actText: poster.actText, slogan: poster.slogan,
+    footnote: poster.footnote, items: poster.items };
+  const now = Date.now();
+  const rec = posterEditingId ? posterList.find(x => x.id === posterEditingId) : null;
+  if (rec) { rec.name = name; rec.data = data; rec.savedAt = now; }
+  else posterList.push({ id: uid(), name: name, data: data, savedAt: now });
+  savePosterList();
+  posterView = 'list'; posterEditingId = null;
+  posterRerender();
+  showToast('已保存到海报列表');
 }
-function posterSavedHint() {
-  const t = poster && poster.savedAt;
-  if (!t) return '首次使用：点「+ 添加商品」开始制作；修改会自动保存，下次打开自动恢复。';
-  const d = new Date(t), z = n => ('0' + n).slice(-2);
-  return '已恢复上次保存的海报（' + d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate())
-    + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + '），可直接继续修改。';
+function posterFormHint() {
+  return posterEditingId
+    ? '正在编辑已保存的海报，修改后点「保存」更新列表；点「返回列表」放弃本次修改。'
+    : '新海报：填好内容后点「保存」加入列表；未保存的修改不会保留。';
+}
+function posterStartNew() {
+  poster = defaultPoster(); posterEditingId = null; posterView = 'form'; posterRerender();
+}
+function posterEditRecord(id) {
+  const rec = posterList.find(x => x.id === id);
+  if (!rec) return;
+  poster = Object.assign(defaultPoster(), rec.data);
+  poster.name = rec.name || '';
+  poster.items = (poster.items || []).map(it => Object.assign({ img: '', name: '', price: '', unit: '' }, it || {}));
+  posterEditingId = id; posterView = 'form'; posterRerender();
+}
+function posterBackToList() {
+  posterView = 'list'; posterEditingId = null; posterRerender();
+}
+function posterCopyRecord(id) {
+  const rec = posterList.find(x => x.id === id);
+  if (!rec) return;
+  posterList.push({ id: uid(), name: (rec.name || '海报') + ' 副本',
+    data: JSON.parse(JSON.stringify(rec.data)), savedAt: Date.now() });
+  savePosterList(); posterRerender(); showToast('已复制海报');
+}
+function posterDeleteRecord(id) {
+  const rec = posterList.find(x => x.id === id);
+  if (!rec) return;
+  if (!window.confirm('确定删除海报「' + (rec.name || '未命名') + '」吗？删除后不可恢复。')) return;
+  posterList = posterList.filter(x => x.id !== id);
+  savePosterList(); posterRerender(); showToast('已删除');
 }
 function escAttr(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -13192,15 +13269,53 @@ function posterDraw() {
 function posterRerender() {
   const old = document.querySelector('.poster-items');
   const st = old ? old.scrollTop : 0;
+  const oldList = document.querySelector('.poster-list-wrap');
+  const lst = oldList ? oldList.scrollTop : 0;
   const c = document.getElementById('content');
   const m = MODULES.find(x => x.id === 'poster');
   renderPosterModule(c, m);
   const nl = document.querySelector('.poster-items');
   if (nl) nl.scrollTop = st;
+  const nl2 = document.querySelector('.poster-list-wrap');
+  if (nl2) nl2.scrollTop = lst;
+}
+
+function posterListHtml() {
+  const rows = posterList.map(r => `
+    <tr>
+      <td class="pl-name">${escHtml(r.name || '未命名海报')}</td>
+      <td><div class="pl-ops">
+        <button type="button" class="pl-btn" data-poster-editrec="${escAttr(r.id)}">编辑</button>
+        <button type="button" class="pl-btn" data-poster-copyrec="${escAttr(r.id)}">复制</button>
+        <button type="button" class="pl-btn pl-del" data-poster-delrec="${escAttr(r.id)}">删除</button>
+      </div></td>
+    </tr>`).join('');
+  return `
+    <div class="poster-hint">已保存的海报都在这里。点「+ 添加海报」新建，点「编辑」修改已有海报；列表内容在点「保存」时写入。</div>
+    <div class="poster-list-bar">
+      <div class="poster-list-title">海报列表（${posterList.length}）</div>
+      <button type="button" class="poster-addnew" data-poster-addnew="1">+ 添加海报</button>
+    </div>
+    <div class="poster-list-wrap">
+      ${posterList.length ? `<table class="poster-table">
+        <thead><tr><th>海报名称</th><th>操作</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>` : '<div class="poster-list-empty">还没有海报，点上方「+ 添加海报」开始制作。</div>'}
+    </div>`;
 }
 
 function renderPosterModule(content, mod) {
   if (!poster) loadPoster();
+  if (!Array.isArray(posterList)) loadPosterList();
+  const header = `
+    <div class="page-header">
+      <div class="page-title">${mod ? mod.name : '超市海报'}</div>
+      <div class="page-desc">${mod ? mod.desc : '促销海报管理与导出'}</div>
+    </div>`;
+  if (posterView === 'list') {
+    content.innerHTML = header + posterListHtml();
+    return;
+  }
   const itemsHtml = (poster.items || []).map((it, idx) => `
     <div class="poster-item">
       <div class="pi-top">
@@ -13218,15 +13333,15 @@ function renderPosterModule(content, mod) {
         <input class="pi-unit" type="text" data-poster-field="items" data-idx="${idx}" data-sub="unit" value="${escAttr(it.unit)}" placeholder="单位，如 盒">
       </div>
     </div>`).join('');
-  content.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">${mod ? mod.name : '超市海报'}</div>
-      <div class="page-desc">${mod ? mod.desc : '促销海报编辑与导出'}</div>
-    </div>
-    <div class="poster-hint">左侧编辑内容，右侧实时预览。商品图片、名称、价格、单位都能单独替换，可自由增减商品与调整顺序；导出的图片为 2048px 高清 PNG。</div>
-    <div class="poster-saved">${posterSavedHint()}</div>
+  content.innerHTML = header + `
+    <div class="poster-hint">左侧编辑内容，右侧实时预览。修改后点「保存」把海报存入列表；「保存图片」可导出高清 PNG 到相册。</div>
+    <div class="poster-saved">${posterFormHint()}</div>
     <div class="poster-app">
       <div class="poster-form">
+        <div class="poster-field">
+          <label>海报名称</label>
+          <input type="text" data-poster-field="name" value="${escAttr(poster.name)}" placeholder="如：双十一生鲜特惠">
+        </div>
         <div class="poster-field">
           <label>活动时间文字</label>
           <input type="text" data-poster-field="actText" value="${escAttr(poster.actText)}" placeholder="如：活动时间：2026年11月12日">
@@ -13246,6 +13361,7 @@ function renderPosterModule(content, mod) {
         <div class="poster-actions">
           <button class="btn-primary" type="button" data-poster-saveimg="1">保存图片</button>
           <button class="btn-primary" type="button" data-poster-save="1">保存</button>
+          <button class="btn-ghost" type="button" data-poster-back="1">返回列表</button>
           <button class="btn-ghost" type="button" data-poster-reset="1">清空重来</button>
         </div>
       </div>
@@ -13344,7 +13460,7 @@ function posterHandleFile(input, idx) {
       cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, w, h);
       cx.drawImage(im, 0, 0, w, h);
       poster.items[idx].img = c.toDataURL('image/jpeg', 0.85);
-      savePoster(); posterRerender(); showToast('图片已更换');
+      posterRerender(); showToast('图片已更换');
     };
     im.onerror = () => showToast('图片读取失败');
     im.src = reader.result;
@@ -13361,29 +13477,42 @@ function posterHandleInput(e) {
     if (!poster.items[idx]) return;
     poster.items[idx][sub] = el.value;
   } else poster[f] = el.value;
-  posterDraw(); savePoster();
+  posterDraw();
 }
 
 function posterHandleClick(e) {
+  // 列表视图按钮
+  const newBtn = e.target.closest('[data-poster-addnew]');
+  if (newBtn) { posterStartNew(); return; }
+  const backBtn = e.target.closest('[data-poster-back]');
+  if (backBtn) { posterBackToList(); return; }
+  const editRec = e.target.closest('[data-poster-editrec]');
+  if (editRec) { posterEditRecord(editRec.getAttribute('data-poster-editrec')); return; }
+  const copyRec = e.target.closest('[data-poster-copyrec]');
+  if (copyRec) { posterCopyRecord(copyRec.getAttribute('data-poster-copyrec')); return; }
+  const delRec = e.target.closest('[data-poster-delrec]');
+  if (delRec) { posterDeleteRecord(delRec.getAttribute('data-poster-delrec')); return; }
+  if (posterView !== 'form') return;
+  // 表单视图按钮
   const addBtn = e.target.closest('[data-poster-add]');
-  if (addBtn) { poster.items.push({ img: '', name: '', price: '', unit: '' }); savePoster(); posterRerender(); return; }
+  if (addBtn) { poster.items.push({ img: '', name: '', price: '', unit: '' }); posterRerender(); return; }
   const delBtn = e.target.closest('[data-poster-del]');
-  if (delBtn) { poster.items.splice(+delBtn.getAttribute('data-poster-del'), 1); savePoster(); posterRerender(); return; }
+  if (delBtn) { poster.items.splice(+delBtn.getAttribute('data-poster-del'), 1); posterRerender(); return; }
   const mvBtn = e.target.closest('[data-poster-move]');
   if (mvBtn) {
     const i = +mvBtn.getAttribute('data-idx'), j = i + (+mvBtn.getAttribute('data-poster-move'));
     if (j >= 0 && j < poster.items.length) {
       const t = poster.items[i]; poster.items[i] = poster.items[j]; poster.items[j] = t;
-      savePoster(); posterRerender();
+      posterRerender();
     }
     return;
   }
   const saveBtn = e.target.closest('[data-poster-save]');
-  if (saveBtn) { savePoster(); showToast('已保存'); return; }
+  if (saveBtn) { savePoster(); return; }
   const svBtn = e.target.closest('[data-poster-saveimg]');
   if (svBtn) { posterSaveImage(); return; }
   const rsBtn = e.target.closest('[data-poster-reset]');
-  if (rsBtn) { poster = defaultPoster(); savePoster(); posterRerender(); showToast('已清空，可重新添加商品'); return; }
+  if (rsBtn) { poster = defaultPoster(); posterRerender(); showToast('已清空，可重新添加商品'); return; }
 }
 
 function bindPosterEvents() {
