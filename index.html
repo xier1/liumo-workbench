@@ -254,6 +254,10 @@
   .iv-group-title { margin: 14px 2px 8px; font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
   .iv-group-title::before { content: ''; width: 3px; height: 13px; border-radius: 2px; background: var(--primary-2); }
   .iv-item { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); border-left: 4px solid var(--primary-2); }
+  .iv-item-short { flex: 0 0 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .iv-item-short input { width: 17px; height: 17px; accent-color: var(--danger); cursor: pointer; margin: 0; }
+  .iv-item.iv-item-shortage { border-color: rgba(220,38,38,.45); background: #fff8f8; }
+  .iv-head-tip { font-size: 12px; font-weight: 500; color: var(--text-muted); }
   .iv-item.iv-cat-cig { border-left-color: #b45309; }
   .iv-item.iv-cat-liq { border-left-color: #6d28d9; }
   .iv-item-main { flex: 1 1 0%; min-width: 120px; overflow: hidden; }
@@ -9389,7 +9393,7 @@ function renderInventoryModule(content, mod) {
     </div>
 
     <div class="wt-note">
-      说明：管理<b>香烟</b>与<b>酒水</b>的库存。先添加商品（名称、分类、进价、拿货价、当前库存，按需勾选是否预警，可标记<b>缺货</b>并填写缺货数量），
+      说明：管理<b>香烟</b>与<b>酒水</b>的库存。先添加商品（名称、分类、进价、拿货价、当前库存，按需勾选是否预警，可填缺货数量；列表中勾选左侧方框即标记<b>缺货</b>），
       日常通过<b>入库 / 出库</b>增减库存并自动记录流水；勾选预警且库存 ≤ 阈值时<b>标红预警</b>（默认阈值 2）。支持<b>按名称搜索</b>，列表按<b>库存从高到低</b>排列、<b>香烟 / 酒水分组</b>显示，可<b>修改 / 删除</b>，下方「出入库流水」默认折叠。
     </div>
 
@@ -9439,16 +9443,9 @@ function renderInventoryModule(content, mod) {
             <label>预警阈值</label>
             <input type="number" step="any" min="0" id="ivWarn" placeholder="默认 2" />
           </div>
-          <div class="wt-field">
-            <label>是否缺货</label>
-            <label class="iv-checkbox-label">
-              <input type="checkbox" id="ivShort" />
-              商品缺货
-            </label>
-          </div>
-          <div class="wt-field" id="ivShortField" style="opacity:0.5;">
+          <div class="wt-field" id="ivShortField">
             <label>缺货数量</label>
-            <input type="number" step="any" min="0" id="ivShortQty" placeholder="如 5" disabled />
+            <input type="number" step="any" min="0" id="ivShortQty" placeholder="缺货时填数量，如 5" />
           </div>
           <button class="btn-add" id="ivSaveBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -9478,6 +9475,7 @@ function renderInventoryModule(content, mod) {
           <svg class="co-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
           <span>商品列表（<span id="ivListCount">0</span>）</span>
         </button>
+        <span class="iv-head-tip">勾选左侧方框＝缺货（缺货提醒）</span>
       </div>
       <div class="wt-list co-collapse-body" id="ivList"></div>
     </div>
@@ -9565,8 +9563,11 @@ function ivItemRow(it) {
   const short = it.short === true;
   let sub = needWarn ? ('预警 ≤ ' + warn) : '不预警';
   if (ws > 0) sub += ' · 拿货价 ¥' + ws;
-  if (short) sub += ' · <span class="iv-short-tag">缺货 ' + (Number(it.shortQty) || 0) + '</span>';
-  return `<div class="iv-item ${cat.cls}">
+  if (short) sub += ' · <span class="iv-short-tag">缺货' + ((Number(it.shortQty) || 0) > 0 ? ' ' + Number(it.shortQty) : '') + '</span>';
+  return `<div class="iv-item ${cat.cls}${short ? ' iv-item-shortage' : ''}">
+    <label class="iv-item-short" title="缺货提醒">
+      <input type="checkbox" data-short-id="${it.id}" ${short ? 'checked' : ''} aria-label="缺货提醒">
+    </label>
     <div class="iv-item-main">
       <div class="iv-item-name">${escapeHtml(it.name)}</div>
       <div class="iv-item-sub">${sub}</div>
@@ -9656,9 +9657,7 @@ function bindInventoryEvents() {
   const warnEl = document.getElementById('ivWarn');
   const needWarnEl = document.getElementById('ivNeedWarn');
   const warnField = document.getElementById('ivWarnField');
-  const shortEl = document.getElementById('ivShort');
   const shortQtyEl = document.getElementById('ivShortQty');
-  const shortField = document.getElementById('ivShortField');
   const saveBtn = document.getElementById('ivSaveBtn');
   const saveLabel = document.getElementById('ivSaveLabel');
   const cancelBtn = document.getElementById('ivCancelBtn');
@@ -9672,14 +9671,6 @@ function bindInventoryEvents() {
   }
   needWarnEl.addEventListener('change', syncWarnField);
 
-  function syncShortField() {
-    const on = shortEl.checked;
-    shortField.style.opacity = on ? '1' : '0.5';
-    shortQtyEl.disabled = !on;
-    if (!on) shortQtyEl.value = '';
-    else if (!shortQtyEl.value) shortQtyEl.focus();
-  }
-  shortEl.addEventListener('change', syncShortField);
 
   function resetForm() {
     inventoryEditingId = null;
@@ -9689,8 +9680,7 @@ function bindInventoryEvents() {
     needWarnEl.checked = true;
     warnEl.disabled = false;
     warnEl.value = '2';
-    shortEl.checked = false;
-    syncShortField();
+    shortQtyEl.value = '';
     saveLabel.textContent = '添加商品';
     cancelBtn.style.display = 'none';
   }
@@ -9741,15 +9731,13 @@ function bindInventoryEvents() {
     const needWarn = needWarnEl.checked;
     const warnRaw = parseFloat(warnEl.value);
     const wholesale = parseFloat(wholesaleEl.value);
-    const short = shortEl.checked;
     const shortQtyRaw = parseFloat(shortQtyEl.value);
     const rec = {
       name, category,
       price: isNaN(price) ? 0 : price,
       stock: isNaN(stock) ? 0 : stock,
       wholesale: isNaN(wholesale) ? 0 : wholesale,
-      short: short,
-      shortQty: short && !isNaN(shortQtyRaw) ? shortQtyRaw : 0,
+      shortQty: isNaN(shortQtyRaw) ? 0 : shortQtyRaw,
       needWarn: needWarn,
       warn: needWarn ? (isNaN(warnRaw) ? 2 : warnRaw) : 0,
       updatedAt: Date.now()
@@ -9761,6 +9749,7 @@ function bindInventoryEvents() {
     } else {
       rec.id = uid();
       rec.createdAt = Date.now();
+      rec.short = false;          // 缺货状态由列表「缺货提醒」勾选控制
       inventoryItems.push(rec);
       showToast('已添加：' + name);
     }
@@ -9778,9 +9767,24 @@ function bindInventoryEvents() {
     if (!btn) return;
     const id = btn.dataset.id;
     const act = btn.dataset.act;
-    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, priceEl, stockEl, wholesaleEl, warnEl, needWarnEl, shortEl, shortQtyEl, shortField, saveLabel, cancelBtn });
+    if (act === 'edit') startInventoryEdit(id, { nameEl, catEl, priceEl, stockEl, wholesaleEl, warnEl, needWarnEl, shortQtyEl, saveLabel, cancelBtn });
     else if (act === 'del') deleteInventoryItem(id);
     else openInventoryModal(id, act);   // in / out
+  });
+
+  // 「缺货提醒」列：勾选即缺货、取消即恢复，立即保存
+  list.addEventListener('change', e => {
+    const cb = e.target.closest('[data-short-id]');
+    if (!cb) return;
+    const it = inventoryItems.find(i => i.id === cb.dataset.shortId);
+    if (!it) return;
+    it.short = cb.checked;
+    it.updatedAt = Date.now();
+    saveInventory();
+    const st = list.scrollTop;
+    renderInventoryList();
+    list.scrollTop = st;
+    showToast(cb.checked ? ('已标记缺货：' + it.name) : ('已取消缺货：' + it.name));
   });
 
   const logToggle = document.getElementById('ivLogToggle');
@@ -9825,11 +9829,7 @@ function startInventoryEdit(id, refs) {
   refs.needWarnEl.checked = needWarn;
   refs.warnEl.value = needWarn ? (it.warn || '') : '';
   refs.warnEl.disabled = !needWarn;
-  const short = it.short === true;
-  refs.shortEl.checked = short;
-  refs.shortQtyEl.value = short ? (Number(it.shortQty) || '') : '';
-  refs.shortQtyEl.disabled = !short;
-  refs.shortField.style.opacity = short ? '1' : '0.5';
+  refs.shortQtyEl.value = (Number(it.shortQty) || 0) || '';
   refs.saveLabel.textContent = '保存修改';
   refs.cancelBtn.style.display = '';
   const formCard = document.getElementById('ivFormCard');
